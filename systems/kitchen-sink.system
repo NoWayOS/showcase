@@ -1,0 +1,146 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+    The kitchen sink on a screen: Showcase's ten kiosk reference
+    screens - the React screens, as native Rust - shown by NoWayOS's display
+    PD and toured with their own buttons, driven by keys typed on a terminal
+    attached to the board's debug UART. A UI app, not the kiosk: the screens
+    follow one fixed tour (showcase_kiosk_screens::sink); the kiosk's rules
+    live in the application PD. Any UI app can take the ui PD's place.
+
+        ui             showcase-screens-ui: draws the screens into the
+                       framebuffer it shares with the display PD (NoWayOS's
+                       UI loop), acts on input, presents each frame
+        display        showcase-display, NoWayOS's display PD, quiet: checks
+                       each frame and prints no hash; on the Pi 5 it shows it on
+                       the HDMI monitor (rpi5b_2gb/kitchen-sink.system)
+        input_broker   showcase-input-broker, NoWayOS's input broker: each
+                       event checked against the screen, the source held to
+                       its rate, before the UI sees it
+        uart_input     showcase-uart-input, NoWayOS's UART input PD, a
+                       development route only: keys typed on the terminal,
+                       read from the debug UART every 10 ms and decoded
+        timer          showcase-timer, NoWayOS's timer PD: wakes uart_input
+
+    In QEMU the terminal is QEMU's serial port, which kitchen-sink.qmp types
+    into; on the Pi 5 it is the Debug Probe's (make pi-show PI_TYPE=1, or
+    make pi-run, which types the same script). The timer is QEMU's CPU timer
+    here; the Pi 5's variant gives the timer PD BCM2712's system timer, and
+    the display PD the firmware's framebuffer, as NoWayOS's do.
+
+    Capabilities: the UI's regions, as NoWayOS's ui-demo.system gives its UI
+    PD (its rings with the display and its input ring from the broker; the
+    framebuffer, read-write in the UI and read-only in the display) - no
+    device, interrupt or physical address. The display holds only its side
+    of those rings and the framebuffer, read-only. The broker holds its two
+    rings and the screen's size (1920x1064, read-only configuration: the Pi 5's
+    window, drawn at its own pixels at device scale 2).
+    uart_input holds the debug UART's window, uncached and read-only, and its
+    facts, read-only - it reads the receive side only and writes nothing - its ring
+    to the broker, and a channel to the timer, which it calls. The timer
+    holds its interrupt. Every grant is listed in kitchen-sink.grants.
+
+    Priorities: the timer above every PD, so uart_input may call it; the
+    display above the broker and the UI, so a presented frame is shown at
+    once; the broker above uart_input, so a key that finds the ring full is
+    drained at once when uart_input notifies; uart_input above the UI, so the
+    UART is read however busy the UI is (kitchen-sink.grants).
+-->
+<system>
+    <memory_region name="present_messages" size="0x1000" />
+    <memory_region name="present_control" size="0x1000" />
+    <memory_region name="display_messages" size="0x1000" />
+    <memory_region name="display_control" size="0x1000" />
+    <memory_region name="framebuffer" size="0x400000" />
+    <memory_region name="input_messages" size="0x1000" />
+    <memory_region name="input_control" size="0x1000" />
+    <memory_region name="keys_messages" size="0x1000" />
+    <memory_region name="keys_control" size="0x1000" />
+    <memory_region name="debug_uart_regs" size="@debug_uart" phys_addr="@debug_uart" />
+    <memory_region name="debug_uart_facts" prefill_path="device-debug_uart.bin" />
+    <memory_region name="screen" prefill_path="screen-1920x1064.bin" />
+
+    <protection_domain name="timer" priority="5" stack_size="0x10000">
+        <program_image path="showcase-timer.elf" />
+        <irq irq="@phys_timer" id="0" trigger="@phys_timer" />
+    </protection_domain>
+
+    <protection_domain name="display" priority="4" stack_size="0x10000">
+        <program_image path="showcase-display.elf" />
+        <map mr="present_control" vaddr="0x4000_0000" perms="rw"
+             setvar_vaddr="nowayos_rw_region_0_vaddr" setvar_size="nowayos_rw_region_0_size" />
+        <map mr="present_messages" vaddr="0x4000_1000" perms="r"
+             setvar_vaddr="nowayos_ro_region_0_vaddr" setvar_size="nowayos_ro_region_0_size" />
+        <map mr="display_messages" vaddr="0x4000_2000" perms="rw"
+             setvar_vaddr="nowayos_rw_region_1_vaddr" setvar_size="nowayos_rw_region_1_size" />
+        <map mr="display_control" vaddr="0x4000_3000" perms="r"
+             setvar_vaddr="nowayos_ro_region_1_vaddr" setvar_size="nowayos_ro_region_1_size" />
+        <map mr="framebuffer" vaddr="0x5000_0000" perms="r"
+             setvar_vaddr="nowayos_ro_region_2_vaddr" setvar_size="nowayos_ro_region_2_size" />
+    </protection_domain>
+
+    <protection_domain name="input_broker" priority="3" stack_size="0x10000">
+        <program_image path="showcase-input-broker.elf" />
+        <map mr="input_messages" vaddr="0x4000_0000" perms="rw"
+             setvar_vaddr="nowayos_rw_region_0_vaddr" setvar_size="nowayos_rw_region_0_size" />
+        <map mr="input_control" vaddr="0x4000_1000" perms="r"
+             setvar_vaddr="nowayos_ro_region_0_vaddr" setvar_size="nowayos_ro_region_0_size" />
+        <map mr="keys_messages" vaddr="0x4100_0000" perms="r"
+             setvar_vaddr="nowayos_ro_region_1_vaddr" setvar_size="nowayos_ro_region_1_size" />
+        <map mr="keys_control" vaddr="0x4100_1000" perms="rw"
+             setvar_vaddr="nowayos_rw_region_1_vaddr" setvar_size="nowayos_rw_region_1_size" />
+        <map mr="screen" vaddr="0x5000_0000" perms="r"
+             setvar_vaddr="nowayos_ro_region_7_vaddr" setvar_size="nowayos_ro_region_7_size" />
+    </protection_domain>
+
+    <protection_domain name="uart_input" priority="2" stack_size="0x10000">
+        <program_image path="showcase-uart-input.elf" />
+        <map mr="debug_uart_regs" vaddr="0x200_0000" perms="r" cached="false"
+             setvar_vaddr="nowayos_device_0_vaddr" setvar_size="nowayos_device_0_size" />
+        <map mr="debug_uart_facts" vaddr="0x4000_4000" perms="r"
+             setvar_vaddr="nowayos_ro_region_5_vaddr" setvar_size="nowayos_ro_region_5_size" />
+        <map mr="keys_messages" vaddr="0x4000_0000" perms="rw"
+             setvar_vaddr="nowayos_rw_region_0_vaddr" setvar_size="nowayos_rw_region_0_size" />
+        <map mr="keys_control" vaddr="0x4000_1000" perms="r"
+             setvar_vaddr="nowayos_ro_region_0_vaddr" setvar_size="nowayos_ro_region_0_size" />
+    </protection_domain>
+
+    <protection_domain name="ui" priority="1" stack_size="0x20000">
+        <program_image path="showcase-screens-ui.elf" />
+        <map mr="present_messages" vaddr="0x4000_0000" perms="rw"
+             setvar_vaddr="nowayos_rw_region_0_vaddr" setvar_size="nowayos_rw_region_0_size" />
+        <map mr="present_control" vaddr="0x4000_1000" perms="r"
+             setvar_vaddr="nowayos_ro_region_0_vaddr" setvar_size="nowayos_ro_region_0_size" />
+        <map mr="display_control" vaddr="0x4000_2000" perms="rw"
+             setvar_vaddr="nowayos_rw_region_1_vaddr" setvar_size="nowayos_rw_region_1_size" />
+        <map mr="display_messages" vaddr="0x4000_3000" perms="r"
+             setvar_vaddr="nowayos_ro_region_1_vaddr" setvar_size="nowayos_ro_region_1_size" />
+        <map mr="framebuffer" vaddr="0x5000_0000" perms="rw"
+             setvar_vaddr="nowayos_rw_region_2_vaddr" setvar_size="nowayos_rw_region_2_size" />
+        <map mr="input_control" vaddr="0x4000_4000" perms="rw"
+             setvar_vaddr="nowayos_rw_region_3_vaddr" setvar_size="nowayos_rw_region_3_size" />
+        <map mr="input_messages" vaddr="0x4000_5000" perms="r"
+             setvar_vaddr="nowayos_ro_region_2_vaddr" setvar_size="nowayos_ro_region_2_size" />
+    </protection_domain>
+
+    <!-- "Records waiting", both ways. -->
+    <channel>
+        <end pd="ui" id="0" />
+        <end pd="display" id="0" />
+    </channel>
+    <!-- "Events waiting" from the broker; "ready for more" from the UI, which
+         the broker answers by draining its sources. -->
+    <channel>
+        <end pd="ui" id="1" />
+        <end pd="input_broker" id="0" />
+    </channel>
+    <!-- uart_input's "events waiting"; the broker never notifies it. -->
+    <channel>
+        <end pd="uart_input" id="0" />
+        <end pd="input_broker" id="1" notify="false" />
+    </channel>
+    <!-- uart_input calls the timer; the timer notifies it when a poll is due. -->
+    <channel>
+        <end pd="uart_input" id="1" pp="true" notify="false" />
+        <end pd="timer" id="1" />
+    </channel>
+</system>

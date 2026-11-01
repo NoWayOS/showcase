@@ -1,0 +1,63 @@
+# Lines NoWayOS's tools/pi-run must see from the kitchen sink on the Pi 5, in
+# this order, as whole serial lines: systems/kitchen-sink.expect's,
+# after each USB host PD has run its controller - RP1's two, which the QEMU
+# variant lacks. What is plugged into them is printed between these lines and
+# not checked: the tour is typed through the Debug Probe.
+# The display PD shows each frame at the monitor's own pixels.
+NOWAYOS: display-stub: showing each frame on the board's 1920x1080 r5g6b5 framebuffer at its own pixels, from row 16
+NOWAYOS: usb0: starting
+NOWAYOS: usb0: controller identified
+NOWAYOS: usb0: halted and reset
+NOWAYOS: usb0: running: a No Op command came back through DMA
+NOWAYOS: usb0: ready
+NOWAYOS: usb1: starting
+NOWAYOS: usb1: controller identified
+NOWAYOS: usb1: halted and reset
+NOWAYOS: usb1: running: a No Op command came back through DMA
+NOWAYOS: usb1: ready
+SHOWCASE: ui: starting
+SHOWCASE: ui: the display is 1920x1064 Rgb565 at scale 2
+SHOWCASE: ui: showing welcome
+SHOWCASE: ui: action Start
+SHOWCASE: ui: showing step-text
+SHOWCASE: ui: action Next
+SHOWCASE: ui: showing step-choice
+SHOWCASE: ui: action Next
+SHOWCASE: ui: showing step-checkbox
+SHOWCASE: ui: action Next
+SHOWCASE: ui: showing step-notice
+SHOWCASE: ui: action Next
+SHOWCASE: ui: showing review
+SHOWCASE: ui: action Send
+SHOWCASE: ui: showing submitting
+SHOWCASE: ui: showing failed
+SHOWCASE: ui: action Try again
+SHOWCASE: ui: showing submitted
+SHOWCASE: ui: action Done
+SHOWCASE: ui: showing idle-warning
+SHOWCASE: ui: action Yes, I am here
+SHOWCASE: ui: showing welcome
+
+# Output that fails the test at once if it appears anywhere (substring match):
+# a fault reported by the Microkit monitor, a kernel error message, a panic, a
+# PD giving up, a record refused or rejected, input dropped anywhere - by an
+# input PD, at the broker's rate or for want of room in the UI's ring.
+!cannot show frames
+!MON|ERROR
+!seL4(CPU
+!panicked
+!gave up
+!refused
+!rejected
+!dropped so far
+!over its rate
+!the UI's ring is full
+
+# Nothing derived from what was typed: no frame's or scan-out hash,
+# which the display PD prints only when it is not quiet, and nothing the
+# script types - every name starts zqvj, the reference is 9081726354.
+# tools/check-quiet requires the hash line, and each text typed to start
+# with a text forbidden here.
+!display-stub: frame
+!zqvj
+!9081726354

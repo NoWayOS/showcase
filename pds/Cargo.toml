@@ -1,0 +1,109 @@
+# Showcase's Microkit protection domains: a Cargo workspace of its own.
+#
+# Separate from the workspace in ../Cargo.toml because PDs need NoWayOS's
+# pinned nightly, the seL4 target and build-std (rust-toolchain.toml,
+# .cargo/config.toml). They are built and checked with NoWayOS's make
+# fragments, exactly as NoWayOS's own PDs are (../Makefile: make qemu-test,
+# pds-lint, pds-deny, unsafe-audit, std-crates-check).
+
+[workspace]
+resolver = "3"
+members = [
+    # The reference kiosk: systems/kiosk.system and its Pi 5
+    # variant - the application PD running the kiosk flow, and the UI PD
+    # showing the reference screens it names
+    "kiosk",
+    "kiosk-ui",
+    # The showcase: systems/showcase.system and its Pi 5 variant -
+    # the launcher's UI PD, on kiosk-ui's library, with the kiosk's PDs,
+    # and the visitor sign-in's application PD, on kiosk's library
+    "showcase-ui",
+    "visitor",
+    # and the pay at the pump's
+    "pump",
+    # The kitchen sink on a screen: systems/kitchen-sink.system and its
+    # Pi 5 variant - the UI PD touring the ten kiosk reference screens, and
+    # NoWayOS's display, input broker, UART input, USB host and timer PDs,
+    # each run from a program of Showcase's own
+    "screens-ui",
+    "display",
+    "input-broker",
+    "uart-input",
+    "usb-host",
+    "timer",
+    # The Pi 5's fan: NoWayOS's fan PD, in the long-running Pi systems
+    "fan",
+    # A Pi 5 test system's run length: NoWayOS's watchdog
+    # PD and its stand-in as the ticker, in systems/rpi5b_2gb/showcase-tour
+    "run-watchdog",
+    "watchdog-stand-in",
+]
+
+[workspace.package]
+version = "0.1.0"
+edition = "2024"
+rust-version = "1.93"
+license = "MIT OR Apache-2.0"
+publish = false
+
+[workspace.dependencies]
+# rust-sel4 is not on crates.io. The commit NoWayOS's pds/Cargo.toml pins
+# (tag v5.0.0) and no other: `make pds-deny` refuses any other commit
+# (nowayos/tools/check-git-pins). A supply-chain change: Showcase's first git
+# source, BSD-2-Clause.
+sel4-microkit = { git = "https://github.com/seL4/rust-sel4", rev = "d441a880938209f661201704dfbee7b91c5aa905", default-features = false }
+
+# NoWayOS's crates, from the clone beside this one, by path: its UI
+# loop and display records for the UI PD, and the PDs Showcase runs from
+# programs of its own.
+nowayos-display = { path = "../../nowayos/crates/nowayos-display" }
+nowayos-ui-loop = { path = "../../nowayos/pds/ui-loop" }
+nowayos-ui = { path = "../../nowayos/crates/nowayos-ui" }
+nowayos-display-stub = { path = "../../nowayos/pds/display-stub" }
+nowayos-input-broker = { path = "../../nowayos/pds/input-broker" }
+nowayos-uart-input = { path = "../../nowayos/pds/uart-input" }
+nowayos-usb-host = { path = "../../nowayos/pds/usb-host" }
+nowayos-timer = { path = "../../nowayos/pds/timer" }
+nowayos-fan = { path = "../../nowayos/pds/fan" }
+nowayos-watchdog = { path = "../../nowayos/pds/watchdog" }
+nowayos-watchdog-stand-in = { path = "../../nowayos/pds/watchdog-stand-in" }
+# For the reference kiosk's PDs: rings, regions and the timer's calls.
+nowayos-ipc = { path = "../../nowayos/crates/nowayos-ipc" }
+nowayos-bounded = { path = "../../nowayos/crates/nowayos-bounded" }
+nowayos-region = { path = "../../nowayos/pds/region" }
+nowayos-timer-api = { path = "../../nowayos/pds/timer-api" }
+
+# Showcase's own crates, from ../kiosk.
+showcase-kiosk-flow = { path = "../kiosk/showcase-kiosk-flow" }
+showcase-kiosk-screens = { path = "../kiosk/showcase-kiosk-screens" }
+showcase-kiosk-contract = { path = "../kiosk/showcase-kiosk-contract" }
+showcase-app = { path = "../showcase/showcase-app" }
+showcase-visitor = { path = "../showcase/showcase-visitor" }
+showcase-pump = { path = "../showcase/showcase-pump" }
+showcase-kiosk-ui = { path = "kiosk-ui" }
+showcase-kiosk-stand-in = { path = "kiosk" }
+
+[workspace.lints.rust]
+unsafe_code = "forbid"
+missing_docs = "warn"
+
+[workspace.lints.clippy]
+# The NoWayOS baseline (../../nowayos/tools/baseline.toml), as in ../Cargo.toml.
+unwrap_used = "deny"
+expect_used = "deny"
+panic = "deny"
+todo = "deny"
+unimplemented = "deny"
+unreachable = "deny"
+undocumented_unsafe_blocks = "deny"
+panic_in_result_fn = "deny"
+allow_attributes_without_reason = "deny"
+indexing_slicing = "deny"
+arithmetic_side_effects = "deny"
+
+[profile.release]
+overflow-checks = true
+panic = "abort"
+
+[profile.dev]
+panic = "abort"

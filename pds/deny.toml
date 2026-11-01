@@ -1,0 +1,103 @@
+# cargo-deny for Showcase's protection-domain workspace. Runs inside the
+# NoWayOS dev container: `make pds-deny` (and `make ci`).
+#
+# House licence list: MIT, Apache-2.0,
+# BSD-2-Clause, BSD-3-Clause, ISC. Anything else the dependency tree needs
+# gets a per-crate exception below, and needs the project owner's written
+# sign-off before it is relied on.
+#
+# Not checked by cargo-deny: the standard-library crates build-std rebuilds
+# from rust-src (core, alloc, compiler_builtins). They are not in Cargo.lock;
+# `make std-crates-check` holds them to NoWayOS's reviewed list
+# (nowayos/pds/std-crates.txt), as the PDs are built with NoWayOS's toolchain.
+
+[graph]
+# Every platform: a superset of what the PDs and their build scripts use.
+targets = []
+all-features = false
+no-default-features = false
+
+[advisories]
+# Every vulnerability, unsound and unmaintained advisory is an error, whichever
+# crate in the tree it concerns, and so is a yanked crate version, unless it is
+# listed in `ignore` with the reason it does not apply. The NoWayOS
+# baseline: nowayos/tools/baseline.toml.
+unmaintained = "all"
+unsound = "all"
+yanked = "deny"
+ignore = []
+
+[licenses]
+allow = ["MIT", "Apache-2.0", "BSD-2-Clause", "BSD-3-Clause", "ISC"]
+confidence-threshold = 0.93
+# Dev-dependencies too: the house rule covers every package we add.
+include-dev = true
+# The allow list is the house policy shared by every NoWayOS repo; not
+# every licence on it is used here.
+unused-allowed-license = "allow"
+exceptions = [
+    # outside house list - signed off: nowayos-glyphs, NoWayOS's glyph
+    # atlases, a Modified Version of the signed-off font, is OFL-1.1.
+    { crate = "nowayos-glyphs", allow = ["OFL-1.1"] },
+    # outside house list - signed off 2026-10-01.
+    # Unicode-3.0 covers Unicode data tables. Build-time only (a dependency of
+    # proc-macro2, used by rust-sel4's proc macros and build scripts); never
+    # linked into a PD. The same exception as nowayos/pds/deny.toml.
+    { crate = "unicode-ident", allow = ["Unicode-3.0"] },
+]
+
+[licenses.private]
+# Our own crates and NoWayOS's declare their licences and are checked like any
+# other crate. Third-party code still comes from crates.io only: `make deny`
+# first runs the NoWayOS baseline check (../nowayos/tools/check-baseline),
+# whose local-crate guard fails on any local crate that is not Showcase's or
+# NoWayOS's own.
+ignore = false
+
+[bans]
+multiple-versions = "warn"
+wildcards = "deny"
+# Our crates depend on each other by path, which is not a wildcard risk; a
+# registry dependency written as "*" is refused.
+allow-wildcard-paths = true
+# The NoWayOS baseline's bans (nowayos/tools/baseline.toml): the
+# trusted path has no browser engine, WebView, window system or C GUI
+# runtime (non-negotiables), so their usual crates
+# are banned by name in every workspace. `make deny` fails if one is missing
+# or banned only in part, if [graph] narrows what cargo-deny checks, or if
+# Cargo.lock - every feature and platform - holds one, so none can arrive as
+# a dependency of something else.
+deny = [
+    { crate = "wry", reason = "trusted-path non-negotiable: no WebView" },
+    { crate = "webkit2gtk", reason = "trusted-path non-negotiable: no browser engine" },
+    { crate = "webkit2gtk-sys", reason = "trusted-path non-negotiable: no browser engine" },
+    { crate = "webview2-com", reason = "trusted-path non-negotiable: no WebView" },
+    { crate = "servo", reason = "trusted-path non-negotiable: no browser engine" },
+    { crate = "tao", reason = "trusted-path non-negotiable: no window system" },
+    { crate = "winit", reason = "trusted-path non-negotiable: no window system" },
+    { crate = "x11", reason = "trusted-path non-negotiable: no window system" },
+    { crate = "x11-dl", reason = "trusted-path non-negotiable: no window system" },
+    { crate = "x11rb", reason = "trusted-path non-negotiable: no window system" },
+    { crate = "wayland-client", reason = "trusted-path non-negotiable: no window system" },
+    { crate = "wayland-sys", reason = "trusted-path non-negotiable: no window system" },
+    { crate = "gtk", reason = "trusted-path non-negotiable: no C GUI runtime" },
+    { crate = "gtk4", reason = "trusted-path non-negotiable: no C GUI runtime" },
+    { crate = "gtk-sys", reason = "trusted-path non-negotiable: no C GUI runtime" },
+    { crate = "sdl2", reason = "trusted-path non-negotiable: no C GUI runtime" },
+    { crate = "sdl2-sys", reason = "trusted-path non-negotiable: no C GUI runtime" },
+    { crate = "minifb", reason = "trusted-path non-negotiable: no window system" },
+    # Showcase's own: libFuzzer is signed off for development and CI
+    # fuzzing only, in fuzz/'s own workspace and lock.
+    { crate = "libfuzzer-sys", reason = "fuzzing only, in fuzz/'s own workspace - never in a workspace that ships" },
+]
+
+[sources]
+unknown-registry = "deny"
+unknown-git = "deny"
+allow-registry = ["https://github.com/rust-lang/crates.io-index"]
+# rust-sel4 is not on crates.io: its repository is the one git source
+# allowed, for the PDs only, and every git dependency must name a commit.
+# Which commit is checked after cargo-deny: only the one NoWayOS's
+# pds/Cargo.toml pins (nowayos/tools/check-git-pins, in make pds-deny).
+allow-git = ["https://github.com/seL4/rust-sel4"]
+required-git-spec = "rev"

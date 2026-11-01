@@ -1,0 +1,10 @@
+# Cargo build output
+/target/
+/pds/target/
+/fuzz/target/
+
+# Python bytecode (tools/)
+__pycache__/
+
+# macOS
+.DS_Store

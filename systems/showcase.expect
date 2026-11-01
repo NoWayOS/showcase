@@ -1,0 +1,205 @@
+# Lines NoWayOS's tools/qemu-test must see, in this order, as whole serial
+# lines: the showcase as showcase.qmp types it into QEMU's serial
+# port, or through the Pi 5's Debug Probe - the launcher, the visitor
+# sign-in opened from it twice, signed in with a pass and sent to reception
+# with the service down, the Service desk four times, closed with
+# Home, with Cancel, after sending and by the privacy reset, then the pay at
+# the pump twice, followed to all done and declined, "Why is this
+# secure?", and the attract loop, woken by a key, the
+# launcher showing again each time;
+# each screen as the UI shows it and the theme it draws in, each
+# button pressed, what the service stand-in does, and how each session
+# ended. Never what was typed.
+# Each countdown tick draws its digits' slot alone: the confirmation's
+# first is checked here, and any tick drawing more fails the run.
+SHOWCASE: app: starting
+SHOWCASE: app: ready: a form of 4 steps and 6 fields; the idle warning after 5 s, the reset after 8 s
+# The application checks in first, before the UI starts: its
+# backend's stand-in answers not approved, then approves it with epoch 2,
+# which every attempt's ticket carries.
+SHOWCASE: app: checking in: 1
+SHOWCASE: app: check-in 1: not approved; awaiting approval, code 3FA1 075C E219 8840
+SHOWCASE: app: checking in: 2
+SHOWCASE: app: check-in 2: approved, epoch 2; in service
+SHOWCASE: ui: starting
+SHOWCASE: ui: the display is 1920x1064 Rgb565 at scale 2
+SHOWCASE: ui: showing launcher
+SHOWCASE: ui: theme launcher
+SHOWCASE: ui: action Visitor sign-in
+SHOWCASE: ui: showing welcome
+SHOWCASE: ui: theme Orrinvale
+SHOWCASE: ui: action Sign in as a visitor
+SHOWCASE: ui: showing about-you
+SHOWCASE: ui: action Next
+SHOWCASE: ui: showing visiting
+SHOWCASE: ui: action Next
+SHOWCASE: ui: showing purpose
+SHOWCASE: ui: action Next
+SHOWCASE: ui: showing site-rules
+SHOWCASE: ui: action Next
+SHOWCASE: ui: showing check
+SHOWCASE: ui: action Sign in
+SHOWCASE: visitor: the service stand-in will accept attempt 1 (epoch 2)
+SHOWCASE: ui: showing signing-in
+SHOWCASE: visitor: the service stand-in accepts attempt 1
+SHOWCASE: visitor: session 1 ended: submitted
+SHOWCASE: ui: showing signed-in
+SHOWCASE: ui: seconds left: 4
+SHOWCASE: ui: seconds left: 3
+SHOWCASE: ui: countdown drawn alone: 46x47 px of the 1920x1064 screen
+SHOWCASE: ui: action Done
+SHOWCASE: ui: showing launcher
+SHOWCASE: ui: theme launcher
+SHOWCASE: ui: action Visitor sign-in
+SHOWCASE: ui: showing welcome
+SHOWCASE: ui: action Sign in as a visitor
+SHOWCASE: ui: showing about-you
+SHOWCASE: ui: action Next
+SHOWCASE: ui: showing visiting
+SHOWCASE: ui: action Next
+SHOWCASE: ui: showing purpose
+SHOWCASE: ui: action Next
+SHOWCASE: ui: showing site-rules
+SHOWCASE: ui: action Next
+SHOWCASE: ui: showing check
+SHOWCASE: ui: action Demo: service down
+SHOWCASE: visitor: demo: the service is down for this session, as the person asked
+SHOWCASE: visitor: the service stand-in will fail attempt 1 (epoch 2)
+SHOWCASE: ui: showing signing-in
+SHOWCASE: visitor: the service stand-in fails attempt 1: the service is down
+SHOWCASE: ui: showing not-signed-in
+SHOWCASE: ui: action Finish
+SHOWCASE: visitor: session 2 ended: cancelled
+SHOWCASE: ui: showing launcher
+SHOWCASE: ui: action Service desk
+SHOWCASE: ui: showing welcome
+SHOWCASE: ui: theme Service desk
+SHOWCASE: ui: action Start
+SHOWCASE: ui: showing step-text
+SHOWCASE: ui: action Home
+SHOWCASE: ui: showing launcher
+SHOWCASE: app: session 1 ended: abandoned by the UI
+SHOWCASE: ui: theme launcher
+SHOWCASE: ui: action Service desk
+SHOWCASE: ui: showing welcome
+SHOWCASE: ui: action Start
+SHOWCASE: ui: showing step-text
+SHOWCASE: ui: action Cancel
+SHOWCASE: app: session 2 ended: cancelled
+SHOWCASE: ui: showing launcher
+SHOWCASE: ui: action Service desk
+SHOWCASE: ui: showing welcome
+SHOWCASE: ui: action Start
+SHOWCASE: ui: showing step-text
+SHOWCASE: ui: action Next
+SHOWCASE: ui: showing step-choice
+SHOWCASE: ui: action Next
+SHOWCASE: ui: showing step-checkbox
+SHOWCASE: ui: action Next
+SHOWCASE: ui: showing step-notice
+SHOWCASE: ui: action Continue
+SHOWCASE: ui: showing review
+SHOWCASE: ui: action Send
+SHOWCASE: app: the service stand-in leaves attempt 1 unanswered (epoch 2)
+SHOWCASE: ui: showing submitting
+SHOWCASE: ui: showing failed
+SHOWCASE: ui: action Try again
+SHOWCASE: app: the service stand-in will accept attempt 2 (epoch 2)
+SHOWCASE: ui: showing submitting
+SHOWCASE: app: the service stand-in accepts attempt 2
+SHOWCASE: app: session 3 ended: submitted
+SHOWCASE: ui: showing submitted
+SHOWCASE: ui: seconds left: 4
+SHOWCASE: ui: seconds left: 3
+SHOWCASE: ui: countdown drawn alone: 46x47 px of the 1920x1064 screen
+SHOWCASE: ui: action Done
+SHOWCASE: ui: showing launcher
+SHOWCASE: ui: action Service desk
+SHOWCASE: ui: showing welcome
+SHOWCASE: ui: action Start
+SHOWCASE: ui: showing step-text
+SHOWCASE: ui: showing idle-warning
+SHOWCASE: ui: seconds left: 3
+SHOWCASE: ui: seconds left: 2
+SHOWCASE: ui: seconds left: 1
+SHOWCASE: app: session 4 ended: idle
+SHOWCASE: ui: showing launcher
+SHOWCASE: ui: action Pay at the pump
+SHOWCASE: ui: showing welcome
+SHOWCASE: ui: theme Tarnwick
+SHOWCASE: ui: action Start
+SHOWCASE: ui: showing pump
+SHOWCASE: ui: action Next
+SHOWCASE: ui: showing fuel
+SHOWCASE: ui: action Next
+SHOWCASE: ui: showing amount
+SHOWCASE: ui: action Next
+SHOWCASE: ui: showing check
+SHOWCASE: ui: action Pay on the card reader
+SHOWCASE: pump: the service stand-in will accept attempt 1 (epoch 2)
+SHOWCASE: ui: showing paying
+SHOWCASE: pump: the service stand-in accepts attempt 1
+SHOWCASE: pump: session 1 ended: submitted
+SHOWCASE: ui: showing fuelling
+SHOWCASE: ui: seconds left: 4
+SHOWCASE: ui: showing launcher
+SHOWCASE: ui: theme launcher
+SHOWCASE: ui: action Pay at the pump
+SHOWCASE: ui: showing welcome
+SHOWCASE: ui: action Start
+SHOWCASE: ui: showing pump
+SHOWCASE: ui: action Next
+SHOWCASE: ui: showing fuel
+SHOWCASE: ui: action Next
+SHOWCASE: ui: showing amount
+SHOWCASE: ui: action Next
+SHOWCASE: ui: showing check
+SHOWCASE: ui: action Demo: card declined
+SHOWCASE: pump: demo: the service is down for this session, as the person asked
+SHOWCASE: pump: the service stand-in will fail attempt 1 (epoch 2)
+SHOWCASE: ui: showing paying
+SHOWCASE: pump: the service stand-in fails attempt 1: the service is down
+SHOWCASE: ui: showing not-accepted
+SHOWCASE: ui: action Finish
+SHOWCASE: pump: session 2 ended: cancelled
+SHOWCASE: ui: showing launcher
+SHOWCASE: ui: action Why is this secure?
+SHOWCASE: ui: showing why-secure
+SHOWCASE: ui: action Home
+SHOWCASE: ui: showing launcher
+SHOWCASE: ui: showing attract-1
+SHOWCASE: ui: theme Orrinvale
+SHOWCASE: ui: showing attract-2
+SHOWCASE: ui: theme Tarnwick
+SHOWCASE: ui: showing launcher
+SHOWCASE: ui: theme launcher
+
+# Output that fails the test at once if it appears anywhere (substring match):
+# a fault reported by the Microkit monitor, a kernel error message, a panic, a
+# PD giving up, a record refused or rejected, a screen that could not be
+# shown, a session ended for a fault, input or an action dropped anywhere -
+# by the UART input PD, at the broker's rate, for want of room in the UI's
+# ring or in the ring to the application.
+!MON|ERROR
+!seL4(CPU
+!panicked
+!gave up
+!refused
+!rejected
+!could not be shown
+!ended: a fault
+!out of service
+!dropped so far
+!over its rate
+!the UI's ring is full
+# A countdown's tick that drew more than its digits' slot.
+!countdown drawn with more
+
+# Nothing derived from what was typed: no frame's or scan-out hash,
+# which the display PD prints only when it is not quiet, and nothing the
+# script types - every name starts zqvj, the reference is 9081726354.
+# tools/check-quiet requires the hash line, and each text typed to start
+# with a text forbidden here.
+!display-stub: frame
+!zqvj
+!9081726354

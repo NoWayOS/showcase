@@ -1,0 +1,261 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+    The reference kiosk on the Raspberry Pi 5's HDMI monitor:
+    systems/kiosk.system with the display PD also given the board's
+    framebuffer - the firmware's, which the monitor shows (firmware_fb) - and
+    the board's facts about it; the timer PD BCM2712's system timer instead
+    of the CPU's; and a USB host PD for each of RP1's two xHCI controllers
+    (showcase-usb-host, NoWayOS's USB host PD), as NoWayOS's
+    rpi5b_2gb/usb-test.system gives them - so a keyboard and mouse plugged
+    into the Pi drive the kiosk too, beside the Mac's terminal. The broker
+    takes uart_input's ring as source 1, usb0's as 2 and usb1's as 3. The
+    same application and UI: the display PD shows each frame at 2x, centred.
+    The fan PD runs the Pi's active cooler, the timer's fifth client.
+
+    With a monitor attached before power-on:
+        make pi-show PI_DEVICE=/dev/cu.usbmodemXXXX SYSTEM=kiosk PI_TYPE=1
+    Every grant is listed in rpi5b_2gb/kiosk.grants.
+-->
+<system>
+    <memory_region name="present_messages" size="0x1000" />
+    <memory_region name="present_control" size="0x1000" />
+    <memory_region name="display_messages" size="0x1000" />
+    <memory_region name="display_control" size="0x1000" />
+    <memory_region name="framebuffer" size="0x400000" />
+    <memory_region name="input_messages" size="0x1000" />
+    <memory_region name="input_control" size="0x1000" />
+    <memory_region name="keys_messages" size="0x1000" />
+    <memory_region name="keys_control" size="0x1000" />
+    <memory_region name="debug_uart_regs" size="@debug_uart" phys_addr="@debug_uart" />
+    <memory_region name="system_timer_regs" size="@system_timer" phys_addr="@system_timer" />
+    <memory_region name="clocks_regs" size="@rp1_clocks_main" phys_addr="@rp1_clocks_main" />
+    <memory_region name="gpio_bank2_regs" size="@rp1_gpio_bank2" phys_addr="@rp1_gpio_bank2" />
+    <memory_region name="pwm1_regs" size="@rp1_pwm1" phys_addr="@rp1_pwm1" />
+    <memory_region name="mailbox_regs" size="@vc_mailbox" phys_addr="@vc_mailbox" />
+    <memory_region name="mailbox_buffer" size="0x1000" />
+    <memory_region name="firmware_fb" size="@firmware_fb" phys_addr="@firmware_fb" />
+    <memory_region name="firmware_fb_facts" prefill_path="device-firmware_fb.bin" />
+    <memory_region name="debug_uart_facts" prefill_path="device-debug_uart.bin" />
+    <memory_region name="screen" prefill_path="screen-1920x1064.bin" />
+    <!-- The app-UI contract's rings: the UI's actions, and the application's
+         reports. -->
+    <memory_region name="actions_messages" size="0x1000" />
+    <memory_region name="actions_control" size="0x1000" />
+    <memory_region name="reports_messages" size="0x1000" />
+    <memory_region name="reports_control" size="0x1000" />
+    <memory_region name="xhci0_regs" size="@xhci0" phys_addr="@xhci0" />
+    <memory_region name="xhci0_facts" prefill_path="device-xhci0.bin" />
+    <memory_region name="usb0_memory" size="0x13000" />
+    <memory_region name="usb0_messages" size="0x1000" />
+    <memory_region name="usb0_control" size="0x1000" />
+    <memory_region name="xhci1_regs" size="@xhci1" phys_addr="@xhci1" />
+    <memory_region name="xhci1_facts" prefill_path="device-xhci1.bin" />
+    <memory_region name="usb1_memory" size="0x13000" />
+    <memory_region name="usb1_messages" size="0x1000" />
+    <memory_region name="usb1_control" size="0x1000" />
+
+    <protection_domain name="timer" priority="9" stack_size="0x10000">
+        <program_image path="showcase-timer.elf" />
+        <map mr="system_timer_regs" vaddr="0x200_0000" perms="rw" cached="false"
+             setvar_vaddr="nowayos_device_0_vaddr" setvar_size="nowayos_device_0_size" />
+        <irq irq="@system_timer[1]" id="0" trigger="@system_timer" />
+    </protection_domain>
+
+    <protection_domain name="display" priority="8" stack_size="0x10000">
+        <program_image path="showcase-display.elf" />
+        <map mr="present_control" vaddr="0x4000_0000" perms="rw"
+             setvar_vaddr="nowayos_rw_region_0_vaddr" setvar_size="nowayos_rw_region_0_size" />
+        <map mr="present_messages" vaddr="0x4000_1000" perms="r"
+             setvar_vaddr="nowayos_ro_region_0_vaddr" setvar_size="nowayos_ro_region_0_size" />
+        <map mr="display_messages" vaddr="0x4000_2000" perms="rw"
+             setvar_vaddr="nowayos_rw_region_1_vaddr" setvar_size="nowayos_rw_region_1_size" />
+        <map mr="display_control" vaddr="0x4000_3000" perms="r"
+             setvar_vaddr="nowayos_ro_region_1_vaddr" setvar_size="nowayos_ro_region_1_size" />
+        <map mr="framebuffer" vaddr="0x5000_0000" perms="r"
+             setvar_vaddr="nowayos_ro_region_2_vaddr" setvar_size="nowayos_ro_region_2_size" />
+        <map mr="firmware_fb" vaddr="0x6000_0000" perms="rw" cached="false"
+             setvar_vaddr="nowayos_device_0_vaddr" setvar_size="nowayos_device_0_size" />
+        <map mr="firmware_fb_facts" vaddr="0x4000_4000" perms="r"
+             setvar_vaddr="nowayos_ro_region_5_vaddr" setvar_size="nowayos_ro_region_5_size" />
+    </protection_domain>
+
+    <protection_domain name="input_broker" priority="7" stack_size="0x10000">
+        <program_image path="showcase-input-broker.elf" />
+        <map mr="input_messages" vaddr="0x4000_0000" perms="rw"
+             setvar_vaddr="nowayos_rw_region_0_vaddr" setvar_size="nowayos_rw_region_0_size" />
+        <map mr="input_control" vaddr="0x4000_1000" perms="r"
+             setvar_vaddr="nowayos_ro_region_0_vaddr" setvar_size="nowayos_ro_region_0_size" />
+        <map mr="keys_messages" vaddr="0x4100_0000" perms="r"
+             setvar_vaddr="nowayos_ro_region_1_vaddr" setvar_size="nowayos_ro_region_1_size" />
+        <map mr="keys_control" vaddr="0x4100_1000" perms="rw"
+             setvar_vaddr="nowayos_rw_region_1_vaddr" setvar_size="nowayos_rw_region_1_size" />
+        <map mr="usb0_messages" vaddr="0x4200_0000" perms="r"
+             setvar_vaddr="nowayos_ro_region_2_vaddr" setvar_size="nowayos_ro_region_2_size" />
+        <map mr="usb0_control" vaddr="0x4200_1000" perms="rw"
+             setvar_vaddr="nowayos_rw_region_2_vaddr" setvar_size="nowayos_rw_region_2_size" />
+        <map mr="usb1_messages" vaddr="0x4300_0000" perms="r"
+             setvar_vaddr="nowayos_ro_region_3_vaddr" setvar_size="nowayos_ro_region_3_size" />
+        <map mr="usb1_control" vaddr="0x4300_1000" perms="rw"
+             setvar_vaddr="nowayos_rw_region_3_vaddr" setvar_size="nowayos_rw_region_3_size" />
+        <map mr="screen" vaddr="0x5000_0000" perms="r"
+             setvar_vaddr="nowayos_ro_region_7_vaddr" setvar_size="nowayos_ro_region_7_size" />
+    </protection_domain>
+
+    <protection_domain name="usb0" priority="6" stack_size="0x10000">
+        <program_image path="showcase-usb-host.elf" />
+        <map mr="xhci0_regs" vaddr="0x200_0000" perms="rw" cached="false"
+             setvar_vaddr="nowayos_device_0_vaddr" setvar_size="nowayos_device_0_size" />
+        <map mr="usb0_memory" vaddr="0x300_0000" perms="rw" cached="false"
+             setvar_vaddr="nowayos_dma_0_vaddr" setvar_size="nowayos_dma_0_size" />
+        <setvar symbol="nowayos_dma_0_paddr" region_paddr="usb0_memory" />
+        <map mr="xhci0_facts" vaddr="0x4000_0000" perms="r"
+             setvar_vaddr="nowayos_ro_region_5_vaddr" setvar_size="nowayos_ro_region_5_size" />
+        <map mr="usb0_messages" vaddr="0x4100_0000" perms="rw"
+             setvar_vaddr="nowayos_rw_region_0_vaddr" setvar_size="nowayos_rw_region_0_size" />
+        <map mr="usb0_control" vaddr="0x4100_1000" perms="r"
+             setvar_vaddr="nowayos_ro_region_0_vaddr" setvar_size="nowayos_ro_region_0_size" />
+        <map mr="screen" vaddr="0x5000_0000" perms="r"
+             setvar_vaddr="nowayos_ro_region_7_vaddr" setvar_size="nowayos_ro_region_7_size" />
+    </protection_domain>
+
+    <protection_domain name="usb1" priority="5" stack_size="0x10000">
+        <program_image path="showcase-usb-host.elf" />
+        <map mr="xhci1_regs" vaddr="0x200_0000" perms="rw" cached="false"
+             setvar_vaddr="nowayos_device_0_vaddr" setvar_size="nowayos_device_0_size" />
+        <map mr="usb1_memory" vaddr="0x300_0000" perms="rw" cached="false"
+             setvar_vaddr="nowayos_dma_0_vaddr" setvar_size="nowayos_dma_0_size" />
+        <setvar symbol="nowayos_dma_0_paddr" region_paddr="usb1_memory" />
+        <map mr="xhci1_facts" vaddr="0x4000_0000" perms="r"
+             setvar_vaddr="nowayos_ro_region_5_vaddr" setvar_size="nowayos_ro_region_5_size" />
+        <map mr="usb1_messages" vaddr="0x4100_0000" perms="rw"
+             setvar_vaddr="nowayos_rw_region_0_vaddr" setvar_size="nowayos_rw_region_0_size" />
+        <map mr="usb1_control" vaddr="0x4100_1000" perms="r"
+             setvar_vaddr="nowayos_ro_region_0_vaddr" setvar_size="nowayos_ro_region_0_size" />
+        <map mr="screen" vaddr="0x5000_0000" perms="r"
+             setvar_vaddr="nowayos_ro_region_7_vaddr" setvar_size="nowayos_ro_region_7_size" />
+    </protection_domain>
+
+    <protection_domain name="uart_input" priority="4" stack_size="0x10000">
+        <program_image path="showcase-uart-input.elf" />
+        <map mr="debug_uart_regs" vaddr="0x200_0000" perms="r" cached="false"
+             setvar_vaddr="nowayos_device_0_vaddr" setvar_size="nowayos_device_0_size" />
+        <map mr="debug_uart_facts" vaddr="0x4000_4000" perms="r"
+             setvar_vaddr="nowayos_ro_region_5_vaddr" setvar_size="nowayos_ro_region_5_size" />
+        <map mr="keys_messages" vaddr="0x4000_0000" perms="rw"
+             setvar_vaddr="nowayos_rw_region_0_vaddr" setvar_size="nowayos_rw_region_0_size" />
+        <map mr="keys_control" vaddr="0x4000_1000" perms="r"
+             setvar_vaddr="nowayos_ro_region_0_vaddr" setvar_size="nowayos_ro_region_0_size" />
+    </protection_domain>
+
+    <protection_domain name="app" priority="2" stack_size="0x10000">
+        <program_image path="showcase-kiosk-stand-in.elf" />
+        <map mr="actions_control" vaddr="0x4000_0000" perms="rw"
+             setvar_vaddr="nowayos_rw_region_0_vaddr" setvar_size="nowayos_rw_region_0_size" />
+        <map mr="actions_messages" vaddr="0x4000_1000" perms="r"
+             setvar_vaddr="nowayos_ro_region_0_vaddr" setvar_size="nowayos_ro_region_0_size" />
+        <map mr="reports_messages" vaddr="0x4000_2000" perms="rw"
+             setvar_vaddr="nowayos_rw_region_1_vaddr" setvar_size="nowayos_rw_region_1_size" />
+        <map mr="reports_control" vaddr="0x4000_3000" perms="r"
+             setvar_vaddr="nowayos_ro_region_1_vaddr" setvar_size="nowayos_ro_region_1_size" />
+    </protection_domain>
+
+    <protection_domain name="ui" priority="1" stack_size="0x20000">
+        <program_image path="showcase-kiosk-ui.elf" />
+        <map mr="present_messages" vaddr="0x4000_0000" perms="rw"
+             setvar_vaddr="nowayos_rw_region_0_vaddr" setvar_size="nowayos_rw_region_0_size" />
+        <map mr="present_control" vaddr="0x4000_1000" perms="r"
+             setvar_vaddr="nowayos_ro_region_0_vaddr" setvar_size="nowayos_ro_region_0_size" />
+        <map mr="display_control" vaddr="0x4000_2000" perms="rw"
+             setvar_vaddr="nowayos_rw_region_1_vaddr" setvar_size="nowayos_rw_region_1_size" />
+        <map mr="display_messages" vaddr="0x4000_3000" perms="r"
+             setvar_vaddr="nowayos_ro_region_1_vaddr" setvar_size="nowayos_ro_region_1_size" />
+        <map mr="framebuffer" vaddr="0x5000_0000" perms="rw"
+             setvar_vaddr="nowayos_rw_region_2_vaddr" setvar_size="nowayos_rw_region_2_size" />
+        <map mr="input_control" vaddr="0x4000_4000" perms="rw"
+             setvar_vaddr="nowayos_rw_region_3_vaddr" setvar_size="nowayos_rw_region_3_size" />
+        <map mr="input_messages" vaddr="0x4000_5000" perms="r"
+             setvar_vaddr="nowayos_ro_region_2_vaddr" setvar_size="nowayos_ro_region_2_size" />
+        <map mr="actions_messages" vaddr="0x4100_0000" perms="rw"
+             setvar_vaddr="nowayos_rw_region_4_vaddr" setvar_size="nowayos_rw_region_4_size" />
+        <map mr="actions_control" vaddr="0x4100_1000" perms="r"
+             setvar_vaddr="nowayos_ro_region_3_vaddr" setvar_size="nowayos_ro_region_3_size" />
+        <map mr="reports_control" vaddr="0x4100_2000" perms="rw"
+             setvar_vaddr="nowayos_rw_region_5_vaddr" setvar_size="nowayos_rw_region_5_size" />
+        <map mr="reports_messages" vaddr="0x4100_3000" perms="r"
+             setvar_vaddr="nowayos_ro_region_4_vaddr" setvar_size="nowayos_ro_region_4_size" />
+    </protection_domain>
+
+    <!-- "Records waiting", both ways. -->
+    <!-- The fan PD, above the app and UI PDs that can keep the CPU busy: NoWayOS's, which runs the Pi's
+         active cooler on the device tree's cooling curve. -->
+    <protection_domain name="fan" priority="3" stack_size="0x10000">
+        <program_image path="showcase-fan.elf" />
+        <map mr="clocks_regs" vaddr="0x200_0000" perms="rw" cached="false"
+             setvar_vaddr="nowayos_device_0_vaddr" setvar_size="nowayos_device_0_size" />
+        <map mr="gpio_bank2_regs" vaddr="0x201_0000" perms="rw" cached="false"
+             setvar_vaddr="nowayos_device_1_vaddr" setvar_size="nowayos_device_1_size" />
+        <map mr="pwm1_regs" vaddr="0x202_0000" perms="rw" cached="false"
+             setvar_vaddr="nowayos_device_2_vaddr" setvar_size="nowayos_device_2_size" />
+        <map mr="mailbox_regs" vaddr="0x203_0000" perms="rw" cached="false"
+             setvar_vaddr="nowayos_device_3_vaddr" setvar_size="nowayos_device_3_size" />
+        <map mr="mailbox_buffer" vaddr="0x300_0000" perms="rw" cached="false"
+             setvar_vaddr="nowayos_dma_0_vaddr" setvar_size="nowayos_dma_0_size" />
+        <setvar symbol="nowayos_dma_0_paddr" region_paddr="mailbox_buffer" />
+    </protection_domain>
+
+    <channel>
+        <end pd="ui" id="0" />
+        <end pd="display" id="0" />
+    </channel>
+    <!-- "Events waiting" from the broker; "ready for more" from the UI, which
+         the broker answers by draining its sources. -->
+    <channel>
+        <end pd="ui" id="1" />
+        <end pd="input_broker" id="0" />
+    </channel>
+    <!-- uart_input's "events waiting"; the broker never notifies it. -->
+    <channel>
+        <end pd="uart_input" id="0" />
+        <end pd="input_broker" id="1" notify="false" />
+    </channel>
+    <!-- uart_input calls the timer; the timer notifies it when a poll is due. -->
+    <channel>
+        <end pd="uart_input" id="1" pp="true" notify="false" />
+        <end pd="timer" id="1" />
+    </channel>
+    <!-- Each USB host PD's "events waiting"; the broker never notifies it. -->
+    <channel>
+        <end pd="usb0" id="1" />
+        <end pd="input_broker" id="2" notify="false" />
+    </channel>
+    <channel>
+        <end pd="usb1" id="1" />
+        <end pd="input_broker" id="3" notify="false" />
+    </channel>
+    <!-- Each USB host PD calls the timer for its tick; the timer notifies it. -->
+    <channel>
+        <end pd="usb0" id="0" pp="true" notify="false" />
+        <end pd="timer" id="2" />
+    </channel>
+    <channel>
+        <end pd="usb1" id="0" pp="true" notify="false" />
+        <end pd="timer" id="3" />
+    </channel>
+    <!-- "Actions waiting" from the UI; "reports waiting", and "actions
+         taken", from the application. -->
+    <channel>
+        <end pd="ui" id="2" />
+        <end pd="app" id="0" />
+    </channel>
+    <!-- The application calls the timer; the timer notifies it at its next
+         deadline. -->
+    <channel>
+        <end pd="app" id="1" pp="true" notify="false" />
+        <end pd="timer" id="4" />
+    </channel>
+    <!-- The fan PD calls the timer; the timer notifies it of each second. -->
+    <channel>
+        <end pd="fan" id="0" pp="true" notify="false" />
+        <end pd="timer" id="5" />
+    </channel>
+</system>

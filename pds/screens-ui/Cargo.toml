@@ -1,0 +1,23 @@
+[package]
+name = "showcase-screens-ui"
+description = "The UI PD touring the ten kiosk reference screens with their own buttons (the kitchen sink): a UI app on NoWayOS's UI loop, not the kiosk's flow"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+rust-version.workspace = true
+publish.workspace = true
+
+[[bin]]
+name = "showcase-screens-ui"
+path = "src/main.rs"
+test = false
+bench = false
+
+[dependencies]
+showcase-kiosk-screens.workspace = true
+nowayos-display.workspace = true
+nowayos-ui-loop.workspace = true
+sel4-microkit.workspace = true
+
+[lints]
+workspace = true

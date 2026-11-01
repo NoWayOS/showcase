@@ -1,0 +1,105 @@
+#!/bin/sh
+# SPDX-License-Identifier: MIT OR Apache-2.0
+# Check that ../nowayos is the NoWayOS Showcase is tested against.
+#
+# Usage: sh tools/check-nowayos-rev ci|build [NOWAYOS_DIR [REV_FILE]]
+#
+# REV_FILE (nowayos.rev) records one full NoWayOS commit hash; lines starting
+# with # are comments. NOWAYOS_DIR (../nowayos) must be a git clone at that
+# commit with no local changes (untracked files count; ignored ones do not).
+#
+#   ci     `make ci`: report the revision, or fail before anything is built,
+#          naming both revisions. Refuses NOWAYOS_EXPERIMENT outright.
+#   build  the other targets that build against NoWayOS: silent when the
+#          clone matches, the same failure when it does not - unless
+#          NOWAYOS_EXPERIMENT is set (a deliberate local experiment), which
+#          turns the failure into a loud warning.
+#
+# Upgrading NoWayOS is a one-line change to REV_FILE, reviewed like any other.
+# Reads only: git takes no lock (--no-optional-locks). POSIX sh.
+
+set -u
+
+mode=${1:-}
+nowayos=${2:-../nowayos}
+rev_file=${3:-nowayos.rev}
+experiment=${NOWAYOS_EXPERIMENT:-}
+
+case "$mode" in
+	ci | build) ;;
+	*) echo "usage: sh tools/check-nowayos-rev ci|build [NOWAYOS_DIR [REV_FILE]]" >&2; exit 2 ;;
+esac
+
+if [ ! -f "$rev_file" ]; then
+	echo "error: no $rev_file: it records the NoWayOS commit Showcase is tested against" >&2
+	exit 1
+fi
+recorded=$(sed -e 's/#.*//' -e 's/[[:space:]]//g' "$rev_file" | grep -v '^$')
+case "$recorded" in
+	*[!0-9a-f]* | "") valid= ;;
+	*) if [ ${#recorded} -eq 40 ]; then valid=1; else valid=; fi ;;
+esac
+if [ -z "$valid" ]; then
+	echo "error: $rev_file must hold exactly one full NoWayOS commit hash (40 lower-case hex digits) outside its comments" >&2
+	exit 1
+fi
+
+# What the clone is at: its commit, and whether it has local changes. The
+# clone must be its own repository, not a folder inside another one.
+top=$(git -C "$nowayos" rev-parse --show-toplevel 2>/dev/null) || top=
+here=$(cd "$nowayos" 2>/dev/null && pwd -P) || here=
+if [ -n "$top" ] && [ "$(cd "$top" && pwd -P)" = "$here" ] &&
+	actual=$(git -C "$nowayos" rev-parse --verify --quiet 'HEAD^{commit}' 2>/dev/null); then
+	if changes=$(git --no-optional-locks -C "$nowayos" status --porcelain 2>/dev/null); then
+		if [ -n "$changes" ]; then
+			count=$(printf '%s\n' "$changes" | grep -c .)
+			described="$actual, plus local changes to $count file(s)"
+		else
+			described=$actual
+		fi
+	else
+		changes=unknown
+		described="$actual, whose local changes git cannot list"
+	fi
+else
+	actual=
+	changes=unknown
+	described="no commit git can read ($nowayos is not a git clone, or not one this environment can read)"
+fi
+
+if [ -n "$experiment" ]; then
+	if [ "$mode" = ci ]; then
+		echo "error: make ci refuses NOWAYOS_EXPERIMENT=$experiment: CI builds only against the NoWayOS recorded in $rev_file ($recorded)." >&2
+		echo "  Unset it; then $nowayos must be at that commit with no local changes." >&2
+		exit 1
+	fi
+	{
+		echo "************************************************************************"
+		echo "WARNING: NOWAYOS_EXPERIMENT=$experiment - a local experiment, not a tested build."
+		echo "  $nowayos is at:    $described"
+		echo "  $rev_file records: $recorded"
+		echo "  Nothing built this way is tested or reviewed: make ci refuses it."
+		echo "************************************************************************"
+	} >&2
+	exit 0
+fi
+
+if [ "$actual" = "$recorded" ] && [ -z "$changes" ]; then
+	if [ "$mode" = ci ]; then
+		echo "Building against nowayos $recorded: the revision $rev_file records, with no local changes"
+	fi
+	exit 0
+fi
+
+{
+	echo "error: Showcase is tested against the NoWayOS commit $rev_file records, and $nowayos is not that NoWayOS:"
+	echo "  $rev_file records: $recorded"
+	echo "  $nowayos is at:    $described"
+	echo "  To build the recorded NoWayOS: check out $recorded in $nowayos, with no local changes."
+	echo "  To upgrade Showcase to another NoWayOS: put that commit's full hash in $rev_file - a one-line"
+	echo "  change, reviewed with whatever else the upgrade needs."
+	if [ "$mode" = build ]; then
+		echo "  For a deliberate local experiment only: NOWAYOS_EXPERIMENT=1 (a warning instead; make ci refuses it)."
+	fi
+} >&2
+exit 1

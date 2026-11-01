@@ -1,0 +1,37 @@
+[package]
+name = "showcase-kiosk-stand-in"
+description = "An example kiosk's application PD, as a library (showcase_kiosk_stand_in), and the reference kiosk's: the kiosk flow on the reference form behind the app-UI contract, timed by the timer PD, with a development stand-in for the service built in (showcase-kiosk-stand-in, development-only by its name)"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+rust-version.workspace = true
+publish.workspace = true
+
+# A library, so that each example kiosk's application PD runs the same PD
+# on its own example, and the program for the reference kiosk.
+[lib]
+path = "src/lib.rs"
+test = false
+doctest = false
+bench = false
+
+# The program's name ends -stand-in: the service stand-in is built into it,
+# so NoWayOS's grants check refuses it in a product system ([development_only],
+# *-stand-in.elf) - a product's application PD talks to the network PD.
+[[bin]]
+name = "showcase-kiosk-stand-in"
+path = "src/main.rs"
+test = false
+bench = false
+
+[dependencies]
+showcase-kiosk-contract.workspace = true
+showcase-kiosk-flow.workspace = true
+showcase-kiosk-screens.workspace = true
+nowayos-ipc.workspace = true
+nowayos-region.workspace = true
+nowayos-timer-api = { workspace = true, features = ["client"] }
+sel4-microkit.workspace = true
+
+[lints]
+workspace = true

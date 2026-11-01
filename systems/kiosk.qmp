@@ -1,0 +1,61 @@
+# What kiosk's terminal types: the reference kiosk driven by the
+# kiosk flow, by keyboard alone - the same keys as Showcase's host test of
+# the kiosk (kiosk/showcase-kiosk-screens/tests/kiosk.rs,
+# the_qemu_script_s_keys_on_the_host). Each `serial` step is one burst of
+# keys written to the debug UART's receive side - by NoWayOS's
+# tools/qemu-test into QEMU's serial port, by tools/pi-run through the
+# Pi 5's Debug Probe - after the screen it waits for. Escapes: \r Enter,
+# \t Tab, \e[B Down, \x20 Space. Each screen starts with focus on its first
+# control, but the idle warning, on its second: Yes, I am here.
+
+wait SHOWCASE: ui: showing welcome
+# Start.
+serial \r
+wait SHOWCASE: ui: showing step-text
+# A name and a reference, then Next. Every name typed starts zqvj, and the
+# reference is 9081726354, both of which the expect files forbid.
+serial zqvj\t9081726354\t\t\r
+wait SHOWCASE: ui: showing step-choice
+# The first topic, then Next.
+serial \e[B\t\t\t\t\r
+wait SHOWCASE: ui: showing step-checkbox
+# The agreement, then Next.
+serial \x20\t\t\t\t\r
+wait SHOWCASE: ui: showing step-notice
+# Continue.
+serial \t\t\r
+wait SHOWCASE: ui: showing review
+# Change: back to the step before, then Continue to the review again.
+serial \r
+wait SHOWCASE: ui: showing step-notice
+serial \t\t\r
+wait SHOWCASE: ui: showing review
+# Send: the service stand-in leaves the first attempt unanswered, so it
+# fails when the submission times out (2 s later in QEMU's test image, 5 s
+# on the Pi).
+serial \t\t\r
+wait SHOWCASE: ui: showing failed
+# Try again: accepted a second later.
+serial \t\t\r
+wait SHOWCASE: ui: showing submitted
+# Done, once the confirmation has counted down a second and drawn the
+# countdown alone - the same moment in QEMU's test image and on the
+# Pi, whose confirmations last 4 s and 10 s.
+wait SHOWCASE: ui: countdown drawn alone: 46x47 px of the 1920x1064 screen
+serial \r
+wait SHOWCASE: ui: showing welcome
+# The next person starts, types a name and cancels (the reference, then
+# Cancel).
+serial \r
+wait SHOWCASE: ui: showing step-text
+serial zqvjb\t\t\r
+wait SHOWCASE: app: session 2 ended: cancelled
+wait SHOWCASE: ui: showing welcome
+# The next starts, types a name and walks away: the idle warning, then the
+# privacy reset (5 s and 3 s later in QEMU's test image; 15 s and 15 s on
+# the Pi, where make pi-show shows them).
+serial \r
+wait SHOWCASE: ui: showing step-text
+serial zqvjc
+wait SHOWCASE: ui: showing idle-warning
+wait SHOWCASE: ui: showing welcome

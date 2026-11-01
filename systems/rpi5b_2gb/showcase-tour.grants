@@ -1,0 +1,240 @@
+# Everything systems/rpi5b_2gb/showcase-tour.system grants: every
+# grant of rpi5b_2gb/showcase.grants, unchanged but the timer's priority
+# (a test in showcase/showcase-app checks), as a test system, and the
+# run's
+# - NoWayOS's watchdog PD holding the PM block's page, its stand-in ticking
+# it with the run length read-only, and calling the timer. NoWayOS's
+# tools/check-system fails the build if the description grants anything not
+# listed here, or lists anything it does not grant. A change here is a
+# security change: call it out.
+
+# The showcase: the grants of the reference kiosk's system
+# (rpi5b_2gb/kiosk.grants), the UI PD running the showcase's program
+# (showcase-ui) - the launcher and its examples - in place of the
+# kiosk's own: a UI's program needs no grant of its own. And the visitor
+# sign-in's application PD and the pay at the pump's, each
+# granted
+# exactly what the Service desk's is, over rings of its own, and the UI's
+# rings to them - the timer's fifth and seventh clients here, which NoWayOS's
+# timer PD takes.
+
+# A demo system: uart_input runs a development-only program (NoWayOS's
+# grant-rules.toml, [development_only]: *-uart-input.elf), refused in a
+# product system; and app, visitor and pump run one too, each its service
+# a stand-in built into it ([development_only]: *-stand-in.elf). Each PD's role (NoWayOS's tools/grant-rules.toml): the UI, the
+# broker and the application may hold no device or interrupt, and the
+# application no physical address.
+# The tour is a test system: its ticker is a test instrument (role test),
+# which no demo or product system may run.
+system test
+role timer driver
+role display display
+role input_broker broker
+role uart_input input
+role usb0 input
+role usb1 input
+role app app
+role visitor app
+role pump app
+role ui ui
+role fan cooling
+role run_watchdog watchdog
+role ticker test
+
+# The timer above every PD, so the others may call it; the display above the
+# broker and the UI, so a presented frame is shown at once; the broker above
+# the input PDs, so events that find a ring full are drained at once when
+# their PD notifies it - a key's events are sent whole or not at all; the
+# input PDs above the application and the UI, so the controllers and the
+# UART's receive FIFO are read however busy they are - usb0 above usb1, so
+# their start-up lines do not mix; the Service desk's application above the
+# visitor sign-in's and that above the pay at the pump's, so their
+# lines do not
+# mix either, and all above the UI, so their replies, and a
+# privacy reset, never wait for drawing. Full budgets: each PD runs only when
+# notified or called, and each run is bounded - the
+# display copies one frame, the broker drains at most its rings, a USB host
+# PD handles at most 64 of its controller's events a tick, uart_input takes
+# at most 256 bytes a poll, the application at most its ring of actions and
+# eight timed events - until the UI's frame budget is measured, as
+# in NoWayOS's ui-interactive.
+pd timer priority=13 budget=1000 period=1000
+pd display priority=11 budget=1000 period=1000
+pd input_broker priority=10 budget=1000 period=1000
+pd usb0 priority=9 budget=1000 period=1000
+pd usb1 priority=8 budget=1000 period=1000
+pd uart_input priority=7 budget=1000 period=1000
+pd app priority=5 budget=1000 period=1000
+pd visitor priority=4 budget=1000 period=1000
+pd pump priority=2 budget=1000 period=1000
+pd ui priority=1 budget=1000 period=1000
+pd fan priority=6 budget=1000 period=1000
+# The tour's own: the watchdog above all; the ticker alone at 11, below the
+# timer it calls, which the tour raises to 12 - PDs that share a priority
+# print their lines mixed.
+pd run_watchdog priority=250 budget=1000 period=1000
+pd ticker priority=12 budget=1000 period=1000
+
+# The UI: exactly the grants NoWayOS's ui-demo.grants gives its UI PD.
+map ui present_messages rw
+map ui present_control r
+map ui display_messages r
+map ui display_control rw
+map ui framebuffer rw
+map ui input_messages r
+map ui input_control rw
+channel display ui
+channel input_broker ui
+
+# The UI's side of the app-UI contract: its actions (messages written by the
+# UI only) and the application's reports (read-only but for its own index);
+# a channel each way.
+map ui actions_messages rw
+map ui actions_control r
+map ui reports_messages r
+map ui reports_control rw
+channel app ui
+
+# The application: the other side of those rings, and the timer, for its
+# deadlines. Nothing else - no device, interrupt, physical address or
+# storage; the service it sends to is a stand-in inside it.
+map app actions_messages r
+map app actions_control rw
+map app reports_messages rw
+map app reports_control r
+channel app timer notify=timer
+call app timer
+
+# The visitor sign-in: the same contract over rings of its own to its
+# own application PD - its building service a stand-in inside it - and the
+# timer, for its deadlines. The UI's side, then the application's; nothing
+# else - no device, interrupt, physical address or storage.
+map ui visitor_actions_messages rw
+map ui visitor_actions_control r
+map ui visitor_reports_messages r
+map ui visitor_reports_control rw
+channel ui visitor
+map visitor visitor_actions_messages r
+map visitor visitor_actions_control rw
+map visitor visitor_reports_messages rw
+map visitor visitor_reports_control r
+channel timer visitor notify=timer
+call visitor timer
+
+# The pay at the pump: the same again, over rings of its own to its
+# own application PD - its card reader and pump controller a stand-in inside
+# it - and the timer.
+map ui pump_actions_messages rw
+map ui pump_actions_control r
+map ui pump_reports_messages r
+map ui pump_reports_control rw
+channel pump ui
+map pump pump_actions_messages r
+map pump pump_actions_control rw
+map pump pump_reports_messages rw
+map pump pump_reports_control r
+channel pump timer notify=timer
+call pump timer
+
+# The UI's idle clock: it calls the timer, and the timer notifies
+# it, for the launcher's attract loop alone - when the launcher has had no
+# input for a while. Nothing it holds depends on it.
+channel timer ui notify=timer
+call ui timer
+
+# The display: its side of the display contract, and the framebuffer,
+# read-only, as in NoWayOS's ui-demo.grants.
+map display present_messages r
+map display present_control rw
+map display display_messages rw
+map display display_control r
+map display framebuffer r
+
+# The board's framebuffer, which the HDMI monitor shows, by name from the
+# board file: uncached, the display only (firmware-framebuffer-only-display);
+# and its facts, read-only.
+device display firmware_fb rw
+cached display firmware_fb
+map display firmware_fb_facts r
+
+# The broker: the UI's input ring (messages written by the broker only), and
+# each input PD's ring, read-only but for its own index; the screen's size,
+# read-only configuration.
+map input_broker input_messages rw
+map input_broker input_control r
+map input_broker keys_messages r
+map input_broker keys_control rw
+map input_broker usb0_messages r
+map input_broker usb0_control rw
+map input_broker usb1_messages r
+map input_broker usb1_control rw
+map input_broker screen r
+channel input_broker uart_input notify=uart_input
+channel input_broker usb0 notify=usb0
+channel input_broker usb1 notify=usb1
+
+# uart_input: the debug UART's registers, uncached and read-only, this PD
+# only, and the board's facts about it, read-only - it reads the receive side
+# and writes nothing; its ring to the broker; no interrupt: it polls on the
+# timer.
+device uart_input debug_uart r
+map uart_input debug_uart_facts r
+map uart_input keys_messages rw
+map uart_input keys_control r
+channel uart_input timer notify=timer
+call uart_input timer
+
+# Each USB host PD: its controller's register window, by name from the board
+# file - uncached, its PD only: RP1's controllers, which U-Boot placed, so no
+# configuration page; the region its controller reads and writes by DMA, and
+# that region's physical address, to give the controller; the board's facts
+# about its controller, read-only; its ring to the broker; the screen's size,
+# which it clamps a pointer to, read-only; and the timer, for its tick: the
+# controllers are polled (no interrupt reaches seL4 from RP1).
+device usb0 xhci0 rw
+map usb0 usb0_memory rw
+paddr usb0 usb0_memory
+map usb0 xhci0_facts r
+map usb0 usb0_messages rw
+map usb0 usb0_control r
+map usb0 screen r
+channel usb0 timer notify=timer
+call usb0 timer
+device usb1 xhci1 rw
+map usb1 usb1_memory rw
+paddr usb1 usb1_memory
+map usb1 xhci1_facts r
+map usb1 usb1_messages rw
+map usb1 usb1_control r
+map usb1 screen r
+channel usb1 timer notify=timer
+call usb1 timer
+
+# The timer: BCM2712's system timer, its registers uncached and channel 1's
+# interrupt, as in NoWayOS's rpi5b_2gb/timer-demo.grants.
+device timer system_timer rw
+irq timer system_timer 97
+
+# The fan PD, role cooling, above every PD that can keep the CPU busy: RP1's clock generators (every RP1 clock
+# is in the page - it writes only PWM1's), GPIO bank 2 (USB's power lines
+# are in it too - it writes only GPIO45's CTRL), PWM1, and the VideoCore
+# mailbox, through which it asks the firmware for the temperature; the
+# mailbox's buffer, whose physical address the firmware is given; and the
+# timer, for its seconds.
+device fan rp1_clocks_main rw
+device fan rp1_gpio_bank2 rw
+device fan rp1_pwm1 rw
+device fan vc_mailbox rw
+map fan mailbox_buffer rw
+paddr fan mailbox_buffer
+channel fan timer notify=timer
+call fan timer
+
+# The run: the watchdog holds the PM block's page; the ticker its run
+# length, read-only, ticking the watchdog, which never notifies it; and the
+# ticker calls the timer, the timer's tenth client.
+device run_watchdog pm_watchdog rw
+map ticker run_length r
+channel ticker run_watchdog notify=ticker
+channel ticker timer notify=timer
+call ticker timer

@@ -1,0 +1,21 @@
+[package]
+name = "showcase-timer"
+description = "The timer PD - NoWayOS's, run from a program of Showcase's own: the only PD that holds the timer's interrupt; it wakes the UART input PD's polls"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+rust-version.workspace = true
+publish.workspace = true
+
+[[bin]]
+name = "showcase-timer"
+path = "src/main.rs"
+test = false
+bench = false
+
+[dependencies]
+nowayos-timer.workspace = true
+sel4-microkit.workspace = true
+
+[lints]
+workspace = true

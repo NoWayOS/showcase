@@ -1,0 +1,6 @@
+# Toolchain for the Showcase workspace: host tests, lints and no_std checks.
+[toolchain]
+channel = "1.93.1"
+profile = "minimal"
+components = ["rustfmt", "clippy"]
+targets = ["aarch64-unknown-none"]

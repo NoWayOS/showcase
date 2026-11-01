@@ -1,0 +1,21 @@
+[package]
+name = "showcase-display"
+description = "The display PD - NoWayOS's, run from a program of Showcase's own: it shows the UI's frames on the board's framebuffer, the Pi 5's HDMI monitor, and hashes each"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+rust-version.workspace = true
+publish.workspace = true
+
+[[bin]]
+name = "showcase-display"
+path = "src/main.rs"
+test = false
+bench = false
+
+[dependencies]
+nowayos-display-stub.workspace = true
+sel4-microkit.workspace = true
+
+[lints]
+workspace = true

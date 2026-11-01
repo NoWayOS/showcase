@@ -1,0 +1,21 @@
+[package]
+name = "showcase-watchdog-stand-in"
+description = "NoWayOS's watchdog stand-in, run as the ticker of a Pi 5 test system from a program of Showcase's own: a tick to the watchdog every 2 s for the run length it reads, then none"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+rust-version.workspace = true
+publish.workspace = true
+
+[[bin]]
+name = "showcase-watchdog-stand-in"
+path = "src/main.rs"
+test = false
+bench = false
+
+[dependencies]
+nowayos-watchdog-stand-in.workspace = true
+sel4-microkit.workspace = true
+
+[lints]
+workspace = true

@@ -1,0 +1,25 @@
+[package]
+name = "showcase-kiosk-screens"
+description = "The kiosk reference screens: synthetic TSX in Screen Compiler's subset, and the Rust Screen Compiler generates for those it converts, built against NoWayOS's UI core (no_std)"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+rust-version.workspace = true
+publish = false
+
+[dependencies]
+showcase-kiosk-contract.workspace = true
+showcase-kiosk-flow.workspace = true
+nowayos-bounded.workspace = true
+nowayos-display.workspace = true
+nowayos-input.workspace = true
+# The theme each screen is drawn in, and the themes' own metrics,
+# for the fit tests.
+nowayos-render-eg.workspace = true
+nowayos-ui.workspace = true
+
+[dev-dependencies]
+nowayos-glyphs.workspace = true
+
+[lints]
+workspace = true

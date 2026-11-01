@@ -1,0 +1,21 @@
+[package]
+name = "showcase-input-broker"
+description = "The input broker PD - NoWayOS's, run from a program of Showcase's own: every input source's events checked and held to its rate before the UI sees them"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+rust-version.workspace = true
+publish.workspace = true
+
+[[bin]]
+name = "showcase-input-broker"
+path = "src/main.rs"
+test = false
+bench = false
+
+[dependencies]
+nowayos-input-broker.workspace = true
+sel4-microkit.workspace = true
+
+[lints]
+workspace = true

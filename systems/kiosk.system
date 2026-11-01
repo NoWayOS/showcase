@@ -1,0 +1,188 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+    The reference kiosk: Showcase's kiosk reference screens - the
+    React screens, as native Rust - driven by the kiosk flow. The
+    application PD runs the flow on the reference form and decides every
+    screen; the UI PD shows the screen it names and sends it what the person
+    does, over the app-UI contract; keys come from a terminal attached to the
+    board's debug UART.
+
+        app            showcase-kiosk-stand-in: the kiosk flow behind the app-UI
+                       contract (showcase_kiosk_contract::AppEnd), woken by the
+                       timer at each deadline - the idle warning, the privacy
+                       reset, a submission's timeout - and a development
+                       stand-in for the service: each session's first attempt
+                       is left unanswered, the next accepted - built in, so
+                       the program is development-only by its name
+        ui             showcase-kiosk-ui: the screens the application names,
+                       drawn into the framebuffer it shares with the display
+                       PD (NoWayOS's UI loop); what the person does, sent to
+                       the application as actions
+        display        showcase-display, NoWayOS's display PD, quiet: checks
+                       each frame and prints no hash; on the Pi 5 it shows it on
+                       the HDMI monitor (rpi5b_2gb/kiosk.system)
+        input_broker   showcase-input-broker, NoWayOS's input broker: each
+                       event checked against the screen, the source held to
+                       its rate, before the UI sees it
+        uart_input     showcase-uart-input, NoWayOS's UART input PD, a
+                       development route only: keys typed on the terminal,
+                       read from the debug UART every 10 ms and decoded
+        timer          showcase-timer, NoWayOS's timer PD: wakes uart_input,
+                       and the application at its deadlines
+
+    In QEMU the terminal is QEMU's serial port, which kiosk.qmp types into;
+    on the Pi 5 it is the Debug Probe's (make pi-show PI_TYPE=1, or make
+    pi-run, which types the same script), and a USB keyboard and mouse work
+    too (rpi5b_2gb/kiosk.system).
+
+    Capabilities: as kitchen-sink.system's, and the two rings between the UI
+    and the application - the actions (messages written by the UI only, the
+    index by the application only) and the reports (the other way round) -
+    with a channel each way. The application holds those rings and a channel
+    to the timer, which it calls: no device, interrupt or physical address
+    (its role, app). Every grant is listed in kiosk.grants.
+
+    Priorities: the timer above every PD, so the others may call it; the
+    display above the broker and the UI, so a presented frame is shown at
+    once; the broker above uart_input, so a key that finds the ring full is
+    drained at once; uart_input above the application and the UI, so the
+    UART is read however busy they are; the application above the UI, so a
+    reply, and a privacy reset, never waits for drawing (kiosk.grants).
+-->
+<system>
+    <memory_region name="present_messages" size="0x1000" />
+    <memory_region name="present_control" size="0x1000" />
+    <memory_region name="display_messages" size="0x1000" />
+    <memory_region name="display_control" size="0x1000" />
+    <memory_region name="framebuffer" size="0x400000" />
+    <memory_region name="input_messages" size="0x1000" />
+    <memory_region name="input_control" size="0x1000" />
+    <memory_region name="keys_messages" size="0x1000" />
+    <memory_region name="keys_control" size="0x1000" />
+    <memory_region name="debug_uart_regs" size="@debug_uart" phys_addr="@debug_uart" />
+    <memory_region name="debug_uart_facts" prefill_path="device-debug_uart.bin" />
+    <memory_region name="screen" prefill_path="screen-1920x1064.bin" />
+    <!-- The app-UI contract's rings: the UI's actions, and the application's
+         reports. -->
+    <memory_region name="actions_messages" size="0x1000" />
+    <memory_region name="actions_control" size="0x1000" />
+    <memory_region name="reports_messages" size="0x1000" />
+    <memory_region name="reports_control" size="0x1000" />
+
+    <protection_domain name="timer" priority="6" stack_size="0x10000">
+        <program_image path="showcase-timer.elf" />
+        <irq irq="@phys_timer" id="0" trigger="@phys_timer" />
+    </protection_domain>
+
+    <protection_domain name="display" priority="5" stack_size="0x10000">
+        <program_image path="showcase-display.elf" />
+        <map mr="present_control" vaddr="0x4000_0000" perms="rw"
+             setvar_vaddr="nowayos_rw_region_0_vaddr" setvar_size="nowayos_rw_region_0_size" />
+        <map mr="present_messages" vaddr="0x4000_1000" perms="r"
+             setvar_vaddr="nowayos_ro_region_0_vaddr" setvar_size="nowayos_ro_region_0_size" />
+        <map mr="display_messages" vaddr="0x4000_2000" perms="rw"
+             setvar_vaddr="nowayos_rw_region_1_vaddr" setvar_size="nowayos_rw_region_1_size" />
+        <map mr="display_control" vaddr="0x4000_3000" perms="r"
+             setvar_vaddr="nowayos_ro_region_1_vaddr" setvar_size="nowayos_ro_region_1_size" />
+        <map mr="framebuffer" vaddr="0x5000_0000" perms="r"
+             setvar_vaddr="nowayos_ro_region_2_vaddr" setvar_size="nowayos_ro_region_2_size" />
+    </protection_domain>
+
+    <protection_domain name="input_broker" priority="4" stack_size="0x10000">
+        <program_image path="showcase-input-broker.elf" />
+        <map mr="input_messages" vaddr="0x4000_0000" perms="rw"
+             setvar_vaddr="nowayos_rw_region_0_vaddr" setvar_size="nowayos_rw_region_0_size" />
+        <map mr="input_control" vaddr="0x4000_1000" perms="r"
+             setvar_vaddr="nowayos_ro_region_0_vaddr" setvar_size="nowayos_ro_region_0_size" />
+        <map mr="keys_messages" vaddr="0x4100_0000" perms="r"
+             setvar_vaddr="nowayos_ro_region_1_vaddr" setvar_size="nowayos_ro_region_1_size" />
+        <map mr="keys_control" vaddr="0x4100_1000" perms="rw"
+             setvar_vaddr="nowayos_rw_region_1_vaddr" setvar_size="nowayos_rw_region_1_size" />
+        <map mr="screen" vaddr="0x5000_0000" perms="r"
+             setvar_vaddr="nowayos_ro_region_7_vaddr" setvar_size="nowayos_ro_region_7_size" />
+    </protection_domain>
+
+    <protection_domain name="uart_input" priority="3" stack_size="0x10000">
+        <program_image path="showcase-uart-input.elf" />
+        <map mr="debug_uart_regs" vaddr="0x200_0000" perms="r" cached="false"
+             setvar_vaddr="nowayos_device_0_vaddr" setvar_size="nowayos_device_0_size" />
+        <map mr="debug_uart_facts" vaddr="0x4000_4000" perms="r"
+             setvar_vaddr="nowayos_ro_region_5_vaddr" setvar_size="nowayos_ro_region_5_size" />
+        <map mr="keys_messages" vaddr="0x4000_0000" perms="rw"
+             setvar_vaddr="nowayos_rw_region_0_vaddr" setvar_size="nowayos_rw_region_0_size" />
+        <map mr="keys_control" vaddr="0x4000_1000" perms="r"
+             setvar_vaddr="nowayos_ro_region_0_vaddr" setvar_size="nowayos_ro_region_0_size" />
+    </protection_domain>
+
+    <protection_domain name="app" priority="2" stack_size="0x10000">
+        <program_image path="showcase-kiosk-stand-in.elf" />
+        <map mr="actions_control" vaddr="0x4000_0000" perms="rw"
+             setvar_vaddr="nowayos_rw_region_0_vaddr" setvar_size="nowayos_rw_region_0_size" />
+        <map mr="actions_messages" vaddr="0x4000_1000" perms="r"
+             setvar_vaddr="nowayos_ro_region_0_vaddr" setvar_size="nowayos_ro_region_0_size" />
+        <map mr="reports_messages" vaddr="0x4000_2000" perms="rw"
+             setvar_vaddr="nowayos_rw_region_1_vaddr" setvar_size="nowayos_rw_region_1_size" />
+        <map mr="reports_control" vaddr="0x4000_3000" perms="r"
+             setvar_vaddr="nowayos_ro_region_1_vaddr" setvar_size="nowayos_ro_region_1_size" />
+    </protection_domain>
+
+    <protection_domain name="ui" priority="1" stack_size="0x20000">
+        <program_image path="showcase-kiosk-ui.elf" />
+        <map mr="present_messages" vaddr="0x4000_0000" perms="rw"
+             setvar_vaddr="nowayos_rw_region_0_vaddr" setvar_size="nowayos_rw_region_0_size" />
+        <map mr="present_control" vaddr="0x4000_1000" perms="r"
+             setvar_vaddr="nowayos_ro_region_0_vaddr" setvar_size="nowayos_ro_region_0_size" />
+        <map mr="display_control" vaddr="0x4000_2000" perms="rw"
+             setvar_vaddr="nowayos_rw_region_1_vaddr" setvar_size="nowayos_rw_region_1_size" />
+        <map mr="display_messages" vaddr="0x4000_3000" perms="r"
+             setvar_vaddr="nowayos_ro_region_1_vaddr" setvar_size="nowayos_ro_region_1_size" />
+        <map mr="framebuffer" vaddr="0x5000_0000" perms="rw"
+             setvar_vaddr="nowayos_rw_region_2_vaddr" setvar_size="nowayos_rw_region_2_size" />
+        <map mr="input_control" vaddr="0x4000_4000" perms="rw"
+             setvar_vaddr="nowayos_rw_region_3_vaddr" setvar_size="nowayos_rw_region_3_size" />
+        <map mr="input_messages" vaddr="0x4000_5000" perms="r"
+             setvar_vaddr="nowayos_ro_region_2_vaddr" setvar_size="nowayos_ro_region_2_size" />
+        <map mr="actions_messages" vaddr="0x4100_0000" perms="rw"
+             setvar_vaddr="nowayos_rw_region_4_vaddr" setvar_size="nowayos_rw_region_4_size" />
+        <map mr="actions_control" vaddr="0x4100_1000" perms="r"
+             setvar_vaddr="nowayos_ro_region_3_vaddr" setvar_size="nowayos_ro_region_3_size" />
+        <map mr="reports_control" vaddr="0x4100_2000" perms="rw"
+             setvar_vaddr="nowayos_rw_region_5_vaddr" setvar_size="nowayos_rw_region_5_size" />
+        <map mr="reports_messages" vaddr="0x4100_3000" perms="r"
+             setvar_vaddr="nowayos_ro_region_4_vaddr" setvar_size="nowayos_ro_region_4_size" />
+    </protection_domain>
+
+    <!-- "Records waiting", both ways. -->
+    <channel>
+        <end pd="ui" id="0" />
+        <end pd="display" id="0" />
+    </channel>
+    <!-- "Events waiting" from the broker; "ready for more" from the UI, which
+         the broker answers by draining its sources. -->
+    <channel>
+        <end pd="ui" id="1" />
+        <end pd="input_broker" id="0" />
+    </channel>
+    <!-- uart_input's "events waiting"; the broker never notifies it. -->
+    <channel>
+        <end pd="uart_input" id="0" />
+        <end pd="input_broker" id="1" notify="false" />
+    </channel>
+    <!-- uart_input calls the timer; the timer notifies it when a poll is due. -->
+    <channel>
+        <end pd="uart_input" id="1" pp="true" notify="false" />
+        <end pd="timer" id="1" />
+    </channel>
+    <!-- "Actions waiting" from the UI; "reports waiting", and "actions
+         taken", from the application. -->
+    <channel>
+        <end pd="ui" id="2" />
+        <end pd="app" id="0" />
+    </channel>
+    <!-- The application calls the timer; the timer notifies it at its next
+         deadline. -->
+    <channel>
+        <end pd="app" id="1" pp="true" notify="false" />
+        <end pd="timer" id="2" />
+    </channel>
+</system>

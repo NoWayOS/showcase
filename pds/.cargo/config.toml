@@ -1,0 +1,23 @@
+# Cargo configuration for Showcase's Microkit protection domains: the same as
+# NoWayOS's (nowayos/pds/.cargo/config.toml). PDs are built for the custom
+# target `aarch64-sel4`, whose spec NoWayOS keeps (nowayos/pds/support/targets,
+# from rust-sel4 v5.0.0), with the core library rebuilt from source
+# (build-std). Both need the nightly in rust-toolchain.toml.
+#
+# NoWayOS's make targets run cargo from this directory (make pds, make
+# qemu-test), so that this file and rust-toolchain.toml are picked up.
+
+[env]
+RUST_TARGET_PATH = { value = "../../nowayos/pds/support/targets", relative = true }
+
+[build]
+target = "aarch64-sel4"
+
+# As NoWayOS's: rust-sel4 v5.0.0 builds its custom targets with these.
+[target.aarch64-sel4]
+rustflags = ["-Zunstable-options"]
+
+[unstable]
+unstable-options = true
+build-std = ["core", "alloc", "compiler_builtins"]
+build-std-features = ["compiler-builtins-mem"]

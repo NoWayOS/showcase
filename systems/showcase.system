@@ -1,0 +1,268 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+    The showcase: the Pi boots to a launcher of
+    example kiosks, one tile each - Showcase's screens, written in React and
+    converted to native Rust by Screen Compiler - and a tile opens its example.
+    Three examples are ready: the Service desk, the reference kiosk of
+    kiosk.system, the visitor sign-in and the pay at the pump
+    , each with its kiosk flow in an application PD of its own
+    deciding every screen, and a bar with Home above each screen. Another
+    tile says it is coming; the third, a program's own example's,
+    is hidden, as the showcase's program adds none. Home, or the end of a session, wipes the example - the
+    UI's copies and outbox, and the application's session - and shows the
+    launcher.
+
+    The same PDs, programs and grants as kiosk.system, but for the UI's
+    program - and its stack, 512 KiB, as it holds the launcher's tree beside
+    the examples' - and the visitor sign-in's and pay at the pump's
+    application PDs:
+
+        ui             showcase-ui: the launcher and its examples
+                       (showcase_app::Showcase), on the reference
+                       kiosk's UI PD (showcase-kiosk-ui's library): the same
+                       rings, drawing and failing closed
+        app            showcase-kiosk-stand-in: the Service desk's application,
+                       the kiosk flow with a development stand-in for the
+                       service built in - development-only by its name
+        visitor        showcase-visitor-stand-in: the visitor sign-in's
+                       application, the same PD on its own form, its
+                       building service a stand-in - development-only too -
+                       over rings of its own to the UI
+        pump           showcase-pump-stand-in: the pay at the pump's
+                       application, as the visitor's: its own form,
+                       rings and stand-in, here for the card reader and the
+                       pump controller - application 2 to the UI; a
+                       program's example is application 3, the timer's
+                       client 4
+
+    A demo system: the UART input PD is a development route, and the
+    service a stand-in. Every grant, and why, is in showcase.grants; the Pi
+    5's variant, with the HDMI monitor and a USB host PD for each of RP1's
+    controllers, is rpi5b_2gb/showcase.system.
+
+    In QEMU the terminal is QEMU's serial port, which showcase.qmp types
+    into; on the Pi 5 it is the Debug Probe's (make pi-show PI_TYPE=1, or
+    make pi-run, which types the same script), and a USB keyboard and mouse
+    work too.
+-->
+<system>
+    <memory_region name="present_messages" size="0x1000" />
+    <memory_region name="present_control" size="0x1000" />
+    <memory_region name="display_messages" size="0x1000" />
+    <memory_region name="display_control" size="0x1000" />
+    <memory_region name="framebuffer" size="0x400000" />
+    <memory_region name="input_messages" size="0x1000" />
+    <memory_region name="input_control" size="0x1000" />
+    <memory_region name="keys_messages" size="0x1000" />
+    <memory_region name="keys_control" size="0x1000" />
+    <memory_region name="debug_uart_regs" size="@debug_uart" phys_addr="@debug_uart" />
+    <memory_region name="debug_uart_facts" prefill_path="device-debug_uart.bin" />
+    <memory_region name="screen" prefill_path="screen-1920x1064.bin" />
+    <!-- The app-UI contract's rings: the UI's actions, and the application's
+         reports. -->
+    <memory_region name="actions_messages" size="0x1000" />
+    <memory_region name="actions_control" size="0x1000" />
+    <memory_region name="reports_messages" size="0x1000" />
+    <memory_region name="reports_control" size="0x1000" />
+    <!-- The visitor sign-in's rings, the same contract to its own
+         application PD. -->
+    <memory_region name="visitor_actions_messages" size="0x1000" />
+    <memory_region name="visitor_actions_control" size="0x1000" />
+    <memory_region name="visitor_reports_messages" size="0x1000" />
+    <memory_region name="visitor_reports_control" size="0x1000" />
+    <!-- The pay at the pump's rings, the same contract to its own
+         application PD. -->
+    <memory_region name="pump_actions_messages" size="0x1000" />
+    <memory_region name="pump_actions_control" size="0x1000" />
+    <memory_region name="pump_reports_messages" size="0x1000" />
+    <memory_region name="pump_reports_control" size="0x1000" />
+
+    <protection_domain name="timer" priority="9" stack_size="0x10000">
+        <program_image path="showcase-timer.elf" />
+        <irq irq="@phys_timer" id="0" trigger="@phys_timer" />
+    </protection_domain>
+
+    <protection_domain name="display" priority="8" stack_size="0x10000">
+        <program_image path="showcase-display.elf" />
+        <map mr="present_control" vaddr="0x4000_0000" perms="rw"
+             setvar_vaddr="nowayos_rw_region_0_vaddr" setvar_size="nowayos_rw_region_0_size" />
+        <map mr="present_messages" vaddr="0x4000_1000" perms="r"
+             setvar_vaddr="nowayos_ro_region_0_vaddr" setvar_size="nowayos_ro_region_0_size" />
+        <map mr="display_messages" vaddr="0x4000_2000" perms="rw"
+             setvar_vaddr="nowayos_rw_region_1_vaddr" setvar_size="nowayos_rw_region_1_size" />
+        <map mr="display_control" vaddr="0x4000_3000" perms="r"
+             setvar_vaddr="nowayos_ro_region_1_vaddr" setvar_size="nowayos_ro_region_1_size" />
+        <map mr="framebuffer" vaddr="0x5000_0000" perms="r"
+             setvar_vaddr="nowayos_ro_region_2_vaddr" setvar_size="nowayos_ro_region_2_size" />
+    </protection_domain>
+
+    <protection_domain name="input_broker" priority="7" stack_size="0x10000">
+        <program_image path="showcase-input-broker.elf" />
+        <map mr="input_messages" vaddr="0x4000_0000" perms="rw"
+             setvar_vaddr="nowayos_rw_region_0_vaddr" setvar_size="nowayos_rw_region_0_size" />
+        <map mr="input_control" vaddr="0x4000_1000" perms="r"
+             setvar_vaddr="nowayos_ro_region_0_vaddr" setvar_size="nowayos_ro_region_0_size" />
+        <map mr="keys_messages" vaddr="0x4100_0000" perms="r"
+             setvar_vaddr="nowayos_ro_region_1_vaddr" setvar_size="nowayos_ro_region_1_size" />
+        <map mr="keys_control" vaddr="0x4100_1000" perms="rw"
+             setvar_vaddr="nowayos_rw_region_1_vaddr" setvar_size="nowayos_rw_region_1_size" />
+        <map mr="screen" vaddr="0x5000_0000" perms="r"
+             setvar_vaddr="nowayos_ro_region_7_vaddr" setvar_size="nowayos_ro_region_7_size" />
+    </protection_domain>
+
+    <protection_domain name="uart_input" priority="6" stack_size="0x10000">
+        <program_image path="showcase-uart-input.elf" />
+        <map mr="debug_uart_regs" vaddr="0x200_0000" perms="r" cached="false"
+             setvar_vaddr="nowayos_device_0_vaddr" setvar_size="nowayos_device_0_size" />
+        <map mr="debug_uart_facts" vaddr="0x4000_4000" perms="r"
+             setvar_vaddr="nowayos_ro_region_5_vaddr" setvar_size="nowayos_ro_region_5_size" />
+        <map mr="keys_messages" vaddr="0x4000_0000" perms="rw"
+             setvar_vaddr="nowayos_rw_region_0_vaddr" setvar_size="nowayos_rw_region_0_size" />
+        <map mr="keys_control" vaddr="0x4000_1000" perms="r"
+             setvar_vaddr="nowayos_ro_region_0_vaddr" setvar_size="nowayos_ro_region_0_size" />
+    </protection_domain>
+
+    <protection_domain name="app" priority="5" stack_size="0x10000">
+        <program_image path="showcase-kiosk-stand-in.elf" />
+        <map mr="actions_control" vaddr="0x4000_0000" perms="rw"
+             setvar_vaddr="nowayos_rw_region_0_vaddr" setvar_size="nowayos_rw_region_0_size" />
+        <map mr="actions_messages" vaddr="0x4000_1000" perms="r"
+             setvar_vaddr="nowayos_ro_region_0_vaddr" setvar_size="nowayos_ro_region_0_size" />
+        <map mr="reports_messages" vaddr="0x4000_2000" perms="rw"
+             setvar_vaddr="nowayos_rw_region_1_vaddr" setvar_size="nowayos_rw_region_1_size" />
+        <map mr="reports_control" vaddr="0x4000_3000" perms="r"
+             setvar_vaddr="nowayos_ro_region_1_vaddr" setvar_size="nowayos_ro_region_1_size" />
+    </protection_domain>
+
+    <protection_domain name="visitor" priority="4" stack_size="0x10000">
+        <program_image path="showcase-visitor-stand-in.elf" />
+        <map mr="visitor_actions_control" vaddr="0x4000_0000" perms="rw"
+             setvar_vaddr="nowayos_rw_region_0_vaddr" setvar_size="nowayos_rw_region_0_size" />
+        <map mr="visitor_actions_messages" vaddr="0x4000_1000" perms="r"
+             setvar_vaddr="nowayos_ro_region_0_vaddr" setvar_size="nowayos_ro_region_0_size" />
+        <map mr="visitor_reports_messages" vaddr="0x4000_2000" perms="rw"
+             setvar_vaddr="nowayos_rw_region_1_vaddr" setvar_size="nowayos_rw_region_1_size" />
+        <map mr="visitor_reports_control" vaddr="0x4000_3000" perms="r"
+             setvar_vaddr="nowayos_ro_region_1_vaddr" setvar_size="nowayos_ro_region_1_size" />
+    </protection_domain>
+
+    <protection_domain name="pump" priority="2" stack_size="0x10000">
+        <program_image path="showcase-pump-stand-in.elf" />
+        <map mr="pump_actions_control" vaddr="0x4000_0000" perms="rw"
+             setvar_vaddr="nowayos_rw_region_0_vaddr" setvar_size="nowayos_rw_region_0_size" />
+        <map mr="pump_actions_messages" vaddr="0x4000_1000" perms="r"
+             setvar_vaddr="nowayos_ro_region_0_vaddr" setvar_size="nowayos_ro_region_0_size" />
+        <map mr="pump_reports_messages" vaddr="0x4000_2000" perms="rw"
+             setvar_vaddr="nowayos_rw_region_1_vaddr" setvar_size="nowayos_rw_region_1_size" />
+        <map mr="pump_reports_control" vaddr="0x4000_3000" perms="r"
+             setvar_vaddr="nowayos_ro_region_1_vaddr" setvar_size="nowayos_ro_region_1_size" />
+    </protection_domain>
+
+    <protection_domain name="ui" priority="1" stack_size="0x80000">
+        <program_image path="showcase-ui.elf" />
+        <map mr="present_messages" vaddr="0x4000_0000" perms="rw"
+             setvar_vaddr="nowayos_rw_region_0_vaddr" setvar_size="nowayos_rw_region_0_size" />
+        <map mr="present_control" vaddr="0x4000_1000" perms="r"
+             setvar_vaddr="nowayos_ro_region_0_vaddr" setvar_size="nowayos_ro_region_0_size" />
+        <map mr="display_control" vaddr="0x4000_2000" perms="rw"
+             setvar_vaddr="nowayos_rw_region_1_vaddr" setvar_size="nowayos_rw_region_1_size" />
+        <map mr="display_messages" vaddr="0x4000_3000" perms="r"
+             setvar_vaddr="nowayos_ro_region_1_vaddr" setvar_size="nowayos_ro_region_1_size" />
+        <map mr="framebuffer" vaddr="0x5000_0000" perms="rw"
+             setvar_vaddr="nowayos_rw_region_2_vaddr" setvar_size="nowayos_rw_region_2_size" />
+        <map mr="input_control" vaddr="0x4000_4000" perms="rw"
+             setvar_vaddr="nowayos_rw_region_3_vaddr" setvar_size="nowayos_rw_region_3_size" />
+        <map mr="input_messages" vaddr="0x4000_5000" perms="r"
+             setvar_vaddr="nowayos_ro_region_2_vaddr" setvar_size="nowayos_ro_region_2_size" />
+        <map mr="actions_messages" vaddr="0x4100_0000" perms="rw"
+             setvar_vaddr="nowayos_rw_region_4_vaddr" setvar_size="nowayos_rw_region_4_size" />
+        <map mr="actions_control" vaddr="0x4100_1000" perms="r"
+             setvar_vaddr="nowayos_ro_region_3_vaddr" setvar_size="nowayos_ro_region_3_size" />
+        <map mr="reports_control" vaddr="0x4100_2000" perms="rw"
+             setvar_vaddr="nowayos_rw_region_5_vaddr" setvar_size="nowayos_rw_region_5_size" />
+        <map mr="reports_messages" vaddr="0x4100_3000" perms="r"
+             setvar_vaddr="nowayos_ro_region_4_vaddr" setvar_size="nowayos_ro_region_4_size" />
+        <map mr="visitor_actions_messages" vaddr="0x4200_0000" perms="rw"
+             setvar_vaddr="nowayos_rw_region_6_vaddr" setvar_size="nowayos_rw_region_6_size" />
+        <map mr="visitor_actions_control" vaddr="0x4200_1000" perms="r"
+             setvar_vaddr="nowayos_ro_region_5_vaddr" setvar_size="nowayos_ro_region_5_size" />
+        <map mr="visitor_reports_control" vaddr="0x4200_2000" perms="rw"
+             setvar_vaddr="nowayos_rw_region_7_vaddr" setvar_size="nowayos_rw_region_7_size" />
+        <map mr="visitor_reports_messages" vaddr="0x4200_3000" perms="r"
+             setvar_vaddr="nowayos_ro_region_6_vaddr" setvar_size="nowayos_ro_region_6_size" />
+        <map mr="pump_actions_messages" vaddr="0x4300_0000" perms="rw"
+             setvar_vaddr="nowayos_rw_region_8_vaddr" setvar_size="nowayos_rw_region_8_size" />
+        <map mr="pump_actions_control" vaddr="0x4300_1000" perms="r"
+             setvar_vaddr="nowayos_ro_region_7_vaddr" setvar_size="nowayos_ro_region_7_size" />
+        <map mr="pump_reports_control" vaddr="0x4300_2000" perms="rw"
+             setvar_vaddr="nowayos_rw_region_9_vaddr" setvar_size="nowayos_rw_region_9_size" />
+        <map mr="pump_reports_messages" vaddr="0x4300_3000" perms="r"
+             setvar_vaddr="nowayos_ro_region_8_vaddr" setvar_size="nowayos_ro_region_8_size" />
+    </protection_domain>
+
+    <!-- "Records waiting", both ways. -->
+    <channel>
+        <end pd="ui" id="0" />
+        <end pd="display" id="0" />
+    </channel>
+    <!-- "Events waiting" from the broker; "ready for more" from the UI, which
+         the broker answers by draining its sources. -->
+    <channel>
+        <end pd="ui" id="1" />
+        <end pd="input_broker" id="0" />
+    </channel>
+    <!-- uart_input's "events waiting"; the broker never notifies it. -->
+    <channel>
+        <end pd="uart_input" id="0" />
+        <end pd="input_broker" id="1" notify="false" />
+    </channel>
+    <!-- uart_input calls the timer; the timer notifies it when a poll is due. -->
+    <channel>
+        <end pd="uart_input" id="1" pp="true" notify="false" />
+        <end pd="timer" id="1" />
+    </channel>
+    <!-- "Actions waiting" from the UI; "reports waiting", and "actions
+         taken", from the application. -->
+    <channel>
+        <end pd="ui" id="2" />
+        <end pd="app" id="0" />
+    </channel>
+    <!-- The application calls the timer; the timer notifies it at its next
+         deadline. -->
+    <channel>
+        <end pd="app" id="1" pp="true" notify="false" />
+        <end pd="timer" id="2" />
+    </channel>
+    <!-- The visitor sign-in: "actions waiting" from the UI; "reports
+         waiting", and "actions taken", from its application. -->
+    <channel>
+        <end pd="ui" id="3" />
+        <end pd="visitor" id="0" />
+    </channel>
+    <!-- Its application calls the timer; the timer notifies it at its next
+         deadline. The timer's end is its last client channel, 8, so a run
+         shows the timer PD takes eight clients. -->
+    <channel>
+        <end pd="visitor" id="1" pp="true" notify="false" />
+        <end pd="timer" id="8" />
+    </channel>
+    <!-- The pay at the pump: "actions waiting" from the UI; "reports
+         waiting", and "actions taken", from its application. -->
+    <channel>
+        <end pd="ui" id="4" />
+        <end pd="pump" id="0" />
+    </channel>
+    <!-- Its application calls the timer; the timer notifies it at its next
+         deadline. -->
+    <channel>
+        <end pd="pump" id="1" pp="true" notify="false" />
+        <end pd="timer" id="3" />
+    </channel>
+    <!-- The UI calls the timer for the launcher's idle clock alone:
+         its attract loop. The timer notifies it when the launcher has been
+         idle long enough. -->
+    <channel>
+        <end pd="ui" id="6" pp="true" notify="false" />
+        <end pd="timer" id="5" />
+    </channel>
+</system>

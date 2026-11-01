@@ -1,0 +1,27 @@
+[package]
+name = "showcase-app"
+description = "The showcase: a launcher of example kiosks, in TSX converted by Screen Compiler, and the UI that opens each example and wipes it on Home or at a session's end (no_std)"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+rust-version.workspace = true
+publish = false
+
+[dependencies]
+showcase-kiosk-contract.workspace = true
+showcase-kiosk-screens.workspace = true
+showcase-visitor.workspace = true
+showcase-pump.workspace = true
+nowayos-display.workspace = true
+nowayos-input.workspace = true
+# The brands' themes.
+nowayos-render-eg.workspace = true
+nowayos-ui.workspace = true
+
+[dev-dependencies]
+showcase-kiosk-flow.workspace = true
+nowayos-glyphs.workspace = true
+nowayos-testkit.workspace = true
+
+[lints]
+workspace = true

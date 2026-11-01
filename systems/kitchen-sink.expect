@@ -1,0 +1,50 @@
+# Lines NoWayOS's tools/qemu-test must see, in this order, as whole serial
+# lines: the kitchen sink's ten screens toured by keys typed on the
+# terminal - kitchen-sink.qmp, typed into QEMU's serial port, or through the
+# Pi 5's Debug Probe - each screen named as the UI shows it, and each action
+# its buttons take. Never what was typed.
+SHOWCASE: ui: starting
+SHOWCASE: ui: the display is 1920x1064 Rgb565 at scale 2
+SHOWCASE: ui: showing welcome
+SHOWCASE: ui: action Start
+SHOWCASE: ui: showing step-text
+SHOWCASE: ui: action Next
+SHOWCASE: ui: showing step-choice
+SHOWCASE: ui: action Next
+SHOWCASE: ui: showing step-checkbox
+SHOWCASE: ui: action Next
+SHOWCASE: ui: showing step-notice
+SHOWCASE: ui: action Next
+SHOWCASE: ui: showing review
+SHOWCASE: ui: action Send
+SHOWCASE: ui: showing submitting
+SHOWCASE: ui: showing failed
+SHOWCASE: ui: action Try again
+SHOWCASE: ui: showing submitted
+SHOWCASE: ui: action Done
+SHOWCASE: ui: showing idle-warning
+SHOWCASE: ui: action Yes, I am here
+SHOWCASE: ui: showing welcome
+
+# Output that fails the test at once if it appears anywhere (substring match):
+# a fault reported by the Microkit monitor, a kernel error message, a panic, a
+# PD giving up, a record refused or rejected, input dropped anywhere - by the
+# UART input PD, at the broker's rate or for want of room in the UI's ring.
+!MON|ERROR
+!seL4(CPU
+!panicked
+!gave up
+!refused
+!rejected
+!dropped so far
+!over its rate
+!the UI's ring is full
+
+# Nothing derived from what was typed: no frame's or scan-out hash,
+# which the display PD prints only when it is not quiet, and nothing the
+# script types - every name starts zqvj, the reference is 9081726354.
+# tools/check-quiet requires the hash line, and each text typed to start
+# with a text forbidden here.
+!display-stub: frame
+!zqvj
+!9081726354

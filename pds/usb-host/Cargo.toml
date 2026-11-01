@@ -1,0 +1,21 @@
+[package]
+name = "showcase-usb-host"
+description = "The USB host PD - NoWayOS's, run from a program of Showcase's own: one xHCI controller, and its keyboards, mice and pointers as canonical events for the input broker"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+rust-version.workspace = true
+publish.workspace = true
+
+[[bin]]
+name = "showcase-usb-host"
+path = "src/main.rs"
+test = false
+bench = false
+
+[dependencies]
+nowayos-usb-host.workspace = true
+sel4-microkit.workspace = true
+
+[lints]
+workspace = true

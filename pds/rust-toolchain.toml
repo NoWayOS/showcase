@@ -1,0 +1,7 @@
+# Showcase's protection-domain toolchain: NoWayOS's, exactly. PDs are built
+# with the nightly nowayos/pds/rust-toolchain.toml pins (rust-sel4's), and
+# NoWayOS's make targets refuse any other. Used only inside the dev container.
+[toolchain]
+channel = "nightly-2026-04-04"
+profile = "minimal"
+components = ["rust-src", "rustfmt", "clippy"]

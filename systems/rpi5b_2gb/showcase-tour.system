@@ -1,0 +1,376 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+    The showcase's tour on the Raspberry Pi 5: rpi5b_2gb/showcase.system
+    as a test system that asks for a run of 300 s, so a board run
+    plays the whole of systems/showcase.qmp - the pay at the pump's two
+    sessions included - instead of the 15 s one watchdog arming holds. Every
+    line of the showcase's own description is here unchanged but the
+    timer's priority (a test in showcase/showcase-app checks), with
+    three additions:
+        run_watchdog   NoWayOS's watchdog PD (250), watching no PD: it arms
+                       the PM watchdog for 6 s at each tick, for as long as
+                       the ticks come; maps the PM block's page, which only
+                       a watchdog PD may hold
+        ticker         NoWayOS's watchdog stand-in (11, below the timer it
+                       calls, which the tour raises to 12 - the showcase
+                       gives every PD from 0 to 11 its own priority, and
+                       PDs that share one print their lines mixed): a tick
+                       to the watchdog every 2 s until the
+                       run length it reads - test-run-length-300.bin,
+                       read-only region 0 - then none, so the board resets
+                       into U-Boot's prompt
+        the timer's tenth client, the ticker
+    The demo image on the card stays rpi5b_2gb/showcase.system, which runs
+    until the power goes. On the Mac, with the monitor attached:
+        make pi-run PI_DEVICE=/dev/cu.usbmodemXXXX PI_SYSTEMS=showcase-tour
+    Every grant is listed in rpi5b_2gb/showcase-tour.grants.
+-->
+<system>
+    <memory_region name="present_messages" size="0x1000" />
+    <memory_region name="present_control" size="0x1000" />
+    <memory_region name="display_messages" size="0x1000" />
+    <memory_region name="display_control" size="0x1000" />
+    <memory_region name="framebuffer" size="0x400000" />
+    <memory_region name="input_messages" size="0x1000" />
+    <memory_region name="input_control" size="0x1000" />
+    <memory_region name="keys_messages" size="0x1000" />
+    <memory_region name="keys_control" size="0x1000" />
+    <memory_region name="debug_uart_regs" size="@debug_uart" phys_addr="@debug_uart" />
+    <memory_region name="system_timer_regs" size="@system_timer" phys_addr="@system_timer" />
+    <memory_region name="clocks_regs" size="@rp1_clocks_main" phys_addr="@rp1_clocks_main" />
+    <memory_region name="gpio_bank2_regs" size="@rp1_gpio_bank2" phys_addr="@rp1_gpio_bank2" />
+    <memory_region name="pwm1_regs" size="@rp1_pwm1" phys_addr="@rp1_pwm1" />
+    <memory_region name="mailbox_regs" size="@vc_mailbox" phys_addr="@vc_mailbox" />
+    <memory_region name="mailbox_buffer" size="0x1000" />
+    <!-- The run: the PM block's page, for the watchdog; the run
+         length, for the ticker. -->
+    <memory_region name="pm_regs" size="@pm_watchdog" phys_addr="@pm_watchdog" />
+    <memory_region name="run_length" prefill_path="test-run-length-300.bin" />
+    <memory_region name="firmware_fb" size="@firmware_fb" phys_addr="@firmware_fb" />
+    <memory_region name="firmware_fb_facts" prefill_path="device-firmware_fb.bin" />
+    <memory_region name="debug_uart_facts" prefill_path="device-debug_uart.bin" />
+    <memory_region name="screen" prefill_path="screen-1920x1064.bin" />
+    <!-- The app-UI contract's rings: the UI's actions, and the application's
+         reports. -->
+    <memory_region name="actions_messages" size="0x1000" />
+    <memory_region name="actions_control" size="0x1000" />
+    <memory_region name="reports_messages" size="0x1000" />
+    <memory_region name="reports_control" size="0x1000" />
+    <!-- The visitor sign-in's rings, the same contract to its own
+         application PD. -->
+    <memory_region name="visitor_actions_messages" size="0x1000" />
+    <memory_region name="visitor_actions_control" size="0x1000" />
+    <memory_region name="visitor_reports_messages" size="0x1000" />
+    <memory_region name="visitor_reports_control" size="0x1000" />
+    <!-- The pay at the pump's rings, the same contract to its own
+         application PD. -->
+    <memory_region name="pump_actions_messages" size="0x1000" />
+    <memory_region name="pump_actions_control" size="0x1000" />
+    <memory_region name="pump_reports_messages" size="0x1000" />
+    <memory_region name="pump_reports_control" size="0x1000" />
+    <memory_region name="xhci0_regs" size="@xhci0" phys_addr="@xhci0" />
+    <memory_region name="xhci0_facts" prefill_path="device-xhci0.bin" />
+    <memory_region name="usb0_memory" size="0x13000" />
+    <memory_region name="usb0_messages" size="0x1000" />
+    <memory_region name="usb0_control" size="0x1000" />
+    <memory_region name="xhci1_regs" size="@xhci1" phys_addr="@xhci1" />
+    <memory_region name="xhci1_facts" prefill_path="device-xhci1.bin" />
+    <memory_region name="usb1_memory" size="0x13000" />
+    <memory_region name="usb1_messages" size="0x1000" />
+    <memory_region name="usb1_control" size="0x1000" />
+
+    <protection_domain name="run_watchdog" priority="250" stack_size="0x10000">
+        <program_image path="showcase-run-watchdog.elf" />
+        <map mr="pm_regs" vaddr="0x200_0000" perms="rw" cached="false"
+             setvar_vaddr="nowayos_device_0_vaddr" setvar_size="nowayos_device_0_size" />
+    </protection_domain>
+    <protection_domain name="ticker" priority="12" stack_size="0x10000">
+        <program_image path="showcase-watchdog-stand-in.elf" />
+        <map mr="run_length" vaddr="0x4000_0000" perms="r"
+             setvar_vaddr="nowayos_ro_region_0_vaddr" setvar_size="nowayos_ro_region_0_size" />
+    </protection_domain>
+    <protection_domain name="timer" priority="13" stack_size="0x10000">
+        <program_image path="showcase-timer.elf" />
+        <map mr="system_timer_regs" vaddr="0x200_0000" perms="rw" cached="false"
+             setvar_vaddr="nowayos_device_0_vaddr" setvar_size="nowayos_device_0_size" />
+        <irq irq="@system_timer[1]" id="0" trigger="@system_timer" />
+    </protection_domain>
+
+    <protection_domain name="display" priority="11" stack_size="0x10000">
+        <program_image path="showcase-display.elf" />
+        <map mr="present_control" vaddr="0x4000_0000" perms="rw"
+             setvar_vaddr="nowayos_rw_region_0_vaddr" setvar_size="nowayos_rw_region_0_size" />
+        <map mr="present_messages" vaddr="0x4000_1000" perms="r"
+             setvar_vaddr="nowayos_ro_region_0_vaddr" setvar_size="nowayos_ro_region_0_size" />
+        <map mr="display_messages" vaddr="0x4000_2000" perms="rw"
+             setvar_vaddr="nowayos_rw_region_1_vaddr" setvar_size="nowayos_rw_region_1_size" />
+        <map mr="display_control" vaddr="0x4000_3000" perms="r"
+             setvar_vaddr="nowayos_ro_region_1_vaddr" setvar_size="nowayos_ro_region_1_size" />
+        <map mr="framebuffer" vaddr="0x5000_0000" perms="r"
+             setvar_vaddr="nowayos_ro_region_2_vaddr" setvar_size="nowayos_ro_region_2_size" />
+        <map mr="firmware_fb" vaddr="0x6000_0000" perms="rw" cached="true"
+             setvar_vaddr="nowayos_device_0_vaddr" setvar_size="nowayos_device_0_size" />
+        <map mr="firmware_fb_facts" vaddr="0x4000_4000" perms="r"
+             setvar_vaddr="nowayos_ro_region_5_vaddr" setvar_size="nowayos_ro_region_5_size" />
+    </protection_domain>
+
+    <protection_domain name="input_broker" priority="10" stack_size="0x10000">
+        <program_image path="showcase-input-broker.elf" />
+        <map mr="input_messages" vaddr="0x4000_0000" perms="rw"
+             setvar_vaddr="nowayos_rw_region_0_vaddr" setvar_size="nowayos_rw_region_0_size" />
+        <map mr="input_control" vaddr="0x4000_1000" perms="r"
+             setvar_vaddr="nowayos_ro_region_0_vaddr" setvar_size="nowayos_ro_region_0_size" />
+        <map mr="keys_messages" vaddr="0x4100_0000" perms="r"
+             setvar_vaddr="nowayos_ro_region_1_vaddr" setvar_size="nowayos_ro_region_1_size" />
+        <map mr="keys_control" vaddr="0x4100_1000" perms="rw"
+             setvar_vaddr="nowayos_rw_region_1_vaddr" setvar_size="nowayos_rw_region_1_size" />
+        <map mr="usb0_messages" vaddr="0x4200_0000" perms="r"
+             setvar_vaddr="nowayos_ro_region_2_vaddr" setvar_size="nowayos_ro_region_2_size" />
+        <map mr="usb0_control" vaddr="0x4200_1000" perms="rw"
+             setvar_vaddr="nowayos_rw_region_2_vaddr" setvar_size="nowayos_rw_region_2_size" />
+        <map mr="usb1_messages" vaddr="0x4300_0000" perms="r"
+             setvar_vaddr="nowayos_ro_region_3_vaddr" setvar_size="nowayos_ro_region_3_size" />
+        <map mr="usb1_control" vaddr="0x4300_1000" perms="rw"
+             setvar_vaddr="nowayos_rw_region_3_vaddr" setvar_size="nowayos_rw_region_3_size" />
+        <map mr="screen" vaddr="0x5000_0000" perms="r"
+             setvar_vaddr="nowayos_ro_region_7_vaddr" setvar_size="nowayos_ro_region_7_size" />
+    </protection_domain>
+
+    <protection_domain name="usb0" priority="9" stack_size="0x10000">
+        <program_image path="showcase-usb-host.elf" />
+        <map mr="xhci0_regs" vaddr="0x200_0000" perms="rw" cached="false"
+             setvar_vaddr="nowayos_device_0_vaddr" setvar_size="nowayos_device_0_size" />
+        <map mr="usb0_memory" vaddr="0x300_0000" perms="rw" cached="false"
+             setvar_vaddr="nowayos_dma_0_vaddr" setvar_size="nowayos_dma_0_size" />
+        <setvar symbol="nowayos_dma_0_paddr" region_paddr="usb0_memory" />
+        <map mr="xhci0_facts" vaddr="0x4000_0000" perms="r"
+             setvar_vaddr="nowayos_ro_region_5_vaddr" setvar_size="nowayos_ro_region_5_size" />
+        <map mr="usb0_messages" vaddr="0x4100_0000" perms="rw"
+             setvar_vaddr="nowayos_rw_region_0_vaddr" setvar_size="nowayos_rw_region_0_size" />
+        <map mr="usb0_control" vaddr="0x4100_1000" perms="r"
+             setvar_vaddr="nowayos_ro_region_0_vaddr" setvar_size="nowayos_ro_region_0_size" />
+        <map mr="screen" vaddr="0x5000_0000" perms="r"
+             setvar_vaddr="nowayos_ro_region_7_vaddr" setvar_size="nowayos_ro_region_7_size" />
+    </protection_domain>
+
+    <protection_domain name="usb1" priority="8" stack_size="0x10000">
+        <program_image path="showcase-usb-host.elf" />
+        <map mr="xhci1_regs" vaddr="0x200_0000" perms="rw" cached="false"
+             setvar_vaddr="nowayos_device_0_vaddr" setvar_size="nowayos_device_0_size" />
+        <map mr="usb1_memory" vaddr="0x300_0000" perms="rw" cached="false"
+             setvar_vaddr="nowayos_dma_0_vaddr" setvar_size="nowayos_dma_0_size" />
+        <setvar symbol="nowayos_dma_0_paddr" region_paddr="usb1_memory" />
+        <map mr="xhci1_facts" vaddr="0x4000_0000" perms="r"
+             setvar_vaddr="nowayos_ro_region_5_vaddr" setvar_size="nowayos_ro_region_5_size" />
+        <map mr="usb1_messages" vaddr="0x4100_0000" perms="rw"
+             setvar_vaddr="nowayos_rw_region_0_vaddr" setvar_size="nowayos_rw_region_0_size" />
+        <map mr="usb1_control" vaddr="0x4100_1000" perms="r"
+             setvar_vaddr="nowayos_ro_region_0_vaddr" setvar_size="nowayos_ro_region_0_size" />
+        <map mr="screen" vaddr="0x5000_0000" perms="r"
+             setvar_vaddr="nowayos_ro_region_7_vaddr" setvar_size="nowayos_ro_region_7_size" />
+    </protection_domain>
+
+    <protection_domain name="uart_input" priority="7" stack_size="0x10000">
+        <program_image path="showcase-uart-input.elf" />
+        <map mr="debug_uart_regs" vaddr="0x200_0000" perms="r" cached="false"
+             setvar_vaddr="nowayos_device_0_vaddr" setvar_size="nowayos_device_0_size" />
+        <map mr="debug_uart_facts" vaddr="0x4000_4000" perms="r"
+             setvar_vaddr="nowayos_ro_region_5_vaddr" setvar_size="nowayos_ro_region_5_size" />
+        <map mr="keys_messages" vaddr="0x4000_0000" perms="rw"
+             setvar_vaddr="nowayos_rw_region_0_vaddr" setvar_size="nowayos_rw_region_0_size" />
+        <map mr="keys_control" vaddr="0x4000_1000" perms="r"
+             setvar_vaddr="nowayos_ro_region_0_vaddr" setvar_size="nowayos_ro_region_0_size" />
+    </protection_domain>
+
+    <protection_domain name="app" priority="5" stack_size="0x10000">
+        <program_image path="showcase-kiosk-stand-in.elf" />
+        <map mr="actions_control" vaddr="0x4000_0000" perms="rw"
+             setvar_vaddr="nowayos_rw_region_0_vaddr" setvar_size="nowayos_rw_region_0_size" />
+        <map mr="actions_messages" vaddr="0x4000_1000" perms="r"
+             setvar_vaddr="nowayos_ro_region_0_vaddr" setvar_size="nowayos_ro_region_0_size" />
+        <map mr="reports_messages" vaddr="0x4000_2000" perms="rw"
+             setvar_vaddr="nowayos_rw_region_1_vaddr" setvar_size="nowayos_rw_region_1_size" />
+        <map mr="reports_control" vaddr="0x4000_3000" perms="r"
+             setvar_vaddr="nowayos_ro_region_1_vaddr" setvar_size="nowayos_ro_region_1_size" />
+    </protection_domain>
+
+    <protection_domain name="visitor" priority="4" stack_size="0x10000">
+        <program_image path="showcase-visitor-stand-in.elf" />
+        <map mr="visitor_actions_control" vaddr="0x4000_0000" perms="rw"
+             setvar_vaddr="nowayos_rw_region_0_vaddr" setvar_size="nowayos_rw_region_0_size" />
+        <map mr="visitor_actions_messages" vaddr="0x4000_1000" perms="r"
+             setvar_vaddr="nowayos_ro_region_0_vaddr" setvar_size="nowayos_ro_region_0_size" />
+        <map mr="visitor_reports_messages" vaddr="0x4000_2000" perms="rw"
+             setvar_vaddr="nowayos_rw_region_1_vaddr" setvar_size="nowayos_rw_region_1_size" />
+        <map mr="visitor_reports_control" vaddr="0x4000_3000" perms="r"
+             setvar_vaddr="nowayos_ro_region_1_vaddr" setvar_size="nowayos_ro_region_1_size" />
+    </protection_domain>
+
+    <protection_domain name="pump" priority="2" stack_size="0x10000">
+        <program_image path="showcase-pump-stand-in.elf" />
+        <map mr="pump_actions_control" vaddr="0x4000_0000" perms="rw"
+             setvar_vaddr="nowayos_rw_region_0_vaddr" setvar_size="nowayos_rw_region_0_size" />
+        <map mr="pump_actions_messages" vaddr="0x4000_1000" perms="r"
+             setvar_vaddr="nowayos_ro_region_0_vaddr" setvar_size="nowayos_ro_region_0_size" />
+        <map mr="pump_reports_messages" vaddr="0x4000_2000" perms="rw"
+             setvar_vaddr="nowayos_rw_region_1_vaddr" setvar_size="nowayos_rw_region_1_size" />
+        <map mr="pump_reports_control" vaddr="0x4000_3000" perms="r"
+             setvar_vaddr="nowayos_ro_region_1_vaddr" setvar_size="nowayos_ro_region_1_size" />
+    </protection_domain>
+
+    <protection_domain name="ui" priority="1" stack_size="0x80000">
+        <program_image path="showcase-ui.elf" />
+        <map mr="present_messages" vaddr="0x4000_0000" perms="rw"
+             setvar_vaddr="nowayos_rw_region_0_vaddr" setvar_size="nowayos_rw_region_0_size" />
+        <map mr="present_control" vaddr="0x4000_1000" perms="r"
+             setvar_vaddr="nowayos_ro_region_0_vaddr" setvar_size="nowayos_ro_region_0_size" />
+        <map mr="display_control" vaddr="0x4000_2000" perms="rw"
+             setvar_vaddr="nowayos_rw_region_1_vaddr" setvar_size="nowayos_rw_region_1_size" />
+        <map mr="display_messages" vaddr="0x4000_3000" perms="r"
+             setvar_vaddr="nowayos_ro_region_1_vaddr" setvar_size="nowayos_ro_region_1_size" />
+        <map mr="framebuffer" vaddr="0x5000_0000" perms="rw"
+             setvar_vaddr="nowayos_rw_region_2_vaddr" setvar_size="nowayos_rw_region_2_size" />
+        <map mr="input_control" vaddr="0x4000_4000" perms="rw"
+             setvar_vaddr="nowayos_rw_region_3_vaddr" setvar_size="nowayos_rw_region_3_size" />
+        <map mr="input_messages" vaddr="0x4000_5000" perms="r"
+             setvar_vaddr="nowayos_ro_region_2_vaddr" setvar_size="nowayos_ro_region_2_size" />
+        <map mr="actions_messages" vaddr="0x4100_0000" perms="rw"
+             setvar_vaddr="nowayos_rw_region_4_vaddr" setvar_size="nowayos_rw_region_4_size" />
+        <map mr="actions_control" vaddr="0x4100_1000" perms="r"
+             setvar_vaddr="nowayos_ro_region_3_vaddr" setvar_size="nowayos_ro_region_3_size" />
+        <map mr="reports_control" vaddr="0x4100_2000" perms="rw"
+             setvar_vaddr="nowayos_rw_region_5_vaddr" setvar_size="nowayos_rw_region_5_size" />
+        <map mr="reports_messages" vaddr="0x4100_3000" perms="r"
+             setvar_vaddr="nowayos_ro_region_4_vaddr" setvar_size="nowayos_ro_region_4_size" />
+        <map mr="visitor_actions_messages" vaddr="0x4200_0000" perms="rw"
+             setvar_vaddr="nowayos_rw_region_6_vaddr" setvar_size="nowayos_rw_region_6_size" />
+        <map mr="visitor_actions_control" vaddr="0x4200_1000" perms="r"
+             setvar_vaddr="nowayos_ro_region_5_vaddr" setvar_size="nowayos_ro_region_5_size" />
+        <map mr="visitor_reports_control" vaddr="0x4200_2000" perms="rw"
+             setvar_vaddr="nowayos_rw_region_7_vaddr" setvar_size="nowayos_rw_region_7_size" />
+        <map mr="visitor_reports_messages" vaddr="0x4200_3000" perms="r"
+             setvar_vaddr="nowayos_ro_region_6_vaddr" setvar_size="nowayos_ro_region_6_size" />
+        <map mr="pump_actions_messages" vaddr="0x4300_0000" perms="rw"
+             setvar_vaddr="nowayos_rw_region_8_vaddr" setvar_size="nowayos_rw_region_8_size" />
+        <map mr="pump_actions_control" vaddr="0x4300_1000" perms="r"
+             setvar_vaddr="nowayos_ro_region_7_vaddr" setvar_size="nowayos_ro_region_7_size" />
+        <map mr="pump_reports_control" vaddr="0x4300_2000" perms="rw"
+             setvar_vaddr="nowayos_rw_region_9_vaddr" setvar_size="nowayos_rw_region_9_size" />
+        <map mr="pump_reports_messages" vaddr="0x4300_3000" perms="r"
+             setvar_vaddr="nowayos_ro_region_8_vaddr" setvar_size="nowayos_ro_region_8_size" />
+    </protection_domain>
+
+    <!-- "Records waiting", both ways. -->
+    <protection_domain name="fan" priority="6" stack_size="0x10000">
+        <program_image path="showcase-fan.elf" />
+        <map mr="clocks_regs" vaddr="0x200_0000" perms="rw" cached="false"
+             setvar_vaddr="nowayos_device_0_vaddr" setvar_size="nowayos_device_0_size" />
+        <map mr="gpio_bank2_regs" vaddr="0x201_0000" perms="rw" cached="false"
+             setvar_vaddr="nowayos_device_1_vaddr" setvar_size="nowayos_device_1_size" />
+        <map mr="pwm1_regs" vaddr="0x202_0000" perms="rw" cached="false"
+             setvar_vaddr="nowayos_device_2_vaddr" setvar_size="nowayos_device_2_size" />
+        <map mr="mailbox_regs" vaddr="0x203_0000" perms="rw" cached="false"
+             setvar_vaddr="nowayos_device_3_vaddr" setvar_size="nowayos_device_3_size" />
+        <map mr="mailbox_buffer" vaddr="0x300_0000" perms="rw" cached="false"
+             setvar_vaddr="nowayos_dma_0_vaddr" setvar_size="nowayos_dma_0_size" />
+        <setvar symbol="nowayos_dma_0_paddr" region_paddr="mailbox_buffer" />
+    </protection_domain>
+
+    <channel>
+        <end pd="ui" id="0" />
+        <end pd="display" id="0" />
+    </channel>
+    <!-- "Events waiting" from the broker; "ready for more" from the UI, which
+         the broker answers by draining its sources. -->
+    <channel>
+        <end pd="ui" id="1" />
+        <end pd="input_broker" id="0" />
+    </channel>
+    <!-- uart_input's "events waiting"; the broker never notifies it. -->
+    <channel>
+        <end pd="uart_input" id="0" />
+        <end pd="input_broker" id="1" notify="false" />
+    </channel>
+    <!-- uart_input calls the timer; the timer notifies it when a poll is due. -->
+    <channel>
+        <end pd="uart_input" id="1" pp="true" notify="false" />
+        <end pd="timer" id="1" />
+    </channel>
+    <!-- Each USB host PD's "events waiting"; the broker never notifies it. -->
+    <channel>
+        <end pd="usb0" id="1" />
+        <end pd="input_broker" id="2" notify="false" />
+    </channel>
+    <channel>
+        <end pd="usb1" id="1" />
+        <end pd="input_broker" id="3" notify="false" />
+    </channel>
+    <!-- Each USB host PD calls the timer for its tick; the timer notifies it. -->
+    <channel>
+        <end pd="usb0" id="0" pp="true" notify="false" />
+        <end pd="timer" id="2" />
+    </channel>
+    <channel>
+        <end pd="usb1" id="0" pp="true" notify="false" />
+        <end pd="timer" id="3" />
+    </channel>
+    <!-- "Actions waiting" from the UI; "reports waiting", and "actions
+         taken", from the application. -->
+    <channel>
+        <end pd="ui" id="2" />
+        <end pd="app" id="0" />
+    </channel>
+    <!-- The application calls the timer; the timer notifies it at its next
+         deadline. -->
+    <channel>
+        <end pd="app" id="1" pp="true" notify="false" />
+        <end pd="timer" id="4" />
+    </channel>
+    <!-- The visitor sign-in: "actions waiting" from the UI; "reports
+         waiting", and "actions taken", from its application. -->
+    <channel>
+        <end pd="ui" id="3" />
+        <end pd="visitor" id="0" />
+    </channel>
+    <!-- Its application calls the timer; the timer notifies it at its next
+         deadline. -->
+    <channel>
+        <end pd="visitor" id="1" pp="true" notify="false" />
+        <end pd="timer" id="5" />
+    </channel>
+    <!-- The pay at the pump: "actions waiting" from the UI; "reports
+         waiting", and "actions taken", from its application. -->
+    <channel>
+        <end pd="ui" id="4" />
+        <end pd="pump" id="0" />
+    </channel>
+    <!-- Its application calls the timer; the timer notifies it at its next
+         deadline. -->
+    <channel>
+        <end pd="pump" id="1" pp="true" notify="false" />
+        <end pd="timer" id="7" />
+    </channel>
+    <!-- The UI calls the timer for the launcher's idle clock alone:
+         its attract loop. The timer notifies it when the launcher has been
+         idle long enough. -->
+    <channel>
+        <end pd="ui" id="6" pp="true" notify="false" />
+        <end pd="timer" id="8" />
+    </channel>
+    <!-- The fan PD calls the timer; the timer notifies it of each second. -->
+    <channel>
+        <end pd="fan" id="0" pp="true" notify="false" />
+        <end pd="timer" id="9" />
+    </channel>
+    <!-- The run: the ticker's ticks - the watchdog never notifies
+         it - and the ticker calls the timer, which notifies it of each
+         tick. -->
+    <channel>
+        <end pd="run_watchdog" id="0" notify="false" />
+        <end pd="ticker" id="0" />
+    </channel>
+    <channel>
+        <end pd="ticker" id="1" pp="true" notify="false" />
+        <end pd="timer" id="10" />
+    </channel>
+</system>

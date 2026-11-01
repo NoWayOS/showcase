@@ -1,0 +1,19 @@
+[package]
+name = "showcase-kiosk-contract"
+description = "The kiosk's app-UI contract: bounded, versioned nowayos-ipc records between the kiosk's UI and application protection domains, with a session-ended report (no_std)"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+rust-version.workspace = true
+publish = false
+
+[dependencies]
+showcase-kiosk-flow.workspace = true
+nowayos-bounded.workspace = true
+nowayos-ipc.workspace = true
+
+[dev-dependencies]
+proptest.workspace = true
+
+[lints]
+workspace = true

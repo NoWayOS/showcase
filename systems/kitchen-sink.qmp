@@ -1,0 +1,39 @@
+# What kitchen-sink's terminal types: the tour of the ten kiosk
+# reference screens by keyboard alone, as Showcase's kitchen sink test tours
+# them (kiosk/showcase-kiosk-screens/tests/sink.rs). Each `serial` step is one
+# burst of keys written to the debug UART's receive side - by NoWayOS's
+# tools/qemu-test into QEMU's serial port, by tools/pi-run through the Pi 5's
+# Debug Probe - after the screen it waits for. Escapes: \r Enter, \t Tab,
+# \e[B Down, \x20 Space. Each screen starts with focus on its first control.
+
+wait SHOWCASE: ui: showing welcome
+# Start.
+serial \r
+wait SHOWCASE: ui: showing step-text
+# A name and a reference, then Next. Every name typed starts zqvj, and the
+# reference is 9081726354, both of which the expect files forbid.
+serial zqvj\t9081726354\t\t\r
+wait SHOWCASE: ui: showing step-choice
+# The first topic, then Next.
+serial \e[B\t\t\t\t\r
+wait SHOWCASE: ui: showing step-checkbox
+# The agreement, then Next.
+serial \x20\t\t\t\t\r
+wait SHOWCASE: ui: showing step-notice
+serial \t\t\r
+wait SHOWCASE: ui: showing review
+# Send.
+serial \t\t\r
+wait SHOWCASE: ui: showing submitting
+# The service's answer, as a key: not sent.
+serial \r
+wait SHOWCASE: ui: showing failed
+# Try again.
+serial \t\t\r
+wait SHOWCASE: ui: showing submitted
+# Done.
+serial \r
+wait SHOWCASE: ui: showing idle-warning
+# Yes, I am here: the tour ends at the welcome screen again.
+serial \t\r
+wait SHOWCASE: ui: showing welcome

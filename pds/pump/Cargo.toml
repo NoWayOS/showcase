@@ -1,0 +1,25 @@
+[package]
+name = "showcase-pump-stand-in"
+description = "The showcase's pay at the pump application PD: the kiosk flow on the pump form behind the app-UI contract, timed by the timer PD, with a development stand-in for the card reader and the pump controller built in (development-only by its name)"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+rust-version.workspace = true
+publish.workspace = true
+
+# The program's name ends -stand-in: the card reader's and pump controller's
+# stand-in is built into it, so NoWayOS's grants check refuses it in a
+# product system ([development_only], *-stand-in.elf).
+[[bin]]
+name = "showcase-pump-stand-in"
+path = "src/main.rs"
+test = false
+bench = false
+
+[dependencies]
+showcase-kiosk-stand-in.workspace = true
+showcase-pump.workspace = true
+sel4-microkit.workspace = true
+
+[lints]
+workspace = true

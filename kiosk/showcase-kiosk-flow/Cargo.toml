@@ -1,0 +1,17 @@
+[package]
+name = "showcase-kiosk-flow"
+description = "State machine for a multi-step form kiosk: application-defined steps, bounded answers, an idle reset that wipes them, and submission with retries (no_std)"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+rust-version.workspace = true
+publish = false
+
+[dependencies]
+nowayos-bounded.workspace = true
+
+[dev-dependencies]
+proptest.workspace = true
+
+[lints]
+workspace = true

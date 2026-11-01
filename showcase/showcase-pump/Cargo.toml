@@ -1,0 +1,22 @@
+[package]
+name = "showcase-pump"
+description = "The showcase's pay at the pump (Tarnwick Fuel, fictional): its screens in TSX converted by Screen Compiler, its form, and the example its application PD runs (no_std)"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+rust-version.workspace = true
+publish = false
+
+[dependencies]
+showcase-kiosk-contract.workspace = true
+nowayos-bounded.workspace = true
+showcase-kiosk-flow.workspace = true
+showcase-kiosk-screens.workspace = true
+nowayos-ui.workspace = true
+
+[dev-dependencies]
+nowayos-glyphs.workspace = true
+nowayos-input.workspace = true
+
+[lints]
+workspace = true

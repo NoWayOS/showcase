@@ -1,0 +1,243 @@
+#!/usr/bin/env python3
+# SPDX-License-Identifier: MIT OR Apache-2.0
+"""Showcase's images print nothing derived from what people type.
+
+A system's serial log is shown in public at a demonstration, and kept on the
+Mac. So, for every system in SYSTEMS (systems/NAME.system and each board's
+variant, systems/BOARD/NAME.system):
+
+* it runs only Showcase's own programs (showcase-*.elf), each of which decides
+  what it prints - so none of NoWayOS's test instruments, nor NoWayOS's
+  display program, which prints a hash of every frame, can run in
+  it; a product built on the Showcase checks its own systems with its own
+  programs' prefix instead (--programs);
+* Showcase's display program runs the display PD quiet: PDS/display/src/main.rs
+  calls nowayos_display_stub::init_quiet, never init;
+* every expect file that checks it - systems/NAME.expect, and
+  systems/BOARD/NAME.expect if there is one - forbids a frame's or scan-out
+  hash (`!display-stub: frame`);
+* everything its script (systems/NAME.qmp) types starts with a marker that
+  every expect file of NAME forbids, so a run fails if what was typed ever
+  reaches the log. Each serial step is decoded as NoWayOS's tools/qemu-test
+  sends it, then read as NoWayOS's terminal decoder reads it (nowayos-input,
+  terminal.rs): control bytes, spaces and the CSI and SS3 sequences (ESC [
+  or ESC O, their parameters and final byte: the arrow keys, Shift-Tab) are
+  keys, not text, and split it into runs of printable characters; each run
+  must start with a text every expect file of NAME forbids. An ESC before
+  any other printable byte - in the same step or the next - is refused: the
+  decoder takes it as an escape sequence of no key and swallows what follows,
+  so the board would not type what this check reads. Showcase's scripts type
+  names starting zqvj and the reference 9081726354 (MARKERS), which their
+  expect files forbid.
+
+NoWayOS's own systems keep their hashes: its test systems check the frames
+by them (ui-demo, fb-test).
+
+Usage: check-quiet [--systems DIR] [--pds DIR] [--programs PREFIX]
+Exit status: 0 every rule holds, 1 a rule is broken (each named), 2 usage.
+"""
+
+import argparse
+import glob
+import os
+import re
+import sys
+import xml.etree.ElementTree as ET
+
+MARKERS = ("zqvj", "9081726354")
+HASH_LINE = "display-stub: frame"
+# The escapes a serial step may hold, as NoWayOS's tools/qemu-test reads them.
+SERIAL_ESCAPES = {"e": 0x1B, "r": 0x0D, "n": 0x0A, "t": 0x09, "b": 0x08, "\\": 0x5C}
+ESC = 0x1B
+# The bytes after ESC that begin a CSI or SS3 sequence, NoWayOS's terminal
+# decoder's keys: ESC [ and ESC O.
+INTRODUCERS = (ord("["), ord("O"))
+
+
+def forbidden(expect_path):
+    """The forbidden texts of an expect file (lines starting `!`)."""
+    with open(expect_path, encoding="utf-8") as handle:
+        return {line[1:].rstrip("\n") for line in handle if line.startswith("!")}
+
+
+def serial_bytes(text):
+    """The bytes a serial step's TEXT stands for. Raises ValueError for an
+    escape NoWayOS's tools/qemu-test would refuse."""
+    out, at = bytearray(), 0
+    while at < len(text):
+        char = text[at]
+        if char != "\\":
+            out.append(ord(char) if ord(char) < 0x100 else 0x3F)
+            at += 1
+            continue
+        escape = text[at + 1:at + 2]
+        if escape in SERIAL_ESCAPES:
+            out.append(SERIAL_ESCAPES[escape])
+            at += 2
+        elif escape == "x" and re.fullmatch(r"[0-9a-fA-F]{2}", text[at + 2:at + 4]):
+            out.append(int(text[at + 2:at + 4], 16))
+            at += 4
+        else:
+            raise ValueError(f"an unknown escape at {text[at:at + 4]!r}")
+    return bytes(out)
+
+
+def typed_runs(data):
+    """The runs of text in a serial step's bytes, read as NoWayOS's terminal
+    decoder reads them: what is left once its keys - control bytes, spaces,
+    CSI and SS3 sequences - are taken out. Raises ValueError for an ESC
+    before any other printable byte, which the decoder would swallow with
+    what follows."""
+    runs, run, at = [], bytearray(), 0
+
+    def end_run():
+        if run:
+            runs.append(run.decode("latin-1"))
+            run.clear()
+
+    while at < len(data):
+        byte = data[at]
+        if byte == ESC:
+            end_run()
+            after = data[at + 1] if at + 1 < len(data) else None
+            if after in INTRODUCERS:
+                # Parameters and intermediates, then a final byte; any other
+                # byte cuts the sequence short and is read afresh.
+                at += 2
+                while at < len(data) and 0x20 <= data[at] <= 0x3F:
+                    at += 1
+                if at < len(data) and 0x40 <= data[at] <= 0x7E:
+                    at += 1
+                continue
+            if after is not None and 0x20 <= after <= 0x7E:
+                raise ValueError(f"an ESC before {chr(after)!r}, which NoWayOS's terminal decoder takes as an "
+                                 f"escape sequence of no key, swallowing what follows: put a key between, "
+                                 f"or write the key as ESC [ or ESC O")
+            # Escape itself; the byte after it is read afresh.
+            at += 1
+            continue
+        if byte <= 0x20 or byte == 0x7F:
+            end_run()
+        else:
+            run.append(byte)
+        at += 1
+    end_run()
+    return runs
+
+
+def typed(script_path):
+    """Each serial step of a qemu-test script: (line number, its text), each
+    line read as tools/qemu-test reads it (stripped, then split at the first
+    space)."""
+    if not os.path.isfile(script_path):
+        return []
+    steps = []
+    with open(script_path, encoding="utf-8") as handle:
+        for number, line in enumerate(handle, 1):
+            verb, _, rest = line.strip().partition(" ")
+            if verb == "serial" and rest.strip():
+                steps.append((number, rest.strip()))
+    return steps
+
+
+def script_problems(systems):
+    """Every script's runs of text, each starting with a text every expect
+    file of its system forbids."""
+    found = []
+    for script in sorted(glob.glob(os.path.join(systems, "*.qmp"))):
+        name = os.path.basename(script)[:-len(".qmp")]
+        steps = typed(script)
+        if not steps:
+            continue
+        expects = [path for path in [os.path.join(systems, f"{name}.expect")] +
+                   sorted(glob.glob(os.path.join(systems, "*", f"{name}.expect"))) if os.path.isfile(path)]
+        if not expects:
+            found.append(f"{name}.qmp: types, but no expect file of {name} forbids what it types")
+            continue
+        texts = set.intersection(*(forbidden(expect) for expect in expects))
+        texts.discard("")
+        # An ESC that ends a step may join the next step's first byte.
+        carried = b""
+        for number, text in steps:
+            try:
+                data = carried + serial_bytes(text)
+                carried = bytes([ESC]) if data.endswith(bytes([ESC])) else b""
+                runs = typed_runs(data)
+            except ValueError as err:
+                found.append(f"{name}.qmp:{number}: {err}")
+                continue
+            for run in runs:
+                if not any(run.startswith(start) for start in texts):
+                    found.append(f"{name}.qmp:{number}: types '{run}', which does not start with a text every "
+                                 f"expect file of {name} forbids: start it with a marker "
+                                 f"({' or '.join(MARKERS)}) and forbid that in each")
+    return found
+
+
+def problems(systems, pds, programs="showcase"):
+    found = []
+    display = os.path.join(pds, "display", "src", "main.rs")
+    try:
+        with open(display, encoding="utf-8") as handle:
+            source = handle.read()
+    except OSError as err:
+        return [f"{display}: {err}"]
+    code = "\n".join(line for line in source.splitlines() if not line.lstrip().startswith("//"))
+    if "init_quiet()" not in code or re.search(r"nowayos_display_stub::init\(\)", code):
+        found.append(f"{display}: the display PD must run quiet (nowayos_display_stub::init_quiet), "
+                     f"never init, which prints a hash of every frame")
+    paths = sorted(glob.glob(os.path.join(systems, "*.system")) +
+                   glob.glob(os.path.join(systems, "*", "*.system")))
+    if not paths:
+        found.append(f"{systems}: no systems")
+    for path in paths:
+        name = os.path.basename(path)[:-len(".system")]
+        rel = os.path.relpath(path, systems)
+        try:
+            images = [e.get("path", "") for e in ET.parse(path).getroot().iter("program_image")]
+        except ET.ParseError as err:
+            found.append(f"{rel}: {err}")
+            continue
+        for image in images:
+            if not re.fullmatch(re.escape(programs) + r"-[a-z0-9-]+\.elf", image):
+                found.append(f"{rel}: runs {image}: the system runs only its repo's own programs "
+                             f"({programs}-*.elf), which print nothing derived from what is typed")
+        expects = [os.path.join(systems, f"{name}.expect")]
+        board = os.path.join(os.path.dirname(path), f"{name}.expect")
+        if os.path.dirname(path) != systems and os.path.isfile(board):
+            expects = [board]
+        for expect in expects:
+            erel = os.path.relpath(expect, systems)
+            if not os.path.isfile(expect):
+                found.append(f"{rel}: no {erel}")
+                continue
+            texts = forbidden(expect)
+            if HASH_LINE not in texts:
+                found.append(f"{erel}: must forbid '{HASH_LINE}' (a frame's or scan-out hash)")
+    return found + script_problems(systems)
+
+
+def main():
+    parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
+    parser.add_argument("--systems", default="systems")
+    parser.add_argument("--pds", default="pds")
+    parser.add_argument("--programs", default="showcase", metavar="PREFIX",
+                        help="the prefix of the repo's own programs (default: showcase)")
+    args = parser.parse_args()
+    if not re.fullmatch(r"[a-z][a-z0-9-]*", args.programs):
+        parser.error(f"--programs {args.programs!r}: lower-case letters, digits and hyphens only")
+    found = problems(args.systems, args.pds, args.programs)
+    for problem in found:
+        print(f"check-quiet: {problem}", file=sys.stderr)
+    if found:
+        print(f"check-quiet: FAIL - {len(found)} problem(s)", file=sys.stderr)
+        return 1
+    count = len(glob.glob(os.path.join(args.systems, "*.system")) +
+                glob.glob(os.path.join(args.systems, "*", "*.system")))
+    print(f"check-quiet: PASS - {count} system(s): {args.programs}-*.elf programs only, the display quiet, "
+          f"no hash and nothing typed ({', '.join(MARKERS)}) in any log")
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())

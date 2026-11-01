@@ -1,0 +1,21 @@
+[package]
+name = "showcase-fan"
+description = "NoWayOS's fan PD, run from a program of Showcase's own: the Raspberry Pi 5's active cooler at full speed at start, then on the device tree's cooling curve, the SoC's temperature and the fan's speed reported"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+rust-version.workspace = true
+publish.workspace = true
+
+[[bin]]
+name = "showcase-fan"
+path = "src/main.rs"
+test = false
+bench = false
+
+[dependencies]
+nowayos-fan.workspace = true
+sel4-microkit.workspace = true
+
+[lints]
+workspace = true

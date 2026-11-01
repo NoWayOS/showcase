@@ -1,0 +1,9 @@
+# Check every text file out with LF line endings, whatever core.autocrlf says
+# (Git for Windows defaults it to true): the Makefile and tools/ run inside
+# the Linux dev container.
+* text=auto eol=lf
+
+# Our own assistant's instructions are not published: the public tree is
+# made with git archive, which leaves these out. AGENTS.md is the public one.
+CLAUDE.md export-ignore
+.claude/** export-ignore

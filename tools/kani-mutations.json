@@ -1,0 +1,16 @@
+{
+  "about": "Showcase's Kani mutations: each removes one check kiosk/showcase-kiosk-contract/src/proofs.rs is about, and names the proof that must then fail. NoWayOS's tools/kani-mutation runs them (make kani).",
+  "mutations": [
+    {
+      "name": "set-text-length",
+      "crate": "showcase-kiosk-contract",
+      "path": "kiosk/showcase-kiosk-contract/src/action.rs",
+      "harness": "decode_action_any_input",
+      "what": "SetText's length check",
+      "checked": "        let (text, padding) = bytes\n            .split_at_checked(len)\n            .ok_or(DecodeError::InvalidValue { field: \"len\" })?;\n",
+      "unchecked": "        let (text, padding) = bytes.split_at(len);\n",
+      "expect_where": "slice/mod.rs",
+      "expected_text": "a panic in slice::split_at, for a length past the text field"
+    }
+  ]
+}

@@ -1,0 +1,215 @@
+# Lines NoWayOS's tools/pi-run must see from the showcase's tour on the Pi 5,
+# in this order, as whole serial lines: the run's start -
+# its watchdog PD watching no PD, the ticker asking for 300 s - then every
+# line systems/rpi5b_2gb/showcase.expect checks before the launcher's first
+# line (the display PD and both USB host PDs), then every line of
+# systems/showcase.expect, as the whole of systems/showcase.qmp plays: the
+# visitor sign-in twice, the Service desk four times, the pump twice, "Why is this
+# secure?" and the attract loop. The Pi keeps its own timings where QEMU's
+# image shortens them: the idle warning after 15 s and the reset after 30 s,
+# and each confirmation's countdown from 10, whose first tick draws two
+# digits' slot alone and the next one digit's. Last, the ticker's end, 300 s
+# after go, which resets the board into U-Boot's prompt. Taken from a board
+# run's log and checked against QEMU's lines one by one: every line of
+# QEMU's is here, its timings the Pi's. A test in
+# showcase/showcase-app (tests/tour.rs) keeps every line of the
+# showcase's own board run here.
+NOWAYOS: watchdog: watching no PD: the PM watchdog is serviced on every tick, for 6 s, for as long as the ticks come
+NOWAYOS: watchdog-stand-in: ticker: a tick to the watchdog every 2000 ms for the run length, 300 s
+NOWAYOS: display-stub: showing each frame on the board's 1920x1080 r5g6b5 framebuffer at its own pixels, from row 16
+NOWAYOS: usb0: starting
+NOWAYOS: usb0: controller identified
+NOWAYOS: usb0: halted and reset
+NOWAYOS: usb0: running: a No Op command came back through DMA
+NOWAYOS: usb0: ready
+NOWAYOS: usb1: starting
+NOWAYOS: usb1: controller identified
+NOWAYOS: usb1: halted and reset
+NOWAYOS: usb1: running: a No Op command came back through DMA
+NOWAYOS: usb1: ready
+SHOWCASE: app: starting
+SHOWCASE: app: ready: a form of 4 steps and 6 fields; the idle warning after 15 s, the reset after 30 s
+SHOWCASE: app: checking in: 1
+SHOWCASE: app: check-in 1: not approved; awaiting approval, code 3FA1 075C E219 8840
+SHOWCASE: app: checking in: 2
+SHOWCASE: app: check-in 2: approved, epoch 2; in service
+SHOWCASE: ui: starting
+SHOWCASE: ui: the display is 1920x1064 Rgb565 at scale 2
+SHOWCASE: ui: showing launcher
+SHOWCASE: ui: theme launcher
+SHOWCASE: ui: action Visitor sign-in
+SHOWCASE: ui: showing welcome
+SHOWCASE: ui: theme Orrinvale
+SHOWCASE: ui: action Sign in as a visitor
+SHOWCASE: ui: showing about-you
+SHOWCASE: ui: action Next
+SHOWCASE: ui: showing visiting
+SHOWCASE: ui: action Next
+SHOWCASE: ui: showing purpose
+SHOWCASE: ui: action Next
+SHOWCASE: ui: showing site-rules
+SHOWCASE: ui: action Next
+SHOWCASE: ui: showing check
+SHOWCASE: ui: action Sign in
+SHOWCASE: visitor: the service stand-in will accept attempt 1 (epoch 2)
+SHOWCASE: ui: showing signing-in
+SHOWCASE: visitor: the service stand-in accepts attempt 1
+SHOWCASE: visitor: session 1 ended: submitted
+SHOWCASE: ui: showing signed-in
+SHOWCASE: ui: seconds left: 10
+SHOWCASE: ui: seconds left: 9
+SHOWCASE: ui: countdown drawn alone: 61x47 px of the 1920x1064 screen
+SHOWCASE: ui: seconds left: 8
+SHOWCASE: ui: countdown drawn alone: 46x47 px of the 1920x1064 screen
+SHOWCASE: ui: action Done
+SHOWCASE: ui: showing launcher
+SHOWCASE: ui: theme launcher
+SHOWCASE: ui: action Visitor sign-in
+SHOWCASE: ui: showing welcome
+SHOWCASE: ui: action Sign in as a visitor
+SHOWCASE: ui: showing about-you
+SHOWCASE: ui: action Next
+SHOWCASE: ui: showing visiting
+SHOWCASE: ui: action Next
+SHOWCASE: ui: showing purpose
+SHOWCASE: ui: action Next
+SHOWCASE: ui: showing site-rules
+SHOWCASE: ui: action Next
+SHOWCASE: ui: showing check
+SHOWCASE: ui: action Demo: service down
+SHOWCASE: visitor: demo: the service is down for this session, as the person asked
+SHOWCASE: visitor: the service stand-in will fail attempt 1 (epoch 2)
+SHOWCASE: ui: showing signing-in
+SHOWCASE: visitor: the service stand-in fails attempt 1: the service is down
+SHOWCASE: ui: showing not-signed-in
+SHOWCASE: ui: action Finish
+SHOWCASE: visitor: session 2 ended: cancelled
+SHOWCASE: ui: showing launcher
+SHOWCASE: ui: action Service desk
+SHOWCASE: ui: showing welcome
+SHOWCASE: ui: theme Service desk
+SHOWCASE: ui: action Start
+SHOWCASE: ui: showing step-text
+SHOWCASE: ui: action Home
+SHOWCASE: ui: showing launcher
+SHOWCASE: app: session 1 ended: abandoned by the UI
+SHOWCASE: ui: theme launcher
+SHOWCASE: ui: action Service desk
+SHOWCASE: ui: showing welcome
+SHOWCASE: ui: action Start
+SHOWCASE: ui: showing step-text
+SHOWCASE: ui: action Cancel
+SHOWCASE: app: session 2 ended: cancelled
+SHOWCASE: ui: showing launcher
+SHOWCASE: ui: action Service desk
+SHOWCASE: ui: showing welcome
+SHOWCASE: ui: action Start
+SHOWCASE: ui: showing step-text
+SHOWCASE: ui: action Next
+SHOWCASE: ui: showing step-choice
+SHOWCASE: ui: action Next
+SHOWCASE: ui: showing step-checkbox
+SHOWCASE: ui: action Next
+SHOWCASE: ui: showing step-notice
+SHOWCASE: ui: action Continue
+SHOWCASE: ui: showing review
+SHOWCASE: ui: action Send
+SHOWCASE: app: the service stand-in leaves attempt 1 unanswered (epoch 2)
+SHOWCASE: ui: showing submitting
+SHOWCASE: ui: showing failed
+SHOWCASE: ui: action Try again
+SHOWCASE: app: the service stand-in will accept attempt 2 (epoch 2)
+SHOWCASE: ui: showing submitting
+SHOWCASE: app: the service stand-in accepts attempt 2
+SHOWCASE: app: session 3 ended: submitted
+SHOWCASE: ui: showing submitted
+SHOWCASE: ui: seconds left: 10
+SHOWCASE: ui: seconds left: 9
+SHOWCASE: ui: countdown drawn alone: 61x47 px of the 1920x1064 screen
+SHOWCASE: ui: seconds left: 8
+SHOWCASE: ui: countdown drawn alone: 46x47 px of the 1920x1064 screen
+SHOWCASE: ui: action Done
+SHOWCASE: ui: showing launcher
+SHOWCASE: ui: action Service desk
+SHOWCASE: ui: showing welcome
+SHOWCASE: ui: action Start
+SHOWCASE: ui: showing step-text
+SHOWCASE: ui: showing idle-warning
+SHOWCASE: ui: seconds left: 3
+SHOWCASE: ui: seconds left: 2
+SHOWCASE: ui: seconds left: 1
+SHOWCASE: app: session 4 ended: idle
+SHOWCASE: ui: showing launcher
+SHOWCASE: ui: action Pay at the pump
+SHOWCASE: ui: showing welcome
+SHOWCASE: ui: theme Tarnwick
+SHOWCASE: ui: action Start
+SHOWCASE: ui: showing pump
+SHOWCASE: ui: action Next
+SHOWCASE: ui: showing fuel
+SHOWCASE: ui: action Next
+SHOWCASE: ui: showing amount
+SHOWCASE: ui: action Next
+SHOWCASE: ui: showing check
+SHOWCASE: ui: action Pay on the card reader
+SHOWCASE: pump: the service stand-in will accept attempt 1 (epoch 2)
+SHOWCASE: ui: showing paying
+SHOWCASE: pump: the service stand-in accepts attempt 1
+SHOWCASE: pump: session 1 ended: submitted
+SHOWCASE: ui: showing fuelling
+SHOWCASE: ui: seconds left: 4
+SHOWCASE: ui: showing launcher
+SHOWCASE: ui: theme launcher
+SHOWCASE: ui: action Pay at the pump
+SHOWCASE: ui: showing welcome
+SHOWCASE: ui: action Start
+SHOWCASE: ui: showing pump
+SHOWCASE: ui: action Next
+SHOWCASE: ui: showing fuel
+SHOWCASE: ui: action Next
+SHOWCASE: ui: showing amount
+SHOWCASE: ui: action Next
+SHOWCASE: ui: showing check
+SHOWCASE: ui: action Demo: card declined
+SHOWCASE: pump: demo: the service is down for this session, as the person asked
+SHOWCASE: pump: the service stand-in will fail attempt 1 (epoch 2)
+SHOWCASE: ui: showing paying
+SHOWCASE: pump: the service stand-in fails attempt 1: the service is down
+SHOWCASE: ui: showing not-accepted
+SHOWCASE: ui: action Finish
+SHOWCASE: pump: session 2 ended: cancelled
+SHOWCASE: ui: showing launcher
+SHOWCASE: ui: action Why is this secure?
+SHOWCASE: ui: showing why-secure
+SHOWCASE: ui: action Home
+SHOWCASE: ui: showing launcher
+SHOWCASE: ui: showing attract-1
+SHOWCASE: ui: theme Orrinvale
+SHOWCASE: ui: showing attract-2
+SHOWCASE: ui: theme Tarnwick
+SHOWCASE: ui: showing launcher
+SHOWCASE: ui: theme launcher
+NOWAYOS: watchdog-stand-in: ticker: the run length is reached: no more ticks, so the watchdog services no more and the board resets
+
+# Everything both expect files forbid: a fault, a panic, a refusal, a
+# countdown tick drawing more than its digits' slot, the fan
+# failing, and anything derived from what was typed.
+!cannot show frames
+!MON|ERROR
+!seL4(CPU
+!panicked
+!gave up
+!fan: no temperature
+!PWM1 is not counting
+!refused
+!rejected
+!could not be shown
+!ended: a fault
+!out of service
+!dropped so far
+!over its rate
+!the UI's ring is full
+!countdown drawn with more
+!display-stub: frame
+!zqvj
+!9081726354

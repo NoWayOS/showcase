@@ -1,0 +1,4 @@
+# Line rates make qemu-test-all boots kitchen-sink at again: the
+# Pi 5's, where the kernel's debug output - these lines - waits for the UART
+# while keys arrive and several PDs print.
+115200

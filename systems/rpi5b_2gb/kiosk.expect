@@ -1,0 +1,104 @@
+# Lines NoWayOS's tools/pi-run must see from the reference kiosk on the
+# Pi 5, in this order, as whole serial lines: each USB host PD's
+# controller running - RP1's two, which the QEMU variant lacks - then
+# systems/kiosk.expect's lines as far as the second session's end, cancelled,
+# and the welcome screen after it. A departure from NoWayOS's rule that a
+# board's expect file holds every line of QEMU's: a board run lasts at most
+# the watchdog's 15 s, so the third session's idle warning and privacy reset,
+# 15 s and 30 s after the last key, are QEMU's to check (kiosk.expect) and a
+# person's to see here, with make pi-show, which arms no watchdog.
+# What is plugged into the controllers is printed between these lines and
+# not checked: the keys are typed through the Debug Probe.
+# The display PD shows each frame at the monitor's own pixels.
+# Each countdown tick draws its digits' slot alone: the confirmation's
+# first is checked here, and any tick drawing more fails the run.
+NOWAYOS: display-stub: showing each frame on the board's 1920x1080 r5g6b5 framebuffer at its own pixels, from row 16
+NOWAYOS: usb0: starting
+NOWAYOS: usb0: controller identified
+NOWAYOS: usb0: halted and reset
+NOWAYOS: usb0: running: a No Op command came back through DMA
+NOWAYOS: usb0: ready
+NOWAYOS: usb1: starting
+NOWAYOS: usb1: controller identified
+NOWAYOS: usb1: halted and reset
+NOWAYOS: usb1: running: a No Op command came back through DMA
+NOWAYOS: usb1: ready
+SHOWCASE: app: starting
+SHOWCASE: app: ready: a form of 4 steps and 6 fields; the idle warning after 15 s, the reset after 30 s
+# The application checks in first, before the UI starts: its
+# backend's stand-in answers not approved, then approves it with epoch 2,
+# which every attempt's ticket carries.
+SHOWCASE: app: checking in: 1
+SHOWCASE: app: check-in 1: not approved; awaiting approval, code 3FA1 075C E219 8840
+SHOWCASE: app: checking in: 2
+SHOWCASE: app: check-in 2: approved, epoch 2; in service
+SHOWCASE: ui: starting
+SHOWCASE: ui: the display is 1920x1064 Rgb565 at scale 2
+SHOWCASE: ui: showing welcome
+SHOWCASE: ui: action Start
+SHOWCASE: ui: showing step-text
+SHOWCASE: ui: action Next
+SHOWCASE: ui: showing step-choice
+SHOWCASE: ui: action Next
+SHOWCASE: ui: showing step-checkbox
+SHOWCASE: ui: action Next
+SHOWCASE: ui: showing step-notice
+SHOWCASE: ui: action Continue
+SHOWCASE: ui: showing review
+SHOWCASE: ui: action Change
+SHOWCASE: ui: showing step-notice
+SHOWCASE: ui: action Continue
+SHOWCASE: ui: showing review
+SHOWCASE: ui: action Send
+SHOWCASE: app: the service stand-in leaves attempt 1 unanswered (epoch 2)
+SHOWCASE: ui: showing submitting
+SHOWCASE: ui: showing failed
+SHOWCASE: ui: action Try again
+SHOWCASE: app: the service stand-in will accept attempt 2 (epoch 2)
+SHOWCASE: ui: showing submitting
+SHOWCASE: app: the service stand-in accepts attempt 2
+SHOWCASE: app: session 1 ended: submitted
+SHOWCASE: ui: showing submitted
+SHOWCASE: ui: seconds left: 10
+SHOWCASE: ui: seconds left: 9
+SHOWCASE: ui: countdown drawn alone: 61x47 px of the 1920x1064 screen
+SHOWCASE: ui: action Done
+SHOWCASE: ui: showing welcome
+SHOWCASE: ui: action Start
+SHOWCASE: ui: showing step-text
+SHOWCASE: ui: action Cancel
+SHOWCASE: app: session 2 ended: cancelled
+SHOWCASE: ui: showing welcome
+
+# Output that fails the test at once if it appears anywhere (substring match):
+# a fault reported by the Microkit monitor, a kernel error message, a panic, a
+# PD giving up, a record refused or rejected, a screen that could not be
+# shown, a session ended for a fault, input or an action dropped anywhere -
+# by the UART input PD, at the broker's rate, for want of room in the UI's
+# ring or in the ring to the application.
+!cannot show frames
+!MON|ERROR
+!seL4(CPU
+!panicked
+!gave up
+!fan: no temperature
+!PWM1 is not counting
+!refused
+!rejected
+!could not be shown
+!ended: a fault
+!out of service
+!dropped so far
+!over its rate
+!the UI's ring is full
+# A countdown's tick that drew more than its digits' slot.
+!countdown drawn with more
+
+# Nothing derived from what was typed: no frame's or scan-out hash,
+# which the display PD prints only when it is not quiet, and nothing the
+# script types - every name starts zqvj, the reference is 9081726354.
+# tools/check-quiet requires the hash line, and each text typed to start
+# with a text forbidden here.
+!display-stub: frame
+!zqvj
+!9081726354

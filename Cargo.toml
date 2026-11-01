@@ -1,0 +1,84 @@
+# Showcase: secure applications built on NoWayOS, MIT OR Apache-2.0.
+#
+# Business logic and customer configuration live here and never in NoWayOS;
+# anything generic is built in NoWayOS and consumed from there.
+
+[workspace]
+resolver = "3"
+# Each application's crates live under its own folder. Add "shared/*" when the
+# first crate shared by several applications arrives (shared/README.md).
+members = ["kiosk/*", "showcase/*"]
+
+[workspace.package]
+version = "0.1.0"
+edition = "2024"
+rust-version = "1.93"
+license = "MIT OR Apache-2.0"
+publish = false
+
+[workspace.dependencies]
+# NoWayOS, by path from a sibling clone: nowayos/ must sit beside showcase/,
+# at the commit recorded in nowayos.rev, which the Makefile checks:
+# Cargo.lock cannot pin a path dependency's code. The exact version also makes
+# any NoWayOS version change fail here until it is reviewed.
+nowayos-bounded = { path = "../nowayos/crates/nowayos-bounded", version = "=0.1.0" }
+nowayos-ipc = { path = "../nowayos/crates/nowayos-ipc", version = "=0.1.0" }
+nowayos-ui = { path = "../nowayos/crates/nowayos-ui", version = "=0.1.0" }
+nowayos-display = { path = "../nowayos/crates/nowayos-display", version = "=0.1.0" }
+nowayos-input = { path = "../nowayos/crates/nowayos-input", version = "=0.1.0" }
+# The glyph atlases (OFL-1.1), already in the graph through nowayos-ui:
+# the screens' tests lay them out with both themes' fonts. Dev-dependency only.
+nowayos-glyphs = { path = "../nowayos/crates/nowayos-glyphs", version = "=0.1.0" }
+# The renderer and NoWayOS's test kit: the showcase's preview test draws its
+# screens to images. Dev-dependencies only.
+nowayos-render-eg = { path = "../nowayos/crates/nowayos-render-eg", version = "=0.1.0" }
+nowayos-testkit = { path = "../nowayos/crates/nowayos-testkit", version = "=0.1.0" }
+
+# Showcase's own crates, used by other members.
+showcase-kiosk-flow = { path = "kiosk/showcase-kiosk-flow", version = "=0.1.0" }
+showcase-kiosk-contract = { path = "kiosk/showcase-kiosk-contract", version = "=0.1.0" }
+showcase-kiosk-screens = { path = "kiosk/showcase-kiosk-screens", version = "=0.1.0" }
+showcase-visitor = { path = "showcase/showcase-visitor", version = "=0.1.0" }
+showcase-pump = { path = "showcase/showcase-pump", version = "=0.1.0" }
+
+# Third-party crates. Every one is licence-checked before it is added
+# (house list: MIT, Apache-2.0, BSD-2-Clause, BSD-3-Clause, ISC) and again by
+# `make deny` for the whole tree.
+proptest = { version = "1.11.0", default-features = false, features = ["std"] } # MIT OR Apache-2.0 - dev-dependency only
+
+[workspace.lints.rust]
+unsafe_code = "forbid"
+missing_docs = "warn"
+# Kani's proofs are compiled only under `cfg(kani)`, which cargo-kani sets.
+unexpected_cfgs = { level = "warn", check-cfg = ["cfg(kani)"] }
+
+[workspace.lints.clippy]
+# Panicking shortcuts are not allowed in library code (tests opt out locally).
+unwrap_used = "deny"
+expect_used = "deny"
+panic = "deny"
+todo = "deny"
+unimplemented = "deny"
+unreachable = "deny"
+# `unsafe` is forbidden above; if a crate ever needs it, every block must
+# still carry a SAFETY comment.
+undocumented_unsafe_blocks = "deny"
+# No panic inside a function that returns Result, and every #[allow] says why.
+panic_in_result_fn = "deny"
+allow_attributes_without_reason = "deny"
+# No out-of-bounds panics and no unchecked arithmetic on lengths and offsets:
+# every crate, so a new one cannot forget them (tests allow them locally).
+indexing_slicing = "deny"
+arithmetic_side_effects = "deny"
+
+[profile.dev]
+panic = "abort"
+
+[profile.release]
+overflow-checks = true
+panic = "abort"
+
+# Kani: showcase-kiosk-contract's proofs model core's UTF-8 check with
+# a stub (its src/proofs.rs says why), which Kani allows only with this switch.
+[workspace.metadata.kani.unstable]
+stubbing = true

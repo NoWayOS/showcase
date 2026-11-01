@@ -1,0 +1,22 @@
+[package]
+name = "showcase-ui"
+description = "The showcase's UI PD: the launcher of example kiosks and the Service desk example, on the reference kiosk's UI PD library"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+rust-version.workspace = true
+publish.workspace = true
+
+[[bin]]
+name = "showcase-ui"
+path = "src/main.rs"
+test = false
+bench = false
+
+[dependencies]
+showcase-kiosk-ui.workspace = true
+showcase-app.workspace = true
+sel4-microkit.workspace = true
+
+[lints]
+workspace = true

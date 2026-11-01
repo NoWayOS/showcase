@@ -1,0 +1,21 @@
+[package]
+name = "showcase-run-watchdog"
+description = "NoWayOS's watchdog PD, run from a program of Showcase's own in a Pi 5 test system: it watches no PD and keeps the PM watchdog armed for the system's run length"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+rust-version.workspace = true
+publish.workspace = true
+
+[[bin]]
+name = "showcase-run-watchdog"
+path = "src/main.rs"
+test = false
+bench = false
+
+[dependencies]
+nowayos-watchdog.workspace = true
+sel4-microkit.workspace = true
+
+[lints]
+workspace = true

@@ -1,0 +1,90 @@
+# Showcase's fuzz harness: libFuzzer targets for Showcase's decoders of
+# untrusted input, built and run by `make fuzz` in the dev container, in every
+# `make ci` (NoWayOS's make fragment, nowayos/tools/make/system.mk). A new
+# parser of untrusted input gets its target here:
+# a file in fuzz_targets/ and a [[bin]] below.
+#
+# A workspace of its own, so that libfuzzer-sys is in no other Cargo.lock: it
+# and the libFuzzer sources it compiles are signed off for development and CI
+# fuzzing only - never in
+# a device image, a shipped crate or the lock of a workspace that ships; the
+# root and pds/ deny.toml ban it. The layout is the one cargo-fuzz expects, as
+# in NoWayOS's harness (nowayos/fuzz/); `make fuzz` passes cargo the same
+# instrumentation flags, so the dev image needs no cargo-fuzz.
+
+[package]
+name = "showcase-fuzz"
+description = "libFuzzer targets for Showcase's decoders of untrusted input (make fuzz)"
+version = "0.1.0"
+edition = "2024"
+license = "MIT OR Apache-2.0"
+rust-version = "1.93"
+publish = false
+
+[package.metadata]
+cargo-fuzz = true
+
+[dependencies]
+showcase-kiosk-contract = { path = "../kiosk/showcase-kiosk-contract" }
+# NoWayOS, by path from the sibling clone at nowayos.rev, as in the root
+# workspace.
+nowayos-ipc = { path = "../../nowayos/crates/nowayos-ipc", version = "=0.1.0" }
+# The libFuzzer runtime, compiled from the C++ sources the crate bundles:
+# development and CI fuzzing only (its licence: deny.toml).
+libfuzzer-sys = "=0.4.13"
+
+[lints]
+workspace = true
+
+[[bin]]
+name = "action_decode"
+path = "fuzz_targets/action_decode.rs"
+test = false
+doc = false
+bench = false
+
+[[bin]]
+name = "report_decode"
+path = "fuzz_targets/report_decode.rs"
+test = false
+doc = false
+bench = false
+
+[[bin]]
+name = "network_decode"
+path = "fuzz_targets/network_decode.rs"
+test = false
+doc = false
+bench = false
+
+[workspace]
+members = ["."]
+
+# The NoWayOS baseline (../../nowayos/tools/baseline.toml), as in
+# Showcase's other two workspaces.
+[workspace.lints.rust]
+unsafe_code = "forbid"
+missing_docs = "warn"
+
+[workspace.lints.clippy]
+unwrap_used = "deny"
+expect_used = "deny"
+panic = "deny"
+todo = "deny"
+unimplemented = "deny"
+unreachable = "deny"
+panic_in_result_fn = "deny"
+allow_attributes_without_reason = "deny"
+indexing_slicing = "deny"
+arithmetic_side_effects = "deny"
+undocumented_unsafe_blocks = "deny"
+
+[profile.dev]
+panic = "abort"
+
+# make fuzz builds this profile: overflow checks on, as in every shipped
+# build, and line tables for a crash's backtrace.
+[profile.release]
+overflow-checks = true
+panic = "abort"
+debug = "line-tables-only"

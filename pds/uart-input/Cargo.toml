@@ -1,0 +1,21 @@
+[package]
+name = "showcase-uart-input"
+description = "A development route only: NoWayOS's UART input PD, run from a program of Showcase's own - keys typed on a terminal through the debug UART. Named *-uart-input, so the grants check's development-only rule binds it"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+rust-version.workspace = true
+publish.workspace = true
+
+[[bin]]
+name = "showcase-uart-input"
+path = "src/main.rs"
+test = false
+bench = false
+
+[dependencies]
+nowayos-uart-input.workspace = true
+sel4-microkit.workspace = true
+
+[lints]
+workspace = true
