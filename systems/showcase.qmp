@@ -169,8 +169,7 @@ serial \r
 wait SHOWCASE: ui: showing gallery-keyboard
 serial \t\t\r
 wait SHOWCASE: ui: action Check
-serial \e[Z\e[Z
-serial \r
+serial \e[Z\e[Z\r
 wait SHOWCASE: ui: showing gallery-scroll
 serial \r
 wait SHOWCASE: ui: showing gallery-icons
