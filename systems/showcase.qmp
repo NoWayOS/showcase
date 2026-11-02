@@ -38,7 +38,7 @@ wait SHOWCASE: ui: showing check
 serial \t\t\t\r
 wait SHOWCASE: ui: showing signed-in
 # Done, once the pass has counted down a second.
-wait SHOWCASE: ui: countdown drawn alone: 46x47 px of the 1920x1064 screen
+wait SHOWCASE: ui: countdown drawn alone: 46x47 px of the 1920x1080 screen
 serial \r
 wait SHOWCASE: ui: showing launcher
 # Again, through to checking, then Demo: service down: the stand-in fails
@@ -95,7 +95,7 @@ wait SHOWCASE: ui: showing submitted
 # Done, once the confirmation has counted down a second and drawn the
 # countdown alone - the same moment in QEMU's test image and on the
 # Pi, whose confirmations last 4 s and 10 s.
-wait SHOWCASE: ui: countdown drawn alone: 46x47 px of the 1920x1064 screen
+wait SHOWCASE: ui: countdown drawn alone: 46x47 px of the 1920x1080 screen
 serial \r
 wait SHOWCASE: ui: showing launcher
 # Again: a name, then nobody touches it - the idle warning, the privacy

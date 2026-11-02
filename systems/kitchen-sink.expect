@@ -4,7 +4,7 @@
 # Pi 5's Debug Probe - each screen named as the UI shows it, and each action
 # its buttons take. Never what was typed.
 SHOWCASE: ui: starting
-SHOWCASE: ui: the display is 1920x1064 Rgb565 at scale 2
+SHOWCASE: ui: the display is 1920x1080 Rgb565 at scale 2
 SHOWCASE: ui: showing welcome
 SHOWCASE: ui: action Start
 SHOWCASE: ui: showing step-text

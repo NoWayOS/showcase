@@ -508,11 +508,11 @@ fn each_example_shows_in_its_brand_and_home_restores_the_launchers() {
 
 /// Laid out in the Pi 5's window at device scale 2 - as the UI PD
 /// does once the display announces it - the launcher and the Service desk
-/// both fill the 1920 x 1064 window at scale 2, before and after Home, and
+/// both fill the 1920 x 1080 window at scale 2, before and after Home, and
 /// everything they show fits it.
 #[test]
 fn the_launcher_and_the_service_desk_follow_the_displays_scale() {
-    let window = Rect::new(0, 0, 1920, 1064);
+    let window = Rect::new(0, 0, 1920, 1080);
     let mut stand = Stand::new();
     let large = TextMetrics::from_atlas(&REGULAR_48)
         .with_scale(2)

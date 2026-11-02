@@ -61,7 +61,7 @@ use crate::generated::{
 
 /// Screen width, in pixels: the kiosk's layout size, which the tour is laid
 /// out in until the display announces its own ([`KitchenSink::resize`]):
-/// on the Pi 5, 1920 x 1064 at device scale 2, drawn at the monitor's own
+/// on the Pi 5, 1920 x 1080 at device scale 2, drawn at the monitor's own
 /// pixels.
 pub const WIDTH: u32 = 800;
 /// Screen height, in pixels.

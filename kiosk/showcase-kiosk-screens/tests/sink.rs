@@ -122,7 +122,7 @@ fn the_tour_follows_the_displays_layout_and_scale() {
     assert_eq!(key(&mut sink, KeyCode::ENTER), Some(START));
     assert_eq!(sink.screen(), "step-text");
     type_text(&mut sink, "ada");
-    let window = Rect::new(0, 0, 1920, 1064);
+    let window = Rect::new(0, 0, 1920, 1080);
     let large = TextMetrics::from_atlas(&REGULAR_48)
         .with_scale(2)
         .with_min_target(48);
