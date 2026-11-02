@@ -1,0 +1,67 @@
+# Lines NoWayOS's tools/qemu-test must see, in this order, as whole serial
+# lines: the showcase on QEMU's ramfb as showcase-gallery.qmp types into it -
+# the launcher, the Screen Compiler gallery round all its screens, each
+# matched with its approved image as it shows, then back to the keyboard
+# screen and its Check, twice. Never what was typed.
+SHOWCASE: ui: showing launcher
+SHOWCASE: ui: action React gallery
+SHOWCASE: ui: showing gallery-layout
+SHOWCASE: ui: action Next
+SHOWCASE: ui: showing gallery-type
+SHOWCASE: ui: action Next
+SHOWCASE: ui: showing gallery-text
+SHOWCASE: ui: action Next
+SHOWCASE: ui: showing gallery-buttons
+SHOWCASE: ui: action Next
+SHOWCASE: ui: showing gallery-surfaces
+SHOWCASE: ui: action Next
+SHOWCASE: ui: showing gallery-fields
+SHOWCASE: ui: action Next
+SHOWCASE: ui: showing gallery-choices
+SHOWCASE: ui: action Next
+SHOWCASE: ui: showing gallery-keyboard
+SHOWCASE: ui: action Next
+SHOWCASE: ui: showing gallery-scroll
+SHOWCASE: ui: action Next
+SHOWCASE: ui: showing gallery-icons
+SHOWCASE: ui: action Next
+SHOWCASE: ui: showing gallery-css
+SHOWCASE: ui: action Back
+SHOWCASE: ui: showing gallery-icons
+SHOWCASE: ui: action Back
+SHOWCASE: ui: showing gallery-scroll
+SHOWCASE: ui: action Back
+SHOWCASE: ui: showing gallery-keyboard
+SHOWCASE: ui: action Check
+SHOWCASE: ui: action Check
+
+# Output that fails the test at once if it appears anywhere (substring match):
+# a fault reported by the Microkit monitor, a kernel error message, a panic, a
+# PD giving up, a record refused or rejected, a screen that could not be
+# shown, a session ended for a fault, input or an action dropped anywhere -
+# by the UART input PD, at the broker's rate, for want of room in the UI's
+# ring or in the ring to the application.
+!MON|ERROR
+!seL4(CPU
+!panicked
+!gave up
+!refused
+!rejected
+!could not be shown
+!ended: a fault
+!out of service
+!dropped so far
+!over its rate
+!the UI's ring is full
+# A countdown's tick that drew more than its digits' slot.
+!countdown drawn with more
+
+# Nothing derived from what was typed: no frame's or scan-out hash,
+# which the display PD prints only when it is not quiet, and nothing the
+# script types - every name starts zqvj, the reference is 9081726354.
+# tools/check-quiet requires the hash line, and each text typed to start
+# with a text forbidden here.
+!display-stub: frame
+!NOWAYOS: display: showing 0x
+!zqvj
+!9081726354

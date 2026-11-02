@@ -6,7 +6,7 @@
 //! PD's timer would let it.
 //!
 //! * The launcher fills the screen with one tile per example; the Service
-//!   desk is the first, and the others say they are coming.
+//!   desk is the first.
 //! * A tile chosen with the keyboard or the mouse opens its example at its
 //!   welcome screen.
 //! * Home, or the end of a session however it ends, wipes the example -
@@ -350,7 +350,7 @@ fn the_pi_boots_to_a_launcher_of_tiles_the_service_desk_first() {
         "Service desk",
         "Visitor sign-in",
         "Pay at the pump",
-        "Order food",
+        "React gallery",
         "Why is this secure?",
     ];
     let at: Vec<usize> = tiles
@@ -361,14 +361,10 @@ fn the_pi_boots_to_a_launcher_of_tiles_the_service_desk_first() {
         at.windows(2).all(|pair| pair[0] < pair[1]),
         "in order: {at:?}"
     );
-    assert_eq!(shown.iter().filter(|text| **text == "Ready").count(), 4);
+    assert_eq!(shown.iter().filter(|text| **text == "Ready").count(), 5);
     // A program's tile: the showcase's own program adds none, so
     // it is hidden.
     assert!(!shown.contains(&"Try it"), "{shown:?}");
-    assert_eq!(
-        shown.iter().filter(|text| **text == "Coming soon").count(),
-        1
-    );
     assert!(shown.contains(&"Demo: nothing kept"));
     // Every tile is a control, so the keys reach each one; the Service
     // desk, the first ready one, has the focus.
@@ -405,12 +401,12 @@ fn the_arrow_keys_move_across_the_grid_of_tiles() {
     for (key, tile) in [
         (KeyCode::RIGHT, "Visitor sign-in"),
         (KeyCode::RIGHT, "Visitor sign-in"),
-        (KeyCode::DOWN, "Order food"),
-        (KeyCode::DOWN, "Order food"),
+        (KeyCode::DOWN, "React gallery"),
+        (KeyCode::DOWN, "React gallery"),
         (KeyCode::RIGHT, "Why is this secure?"),
         (KeyCode::UP, "Why is this secure?"),
         (KeyCode::RIGHT, "Why is this secure?"),
-        (KeyCode::LEFT, "Order food"),
+        (KeyCode::LEFT, "React gallery"),
         (KeyCode::LEFT, "Pay at the pump"),
         (KeyCode::LEFT, "Pay at the pump"),
         (KeyCode::UP, "Service desk"),
@@ -423,7 +419,7 @@ fn the_arrow_keys_move_across_the_grid_of_tiles() {
     // Tab still goes through the tiles in order, and Enter on a ready one
     // reached by the arrows opens it.
     stand.tabs(1);
-    assert_eq!(focused_label(&stand.ui), Some("Order food"));
+    assert_eq!(focused_label(&stand.ui), Some("React gallery"));
     let mut stand = Stand::new();
     stand.key(KeyCode::DOWN);
     stand.key(KeyCode::RIGHT);
@@ -432,31 +428,132 @@ fn the_arrow_keys_move_across_the_grid_of_tiles() {
     assert_eq!(stand.screen(), "welcome");
 }
 
+/// Opens the gallery from the launcher by keyboard: down to the pump,
+/// then right.
+fn open_gallery(stand: &mut Stand) {
+    assert_eq!(
+        stand.type_keys(&[KeyCode::DOWN, KeyCode::RIGHT, KeyCode::ENTER]),
+        ["React gallery"]
+    );
+    assert_eq!(stand.screen(), "gallery-layout");
+}
+
+/// The error line's message on the screen showing, if it shows one.
+fn field_error(ui: &Showcase) -> Option<&'static str> {
+    ui.tree()
+        .paint_order()
+        .find_map(|(_, node)| match node.kind() {
+            NodeKind::FieldError { message, .. } => *message,
+            _ => None,
+        })
+}
+
 #[test]
-fn a_tile_coming_soon_says_so_and_opens_nothing() {
-    let note = "Coming soon: that example is not built yet. Try a Ready one.";
+fn the_gallery_goes_round_every_screen_and_home_closes_it() {
+    use showcase_app::GALLERY;
+    use showcase_app::generated::gallery_layout::gallery_layout_screen as gallery;
     let mut stand = Stand::new();
-    assert!(!texts(&stand.ui).contains(&note), "no note at first");
-    // Order food: down to the pump, then right.
-    stand.type_keys(&[KeyCode::DOWN, KeyCode::RIGHT]);
-    assert_eq!(stand.key(KeyCode::ENTER), ["Coming soon"]);
-    assert_eq!(stand.screen(), "launcher");
-    assert!(texts(&stand.ui).contains(&note));
-    assert!(stand.actions.is_empty(), "nothing asked of an application");
-    // By mouse too; and the note goes when the launcher next shows afresh.
+    open_gallery(&mut stand);
+    assert_eq!(stand.ui.gallery_screen(), Some("gallery-layout"));
+    assert_eq!(stand.ui.theme().0, brands::LAUNCHER.name);
+    // Focus on Next: Enter goes round them all, each saying where it is.
+    assert_eq!(focused_label(&stand.ui), Some("Next"));
+    for (at, (name, _)) in GALLERY.iter().enumerate().skip(1) {
+        assert_eq!(stand.key(KeyCode::ENTER), ["Next"]);
+        assert_eq!(stand.screen(), *name);
+        let place = format!("{} of {}", at + 1, GALLERY.len());
+        assert!(texts(&stand.ui).iter().any(|text| *text == place), "{name}");
+        assert_eq!(focused_label(&stand.ui), Some("Next"), "{name}");
+    }
+    assert_eq!(stand.key(KeyCode::ENTER), ["Next"]);
+    assert_eq!(stand.screen(), "gallery-layout");
+    // Back, by mouse, goes round the other way.
+    assert_eq!(stand.click(gallery::actions::BACK), Some("Back"));
+    assert_eq!(stand.screen(), "gallery-css");
+    assert_eq!(stand.click(gallery::actions::HOME), Some("Home"));
+    stand.assert_back_at_the_launcher("after the gallery");
+    // By mouse from the launcher too; nothing reaches an application.
     assert_eq!(
-        stand.click(launcher::actions::COMING_SOON),
-        Some("Coming soon")
+        stand.click(launcher::actions::GALLERY),
+        Some("React gallery")
     );
-    assert_eq!(
-        stand.type_keys(&[KeyCode::UP, KeyCode::LEFT]),
-        Vec::<&str>::new()
+    assert_eq!(stand.screen(), "gallery-layout");
+    assert!(
+        stand.actions.is_empty()
+            && stand.visitor_actions.is_empty()
+            && stand.pump_actions.is_empty()
     );
-    assert_eq!(stand.key(KeyCode::ENTER), ["Service desk"]);
-    assert_eq!(stand.click(HOME), Some("Home"));
-    assert_eq!(stand.screen(), "launcher");
-    assert!(!texts(&stand.ui).contains(&note));
+}
+
+#[test]
+fn the_gallery_wipes_what_is_typed_and_chosen() {
+    use showcase_app::GALLERY_IDLE;
+    let mut stand = Stand::new();
+    open_gallery(&mut stand);
+    // The text fields: Next five times, then Tab to the first.
+    for _ in 0..5 {
+        stand.key(KeyCode::ENTER);
+    }
+    assert_eq!(stand.screen(), "gallery-fields");
+    stand.tabs(1);
+    stand.text("zqvj");
+    assert!(!stand.ui.holds_nothing(), "the field holds what was typed");
+    // Next wipes it as the screen closes.
+    stand.shift_tab();
+    assert_eq!(stand.key(KeyCode::ENTER), ["Next"]);
+    assert_eq!(stand.screen(), "gallery-choices");
     assert!(stand.ui.holds_nothing());
+    // A box ticked, then Home.
+    stand.tabs(1);
+    stand.key(KeyCode::SPACE);
+    assert!(!stand.ui.holds_nothing(), "the box is ticked");
+    stand.shift_tab();
+    stand.shift_tab();
+    stand.shift_tab();
+    assert_eq!(stand.key(KeyCode::ENTER), ["Home"]);
+    stand.assert_back_at_the_launcher("after the choices");
+    // Typed, then left alone: it closes, wiped.
+    open_gallery(&mut stand);
+    for _ in 0..5 {
+        stand.key(KeyCode::ENTER);
+    }
+    stand.tabs(1);
+    stand.text("zqvj");
+    assert_eq!(stand.ui.idle_after(), Some(GALLERY_IDLE));
+    assert!(stand.ui.idle());
+    stand.assert_back_at_the_launcher("after the gallery was left alone");
+    assert!(stand.actions.is_empty());
+}
+
+#[test]
+fn the_gallery_keyboard_checks_its_code_as_an_application_would() {
+    let mut stand = Stand::new();
+    open_gallery(&mut stand);
+    for _ in 0..7 {
+        stand.key(KeyCode::ENTER);
+    }
+    assert_eq!(stand.screen(), "gallery-keyboard");
+    assert_eq!(field_error(&stand.ui), None);
+    // Two digits, then Check: the error line says what it needs.
+    stand.tabs(1);
+    stand.text("12");
+    stand.tabs(1);
+    assert_eq!(stand.key(KeyCode::ENTER), ["Check"]);
+    assert_eq!(field_error(&stand.ui), Some("Enter four digits"));
+    // Four, and it clears.
+    stand.shift_tab();
+    stand.text("34");
+    stand.tabs(1);
+    assert_eq!(stand.key(KeyCode::ENTER), ["Check"]);
+    assert_eq!(field_error(&stand.ui), None);
+    assert!(!stand.ui.holds_nothing());
+    assert_eq!(
+        stand.click(
+            showcase_app::generated::gallery_keyboard::gallery_keyboard_screen::actions::HOME
+        ),
+        Some("Home")
+    );
+    stand.assert_back_at_the_launcher("after the keyboard");
 }
 
 #[test]
@@ -908,6 +1005,28 @@ fn the_qemu_script_s_keys_on_the_host() {
     );
     assert_eq!(stand.key(K::ENTER), ["Home"]);
     stand.assert_back_at_the_launcher("after the panel");
+    // The Screen Compiler gallery: Down, Right, Enter; Next round all
+    // eleven screens and back to the first, with Check on the keyboard
+    // screen's empty code; Shift-Tab twice to Home.
+    assert_eq!(
+        stand.type_keys(&[K::DOWN, K::RIGHT, K::ENTER]),
+        ["React gallery"]
+    );
+    for (name, _) in showcase_app::GALLERY.iter().skip(1) {
+        assert_eq!(stand.key(K::ENTER), ["Next"]);
+        assert_eq!(stand.screen(), *name);
+        if *name == "gallery-keyboard" {
+            assert_eq!(stand.type_keys(&[K::TAB, K::TAB, K::ENTER]), ["Check"]);
+            stand.shift_tab();
+            stand.shift_tab();
+        }
+    }
+    assert_eq!(stand.key(K::ENTER), ["Next"]);
+    assert_eq!(stand.screen(), "gallery-layout");
+    stand.shift_tab();
+    stand.shift_tab();
+    assert_eq!(stand.key(K::ENTER), ["Home"]);
+    stand.assert_back_at_the_launcher("after the gallery");
 }
 
 #[test]

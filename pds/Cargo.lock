@@ -242,6 +242,18 @@ dependencies = [
 ]
 
 [[package]]
+name = "nowayos-display-ramfb"
+version = "0.1.0"
+dependencies = [
+ "nowayos-display",
+ "nowayos-hw",
+ "nowayos-ipc",
+ "nowayos-region",
+ "nowayos-ui-loop",
+ "sel4-microkit",
+]
+
+[[package]]
 name = "nowayos-display-stub"
 version = "0.1.0"
 dependencies = [
@@ -877,6 +889,14 @@ name = "showcase-display"
 version = "0.1.0"
 dependencies = [
  "nowayos-display-stub",
+ "sel4-microkit",
+]
+
+[[package]]
+name = "showcase-display-ramfb"
+version = "0.1.0"
+dependencies = [
+ "nowayos-display-ramfb",
  "sel4-microkit",
 ]
 

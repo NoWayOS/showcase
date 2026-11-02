@@ -90,6 +90,15 @@ class CheckQuiet(unittest.TestCase):
         self.write("pds/display/src/main.rs", DISPLAY.replace("init_quiet()", "init()"))
         self.assert_fails("the display PD must run quiet")
 
+    def test_a_ramfb_display_pd_not_quiet_fails(self):
+        self.write("pds/display-ramfb/src/main.rs",
+                   "fn init() -> DisplayPd {\n    nowayos_display_ramfb::init()\n}\n")
+        self.assert_fails("pds/display-ramfb/src/main.rs: the display PD must run quiet")
+
+    def test_a_ramfb_system_must_forbid_the_ramfb_hash(self):
+        self.write("systems/rpi5b_2gb/demo.system", SYSTEM.format(image="showcase-display-ramfb.elf"))
+        self.assert_fails("must forbid 'NOWAYOS: display: showing 0x'")
+
     def test_an_expect_file_allowing_hashes_fails(self):
         self.write("systems/rpi5b_2gb/demo.expect", EXPECT.replace("!display-stub: frame\n", ""))
         self.assert_fails("must forbid 'display-stub: frame'")

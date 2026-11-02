@@ -101,12 +101,29 @@ fn laid_out(
     tree
 }
 
-/// Every node that shows lies inside `viewport`, and every fixed text -
-/// every line of one that wraps - is shown whole, each in its own
-/// role and weight (`Node::cut_text`); a slot's text, the application's,
-/// only if it wraps.
+/// Whether `id` is inside a scroll view, which shows what lies past its
+/// edges by scrolling, so it may.
+fn in_scroll_view(tree: &Tree<CAPACITY>, id: NodeId) -> bool {
+    let mut at = tree.get(id).and_then(|node| node.parent());
+    while let Some(parent) = at {
+        let node = tree.get(parent).unwrap();
+        if matches!(node.kind(), NodeKind::Scroll { .. }) {
+            return true;
+        }
+        at = node.parent();
+    }
+    false
+}
+
+/// Every node that shows lies inside `viewport` - or inside a scroll view,
+/// which itself does - and every fixed text - every line of one that
+/// wraps - is shown whole, each in its own role and weight
+/// (`Node::cut_text`); a slot's text, the application's, only if it wraps.
 fn assert_fits(tree: &Tree<CAPACITY>, viewport: Rect, metrics: &TextMetrics, what: &str) {
     for (id, node) in tree.paint_order() {
+        if in_scroll_view(tree, id) {
+            continue;
+        }
         assert!(
             viewport.contains_rect(&node.rect()),
             "{what}: node {id:?} at {:?} does not fit",
@@ -121,19 +138,52 @@ fn assert_fits(tree: &Tree<CAPACITY>, viewport: Rect, metrics: &TextMetrics, wha
 }
 
 #[test]
-fn the_launcher_and_the_bar_convert() {
+fn the_launcher_the_bars_and_the_gallery_convert() {
     let names: Vec<&str> = SCREENS.iter().map(|(name, _)| *name).collect();
-    assert_eq!(
-        names,
-        [
-            "attract",
-            "launcher",
-            "pump-bar",
-            "service-desk-bar",
-            "visitor-bar",
-            "why-secure"
-        ]
-    );
+    let mut expected = vec![
+        "attract",
+        "launcher",
+        "pump-bar",
+        "service-desk-bar",
+        "visitor-bar",
+        "why-secure",
+    ];
+    expected.extend(showcase_app::GALLERY.iter().map(|(name, _)| *name));
+    expected.sort_unstable();
+    assert_eq!(names, expected);
+}
+
+/// Every screen of the Screen Compiler gallery fits, as built and with
+/// its progress bar and error line shown.
+#[test]
+fn every_gallery_screen_fits() {
+    for (name, build) in showcase_app::GALLERY {
+        for shown in [false, true] {
+            for (case, viewport, metrics) in cases() {
+                let what = format!("{name} at {case}, shown {shown}");
+                let tree = laid_out(
+                    &what,
+                    |tree| {
+                        let root = build(tree)?;
+                        if shown {
+                            for number in 1..=MOST {
+                                let field = nowayos_ui::FieldId::new(number);
+                                match tree.set_field_error(field, "Enter four digits") {
+                                    Ok(()) | Err(UiError::UnknownField(_)) => {}
+                                    Err(err) => return Err(err),
+                                }
+                            }
+                        }
+                        Ok(root)
+                    },
+                    shown,
+                    viewport,
+                    metrics,
+                );
+                assert_fits(&tree, viewport, &metrics, &what);
+            }
+        }
+    }
 }
 
 #[test]

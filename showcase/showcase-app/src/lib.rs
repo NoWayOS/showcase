@@ -10,8 +10,8 @@
 //! | Visitor sign-in (Orrinvale) | Ready | `showcase_visitor`: a visitor book that forgets you | 1, `showcase-visitor-stand-in` |
 //! | A program's own | Hidden unless a program fills it | its example ([`Extra`]) | 3, the program's |
 //! | Pay at the pump (Tarnwick Fuel) | Ready | `showcase_pump`: pump, fuel and amount, then the card reader; the screen never sees the card | 2, `showcase-pump-stand-in` |
+//! | React gallery (Screen Compiler) | Ready | the gallery: [`GALLERY`]'s screens, every component and style property the subset converts | |
 //! | Why is this secure? (Under the glass) | Ready | a panel in the launcher's place: six short claims, each marked Built, Designed or Simulated | |
-//! | Order food | Coming soon | a note saying so, on the launcher | |
 //!
 //! [`Showcase`] is the UI a showcase UI PD drives: the launcher's tree, and
 //! each ready example's UI, of which one shows at a time. Each example has
@@ -33,6 +33,14 @@
 //!   fault - the example's UI is wiped on the session-ended record, and the
 //!   launcher shows in place of the example's welcome screen.
 //! * **The launcher holds nothing a person entered**: it has no field.
+//! * **The Screen Compiler gallery** ([`GALLERY`]) shows every
+//!   component, prop and style property Screen Compiler converts, each
+//!   captioned with the TSX that made it; Back and Next go round its
+//!   screens, Home closes it. It is not an example: no application, nothing
+//!   sent. It shows in the launcher's tree, as the panel does, so its
+//!   fields and choices are wiped whenever the launcher shows - Home, a
+//!   reset, or [`GALLERY_IDLE`] with no input - and as it moves from one
+//!   screen to the next.
 //! * **An attract loop when idle**: after [`ATTRACT_AFTER`] with no
 //!   input on the launcher, [`SLIDES`] take its place in turn; the first
 //!   key, click or touch wakes the launcher and presses nothing. The UI PD
@@ -80,6 +88,9 @@ use showcase_visitor::VisitorUi;
 
 use brands::Brand;
 use generated::attract::attract_screen as attract;
+use generated::gallery_icons::gallery_icons_screen as gallery_icons;
+use generated::gallery_keyboard::gallery_keyboard_screen as gallery_keyboard;
+use generated::gallery_layout::gallery_layout_screen as gallery;
 use generated::launcher::launcher_screen as launcher;
 use generated::pump_bar::pump_bar_screen as pump_bar;
 use generated::service_desk_bar::service_desk_bar_screen as bar;
@@ -191,6 +202,94 @@ const WHY_SECURE: ScreenId = ScreenId(1);
 /// place: one of [`SLIDES`] at a time.
 const ATTRACT: ScreenId = ScreenId(2);
 
+/// The Screen Compiler gallery's screens, in order: each its name, as the
+/// log shows it, and the function that builds it. Every one has the same
+/// bar - Home, Back, Next - so the same three actions.
+pub const GALLERY: [(&str, generated::Build); 11] = [
+    ("gallery-layout", generated::build_gallery_layout),
+    ("gallery-type", generated::build_gallery_type),
+    ("gallery-text", generated::build_gallery_text),
+    ("gallery-buttons", generated::build_gallery_buttons),
+    ("gallery-surfaces", generated::build_gallery_surfaces),
+    ("gallery-fields", generated::build_gallery_fields),
+    ("gallery-choices", generated::build_gallery_choices),
+    ("gallery-keyboard", generated::build_gallery_keyboard),
+    ("gallery-scroll", generated::build_gallery_scroll),
+    ("gallery-icons", generated::build_gallery_icons),
+    ("gallery-css", generated::build_gallery_css),
+];
+
+/// Every gallery screen numbers Home, Back and Next as the first does.
+const _: () = {
+    use generated::{
+        gallery_buttons, gallery_choices, gallery_css, gallery_fields, gallery_scroll,
+        gallery_surfaces, gallery_text, gallery_type,
+    };
+    macro_rules! same_bar {
+        ($($screen:path),*) => {$(
+            {
+                use $screen as s;
+                assert!(s::actions::HOME.get() == gallery::actions::HOME.get());
+                assert!(s::actions::BACK.get() == gallery::actions::BACK.get());
+                assert!(s::actions::NEXT.get() == gallery::actions::NEXT.get());
+            }
+        )*};
+    }
+    same_bar!(
+        gallery_type::gallery_type_screen,
+        gallery_text::gallery_text_screen,
+        gallery_buttons::gallery_buttons_screen,
+        gallery_surfaces::gallery_surfaces_screen,
+        gallery_fields::gallery_fields_screen,
+        gallery_choices::gallery_choices_screen,
+        gallery_keyboard,
+        gallery_scroll::gallery_scroll_screen,
+        gallery_icons,
+        gallery_css::gallery_css_screen
+    );
+};
+
+/// The gallery's first screen in the launcher's tree: each shows as
+/// `ScreenId(GALLERY_FROM + its place in GALLERY)`.
+const GALLERY_FROM: u16 = 16;
+
+/// The gallery's keyboard screen, by its place in [`GALLERY`]: its
+/// Check sets or clears the code's error line.
+const GALLERY_KEYBOARD: usize = 7;
+
+/// The gallery's icons screen, by its place in [`GALLERY`]: its
+/// progress bar shows three quarters.
+const GALLERY_ICONS: usize = 9;
+
+/// The code the keyboard screen's Check asks for: four digits.
+const CODE_DIGITS: usize = 4;
+
+/// How long the gallery waits with no input before it closes, wiped,
+/// and the launcher shows, in milliseconds: twice [`ATTRACT_AFTER`], for
+/// time to read.
+pub const GALLERY_IDLE: u32 = ATTRACT_AFTER.saturating_mul(2);
+
+/// The place in [`GALLERY`] of the launcher's tree's screen `screen`, if
+/// it is one of the gallery's.
+fn gallery_place(screen: ScreenId) -> Option<usize> {
+    let place = usize::from(screen.0.checked_sub(GALLERY_FROM)?);
+    (place < GALLERY.len()).then_some(place)
+}
+
+/// Builds the gallery's screen at `place` into the empty `tree`, its
+/// progress bar, if it has one, set.
+fn build_gallery(
+    place: usize,
+    tree: &mut Tree<{ generated::CAPACITY }>,
+) -> Result<NodeId, UiError> {
+    let (_, build) = GALLERY.get(place).copied().ok_or(UiError::NoRoot)?;
+    let root = build(tree)?;
+    if place == GALLERY_ICONS {
+        tree.set_progress(gallery_icons::slots::DONE, 3, 4)?;
+    }
+    Ok(root)
+}
+
 /// The attract loop's own slides: each a title and a line, about an
 /// example or an idea, in words the maintainers have approved, and
 /// the brand it is drawn in. A program's example's slide ([`Tile`]) shows
@@ -224,7 +323,7 @@ pub const TILES: [ActionId; 6] = [
     launcher::actions::VISITOR,
     launcher::actions::EXTRA,
     launcher::actions::PUMP,
-    launcher::actions::COMING_SOON,
+    launcher::actions::GALLERY,
     launcher::actions::WHY_SECURE,
 ];
 
@@ -279,6 +378,8 @@ enum Showing {
     Pump,
     /// The example a program adds.
     Extra,
+    /// The Screen Compiler gallery.
+    Gallery,
 }
 
 /// A builder that makes a converted screen's nodes in a tree with its
@@ -499,6 +600,9 @@ fn build_launcher<E: Extra>(
     screen: ScreenId,
     tree: &mut Tree<{ generated::CAPACITY }>,
 ) -> Result<NodeId, UiError> {
+    if let Some(place) = gallery_place(screen) {
+        return build_gallery(place, tree);
+    }
     match screen {
         WHY_SECURE => generated::build_why_secure(tree),
         ATTRACT => generated::build_attract(tree),
@@ -624,19 +728,34 @@ impl<E: Extra> Showcase<E> {
     }
 
     /// Whether nothing a person entered is held: no example holds any
-    /// answer or action carrying text, and the launcher has no field - its
-    /// slots hold only fixed text, a program's tile and the slides. For
-    /// tests; it tells one bit.
+    /// answer or action carrying text, and no field or choice in the
+    /// launcher's tree holds anything - its own screens have none, and its
+    /// slots hold only fixed text, a program's tile and the slides; the
+    /// gallery's are wiped as it closes. For tests; it tells one bit.
     #[must_use]
     pub fn holds_nothing(&self) -> bool {
         self.service_desk.holds_nothing()
             && self.visitor.holds_nothing()
             && self.pump.holds_nothing()
             && self.extra.as_ref().is_none_or(FormUi::holds_nothing)
-            && self
-                .launcher
-                .paint_order()
-                .all(|(_, node)| node.kind().field().is_none())
+            && self.launcher.paint_order().all(|(_, node)| {
+                node.kind().field().is_none_or(|field| {
+                    self.launcher.value(field).is_none_or(str::is_empty)
+                        && self.launcher.checked(field) != Some(true)
+                        && self.launcher.selected(field).is_none()
+                })
+            })
+    }
+
+    /// Whether the Screen Compiler gallery shows, and which of its screens:
+    /// its name in [`GALLERY`].
+    #[must_use]
+    pub fn gallery_screen(&self) -> Option<&'static str> {
+        (self.showing == Showing::Gallery)
+            .then(|| gallery_place(self.nav.current()))
+            .flatten()
+            .and_then(|place| GALLERY.get(place))
+            .map(|(name, _)| *name)
     }
 
     /// Wipes every example's UI.
@@ -661,11 +780,14 @@ impl<E: Extra> Showcase<E> {
                     extra.reset();
                 }
             }
+            // Wiped as the launcher shows.
+            Showing::Gallery => {}
         }
         self.show_launcher();
     }
 
-    /// Shows the launcher, freshly built, focus on its first tile.
+    /// Shows the launcher, freshly built, focus on its first tile: its
+    /// tree wiped first, the gallery's fields with it.
     fn show_launcher(&mut self) {
         self.showing = Showing::Launcher;
         self.slide = None;
@@ -709,6 +831,82 @@ impl<E: Extra> Showcase<E> {
         self.point_shown();
     }
 
+    /// Opens the Screen Compiler gallery at its first screen, in the
+    /// launcher's place, focus on Next.
+    fn show_gallery(&mut self) {
+        self.show_gallery_at(0);
+    }
+
+    /// Shows the gallery's screen at `place` in the launcher's tree,
+    /// freshly built, the tree wiped first; focus on Next.
+    fn show_gallery_at(&mut self, place: usize) {
+        let Some(screen) = u16::try_from(place)
+            .ok()
+            .and_then(|place| GALLERY_FROM.checked_add(place))
+        else {
+            return;
+        };
+        self.launcher.wipe_session();
+        if self
+            .nav
+            .replace(ScreenId(screen), &mut self.launcher, build_launcher::<E>)
+            .is_ok()
+        {
+            self.showing = Showing::Gallery;
+            self.focus_gallery_next();
+        } else {
+            self.show_launcher();
+        }
+        self.point_shown();
+    }
+
+    /// Moves the gallery one screen on, or back, round its ends.
+    fn turn_gallery(&mut self, forward: bool) {
+        let count = GALLERY.len();
+        let at = gallery_place(self.nav.current()).unwrap_or(0);
+        let to = if forward {
+            at.saturating_add(1).checked_rem(count)
+        } else {
+            at.checked_add(count.saturating_sub(1))
+                .and_then(|n| n.checked_rem(count))
+        }
+        .unwrap_or(0);
+        self.show_gallery_at(to);
+    }
+
+    /// Focus on the gallery bar's Next, so Enter goes on.
+    fn focus_gallery_next(&mut self) {
+        let next = self
+            .launcher
+            .paint_order()
+            .find(|(_, node)| {
+                matches!(node.kind(), NodeKind::Button { action, .. } if *action == gallery::actions::NEXT)
+            })
+            .map(|(id, _)| id);
+        if let Some(id) = next {
+            let _ = self.launcher.set_focus(Some(id));
+        }
+    }
+
+    /// The keyboard screen's Check: the code's error line cleared if it is
+    /// four digits, and set otherwise - as an application would.
+    fn check_code(&mut self) {
+        let field = gallery_keyboard::fields::CODE;
+        let good = self.launcher.value(field).is_some_and(|code| {
+            code.len() == CODE_DIGITS && code.bytes().all(|b| b.is_ascii_digit())
+        });
+        let set = if good {
+            self.launcher.clear_field_error(field)
+        } else {
+            self.launcher.set_field_error(field, "Enter four digits")
+        };
+        if set.is_ok() {
+            let _ = self
+                .launcher
+                .layout(self.nav.viewport(), &self.nav.metrics());
+        }
+    }
+
     /// Shows an example, at the screen it is on: the program's only if it
     /// adds one.
     fn show_example(&mut self, example: Showing) {
@@ -749,6 +947,9 @@ impl<E: Extra> Showcase<E> {
                     let _ = extra.handle_event(moved);
                 }
             }
+            Showing::Gallery => {
+                let _ = self.launcher.handle(moved);
+            }
         }
     }
 
@@ -786,19 +987,6 @@ impl<E: Extra> Showcase<E> {
             .map(|(id, _)| id);
         if let Some(id) = shown {
             let _ = self.launcher.set_focus(Some(id));
-        }
-    }
-
-    /// Shows the launcher's note that the tile chosen is coming soon, until
-    /// the launcher is next shown afresh.
-    fn note_coming_soon(&mut self) {
-        let shown = self
-            .launcher
-            .set_visible(launcher::groups::COMING_SOON, true);
-        if shown.is_ok() {
-            let _ = self
-                .launcher
-                .layout(self.nav.viewport(), &self.nav.metrics());
         }
     }
 
@@ -845,7 +1033,7 @@ impl<E: Extra> KioskScreens for Showcase<E> {
             (Showing::Visitor, _) => self.visitor.tree(),
             (Showing::Pump, _) => self.pump.tree(),
             (Showing::Extra, Some(extra)) => extra.tree(),
-            (Showing::Launcher | Showing::Extra, _) => &self.launcher,
+            (Showing::Launcher | Showing::Gallery | Showing::Extra, _) => &self.launcher,
         }
     }
 
@@ -855,7 +1043,7 @@ impl<E: Extra> KioskScreens for Showcase<E> {
             (Showing::Visitor, _) => self.visitor.tree_mut(),
             (Showing::Pump, _) => self.pump.tree_mut(),
             (Showing::Extra, Some(extra)) => extra.tree_mut(),
-            (Showing::Launcher | Showing::Extra, _) => &mut self.launcher,
+            (Showing::Launcher | Showing::Gallery | Showing::Extra, _) => &mut self.launcher,
         }
     }
 
@@ -882,6 +1070,7 @@ impl<E: Extra> KioskScreens for Showcase<E> {
             (Showing::Visitor, _) => self.visitor.screen(),
             (Showing::Pump, _) => self.pump.screen(),
             (Showing::Extra, Some(extra)) => extra.screen(),
+            (Showing::Gallery, _) => self.gallery_screen().unwrap_or("gallery-layout"),
             (Showing::Launcher | Showing::Extra, _) => "launcher",
         }
     }
@@ -964,9 +1153,9 @@ impl<E: Extra> KioskScreens for Showcase<E> {
                     self.show_why_secure();
                     Some("Why is this secure?")
                 }
-                nowayos_ui::UiEvent::Action(launcher::actions::COMING_SOON) => {
-                    self.note_coming_soon();
-                    Some("Coming soon")
+                nowayos_ui::UiEvent::Action(launcher::actions::GALLERY) => {
+                    self.show_gallery();
+                    Some("React gallery")
                 }
                 _ => None,
             },
@@ -983,12 +1172,33 @@ impl<E: Extra> KioskScreens for Showcase<E> {
                 self.pressed(pressed)
             }
             Showing::Extra => self.handle_extra(event),
+            Showing::Gallery => match self.launcher.handle(event)? {
+                nowayos_ui::UiEvent::Action(gallery::actions::HOME) => {
+                    self.show_launcher();
+                    Some("Home")
+                }
+                nowayos_ui::UiEvent::Action(gallery::actions::BACK) => {
+                    self.turn_gallery(false);
+                    Some("Back")
+                }
+                nowayos_ui::UiEvent::Action(gallery::actions::NEXT) => {
+                    self.turn_gallery(true);
+                    Some("Next")
+                }
+                nowayos_ui::UiEvent::Action(gallery_keyboard::actions::CHECK)
+                    if gallery_place(self.nav.current()) == Some(GALLERY_KEYBOARD) =>
+                {
+                    self.check_code();
+                    Some("Check")
+                }
+                _ => None,
+            },
         }
     }
 
     fn end_input(&mut self) {
         match self.showing {
-            Showing::Launcher => {}
+            Showing::Launcher | Showing::Gallery => {}
             Showing::ServiceDesk => self.service_desk.end_input(),
             Showing::Visitor => self.visitor.end_input(),
             Showing::Pump => self.pump.end_input(),
@@ -1087,7 +1297,7 @@ impl<E: Extra> KioskScreens for Showcase<E> {
             (Showing::Visitor, _) => self.visitor.seconds_left(),
             (Showing::Pump, _) => self.pump.seconds_left(),
             (Showing::Extra, Some(extra)) => extra.seconds_left(),
-            (Showing::Launcher | Showing::Extra, _) => None,
+            (Showing::Launcher | Showing::Extra | Showing::Gallery, _) => None,
         }
     }
 
@@ -1095,11 +1305,17 @@ impl<E: Extra> KioskScreens for Showcase<E> {
         match (self.showing, self.slide) {
             (Showing::Launcher, Some(_)) => Some(SLIDE_FOR),
             (Showing::Launcher, None) if self.nav.current() == LAUNCHER => Some(ATTRACT_AFTER),
+            (Showing::Gallery, _) => Some(GALLERY_IDLE),
             _ => None,
         }
     }
 
     fn idle(&mut self) -> bool {
+        // The gallery left alone closes, wiped.
+        if self.showing == Showing::Gallery {
+            self.show_launcher();
+            return true;
+        }
         let next = match (self.showing, self.slide) {
             (Showing::Launcher, Some(place)) => place
                 .saturating_add(1)
@@ -1118,7 +1334,7 @@ impl<E: Extra> KioskScreens for Showcase<E> {
             (Showing::Visitor, _) => self.visitor.follows_countdown(),
             (Showing::Pump, _) => self.pump.follows_countdown(),
             (Showing::Extra, Some(extra)) => extra.follows_countdown(),
-            (Showing::Launcher | Showing::Extra, _) => false,
+            (Showing::Launcher | Showing::Extra | Showing::Gallery, _) => false,
         }
     }
 
@@ -1128,7 +1344,7 @@ impl<E: Extra> KioskScreens for Showcase<E> {
             (Showing::Visitor, _) => self.visitor.countdown_area(),
             (Showing::Pump, _) => self.pump.countdown_area(),
             (Showing::Extra, Some(extra)) => extra.countdown_area(),
-            (Showing::Launcher | Showing::Extra, _) => None,
+            (Showing::Launcher | Showing::Extra | Showing::Gallery, _) => None,
         }
     }
 
@@ -1144,6 +1360,7 @@ impl<E: Extra> KioskScreens for Showcase<E> {
             Showing::Visitor => brands::ORRINVALE,
             Showing::Pump => brands::TARNWICK,
             Showing::Extra => E::TILE.map_or(brands::LAUNCHER, |tile| tile.look),
+            Showing::Gallery => brands::LAUNCHER,
         };
         brand.look(self.larger)
     }

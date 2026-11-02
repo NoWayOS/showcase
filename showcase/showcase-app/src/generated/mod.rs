@@ -13,6 +13,17 @@ pub type Build = fn(&mut Tree<CAPACITY>) -> Result<NodeId, UiError>;
 /// Every converted screen: its file's name and the function that builds it.
 pub const SCREENS: &[(&str, Build)] = &[
     ("attract", build_attract),
+    ("gallery-buttons", build_gallery_buttons),
+    ("gallery-choices", build_gallery_choices),
+    ("gallery-css", build_gallery_css),
+    ("gallery-fields", build_gallery_fields),
+    ("gallery-icons", build_gallery_icons),
+    ("gallery-keyboard", build_gallery_keyboard),
+    ("gallery-layout", build_gallery_layout),
+    ("gallery-scroll", build_gallery_scroll),
+    ("gallery-surfaces", build_gallery_surfaces),
+    ("gallery-text", build_gallery_text),
+    ("gallery-type", build_gallery_type),
     ("launcher", build_launcher),
     ("pump-bar", build_pump_bar),
     ("service-desk-bar", build_service_desk_bar),
@@ -32,6 +43,160 @@ pub mod attract {
 /// The tree's error, if the screen does not fit it.
 pub fn build_attract(tree: &mut Tree<CAPACITY>) -> Result<NodeId, UiError> {
     attract::attract_screen::build(tree).map(|nodes| nodes.root)
+}
+
+/// `gallery-buttons.tsx`, converted by Screen Compiler.
+pub mod gallery_buttons {
+    include!("gallery-buttons.rs");
+}
+
+/// Builds `gallery-buttons.tsx`'s screen `gallery_buttons_screen` on a real tree.
+///
+/// # Errors
+///
+/// The tree's error, if the screen does not fit it.
+pub fn build_gallery_buttons(tree: &mut Tree<CAPACITY>) -> Result<NodeId, UiError> {
+    gallery_buttons::gallery_buttons_screen::build(tree).map(|nodes| nodes.root)
+}
+
+/// `gallery-choices.tsx`, converted by Screen Compiler.
+pub mod gallery_choices {
+    include!("gallery-choices.rs");
+}
+
+/// Builds `gallery-choices.tsx`'s screen `gallery_choices_screen` on a real tree.
+///
+/// # Errors
+///
+/// The tree's error, if the screen does not fit it.
+pub fn build_gallery_choices(tree: &mut Tree<CAPACITY>) -> Result<NodeId, UiError> {
+    gallery_choices::gallery_choices_screen::build(tree).map(|nodes| nodes.root)
+}
+
+/// `gallery-css.tsx`, converted by Screen Compiler.
+pub mod gallery_css {
+    include!("gallery-css.rs");
+}
+
+/// Builds `gallery-css.tsx`'s screen `gallery_css_screen` on a real tree.
+///
+/// # Errors
+///
+/// The tree's error, if the screen does not fit it.
+pub fn build_gallery_css(tree: &mut Tree<CAPACITY>) -> Result<NodeId, UiError> {
+    gallery_css::gallery_css_screen::build(tree).map(|nodes| nodes.root)
+}
+
+/// `gallery-fields.tsx`, converted by Screen Compiler.
+pub mod gallery_fields {
+    include!("gallery-fields.rs");
+}
+
+/// Builds `gallery-fields.tsx`'s screen `gallery_fields_screen` on a real tree.
+///
+/// # Errors
+///
+/// The tree's error, if the screen does not fit it.
+pub fn build_gallery_fields(tree: &mut Tree<CAPACITY>) -> Result<NodeId, UiError> {
+    gallery_fields::gallery_fields_screen::build(tree).map(|nodes| nodes.root)
+}
+
+/// `gallery-icons.tsx`, converted by Screen Compiler.
+pub mod gallery_icons {
+    include!("gallery-icons.rs");
+}
+
+/// Builds `gallery-icons.tsx`'s screen `gallery_icons_screen` on a real tree.
+///
+/// # Errors
+///
+/// The tree's error, if the screen does not fit it.
+pub fn build_gallery_icons(tree: &mut Tree<CAPACITY>) -> Result<NodeId, UiError> {
+    gallery_icons::gallery_icons_screen::build(tree).map(|nodes| nodes.root)
+}
+
+/// `gallery-keyboard.tsx`, converted by Screen Compiler.
+pub mod gallery_keyboard {
+    include!("gallery-keyboard.rs");
+}
+
+/// Builds `gallery-keyboard.tsx`'s screen `gallery_keyboard_screen` on a real tree.
+///
+/// # Errors
+///
+/// The tree's error, if the screen does not fit it.
+pub fn build_gallery_keyboard(tree: &mut Tree<CAPACITY>) -> Result<NodeId, UiError> {
+    gallery_keyboard::gallery_keyboard_screen::build(tree).map(|nodes| nodes.root)
+}
+
+/// `gallery-layout.tsx`, converted by Screen Compiler.
+pub mod gallery_layout {
+    include!("gallery-layout.rs");
+}
+
+/// Builds `gallery-layout.tsx`'s screen `gallery_layout_screen` on a real tree.
+///
+/// # Errors
+///
+/// The tree's error, if the screen does not fit it.
+pub fn build_gallery_layout(tree: &mut Tree<CAPACITY>) -> Result<NodeId, UiError> {
+    gallery_layout::gallery_layout_screen::build(tree).map(|nodes| nodes.root)
+}
+
+/// `gallery-scroll.tsx`, converted by Screen Compiler.
+pub mod gallery_scroll {
+    include!("gallery-scroll.rs");
+}
+
+/// Builds `gallery-scroll.tsx`'s screen `gallery_scroll_screen` on a real tree.
+///
+/// # Errors
+///
+/// The tree's error, if the screen does not fit it.
+pub fn build_gallery_scroll(tree: &mut Tree<CAPACITY>) -> Result<NodeId, UiError> {
+    gallery_scroll::gallery_scroll_screen::build(tree).map(|nodes| nodes.root)
+}
+
+/// `gallery-surfaces.tsx`, converted by Screen Compiler.
+pub mod gallery_surfaces {
+    include!("gallery-surfaces.rs");
+}
+
+/// Builds `gallery-surfaces.tsx`'s screen `gallery_surfaces_screen` on a real tree.
+///
+/// # Errors
+///
+/// The tree's error, if the screen does not fit it.
+pub fn build_gallery_surfaces(tree: &mut Tree<CAPACITY>) -> Result<NodeId, UiError> {
+    gallery_surfaces::gallery_surfaces_screen::build(tree).map(|nodes| nodes.root)
+}
+
+/// `gallery-text.tsx`, converted by Screen Compiler.
+pub mod gallery_text {
+    include!("gallery-text.rs");
+}
+
+/// Builds `gallery-text.tsx`'s screen `gallery_text_screen` on a real tree.
+///
+/// # Errors
+///
+/// The tree's error, if the screen does not fit it.
+pub fn build_gallery_text(tree: &mut Tree<CAPACITY>) -> Result<NodeId, UiError> {
+    gallery_text::gallery_text_screen::build(tree).map(|nodes| nodes.root)
+}
+
+/// `gallery-type.tsx`, converted by Screen Compiler.
+pub mod gallery_type {
+    include!("gallery-type.rs");
+}
+
+/// Builds `gallery-type.tsx`'s screen `gallery_type_screen` on a real tree.
+///
+/// # Errors
+///
+/// The tree's error, if the screen does not fit it.
+pub fn build_gallery_type(tree: &mut Tree<CAPACITY>) -> Result<NodeId, UiError> {
+    gallery_type::gallery_type_screen::build(tree).map(|nodes| nodes.root)
 }
 
 /// `launcher.tsx`, converted by Screen Compiler.

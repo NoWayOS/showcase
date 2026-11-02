@@ -227,11 +227,15 @@ define screen_compiler_build
 	cd $(SCREEN_COMPILER_DIR) && CARGO_TARGET_DIR=$(SCREEN_COMPILER_TARGET) $(CARGO) build --locked --quiet -p screen-compiler-cli
 endef
 
+# Then the Screen Compiler gallery's coverage (tools/gallery-coverage): its
+# screens show every component, prop, listed value and style property that
+# `screen-compiler subset` prints, so a gallery that falls behind the subset fails.
 screens-local:
 	$(call screen_compiler_build)
 	@for crate in $(SCREENS_CRATES); do \
 		$(PYTHON) tools/screens --screen-compiler $(SCREEN_COMPILER_TARGET)/debug/screen-compiler --screens $$crate || exit 1; \
 	done
+	$(PYTHON) tools/gallery-coverage --screen-compiler $(SCREEN_COMPILER_TARGET)/debug/screen-compiler --tsx showcase/showcase-app/tsx
 
 screens-bless-local:
 	$(call screen_compiler_build)

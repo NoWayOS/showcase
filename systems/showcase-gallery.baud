@@ -1,0 +1,4 @@
+# Line rates make qemu-test-all boots showcase-gallery at: the
+# Pi 5's, where the kernel's debug output - these lines - waits for the UART
+# while keys arrive and the application and the UI print.
+115200

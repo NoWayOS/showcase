@@ -95,6 +95,28 @@ fn the_launcher_and_each_example_draw() {
     }
 }
 
+/// Every screen of the Screen Compiler gallery, as the Pi draws it - in
+/// the launcher's theme, at the monitor's own pixels: the launcher's
+/// gallery tile, then Next round them all.
+#[test]
+fn every_gallery_screen_draws() {
+    let mut showcase = fresh();
+    for key in [KeyCode::DOWN, KeyCode::RIGHT, KeyCode::ENTER] {
+        showcase.handle(InputEvent::KeyDown(key));
+        showcase.handle(InputEvent::KeyUp(key));
+    }
+    showcase.end_input();
+    for (name, _) in showcase_app::GALLERY {
+        assert_eq!(showcase.screen(), name);
+        let (shown, theme) = showcase.theme();
+        assert_eq!(shown, brands::LAUNCHER.name);
+        draw_tree(showcase.tree(), &theme, name);
+        showcase.handle(InputEvent::KeyDown(KeyCode::ENTER));
+        showcase.handle(InputEvent::KeyUp(KeyCode::ENTER));
+        showcase.end_input();
+    }
+}
+
 /// The showcase at its launcher, as the UI PD lays it out once the display
 /// announces the Pi 5's window: the light theme's metrics at scale 2 - its
 /// type scale from atlases twice the size, its buttons 56 units

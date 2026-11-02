@@ -1,0 +1,71 @@
+# What showcase-gallery's terminal types, and what QEMU's screen must show:
+# the launcher, then its Screen Compiler gallery - Down, Right to the fifth
+# tile, then Next, which has the focus, round all eleven screens - then
+# Back three times, to the keyboard screen, and its Check with the code
+# empty, whose error line asks for four digits. After each screen shows, a
+# second for its frame to reach the ramfb, then a screendump, which must
+# match its approved image in showcase-gallery/ pixel for pixel (NoWayOS's
+# tools/qemu-test). Check is pressed again last: the error line is redrawn
+# the same, so the run's own last screen (showcase-gallery.screen.png) is
+# that one whenever QEMU takes it. A person looks at each image before it
+# is committed. QEMU only: pi-run plays no screen step. Escapes: \r Enter,
+# \t Tab, \e[Z Shift-Tab, \e[B Down, \e[C Right.
+
+wait SHOWCASE: ui: showing launcher
+pause 1000
+screen showcase-gallery/launcher.png
+serial \e[B\e[C\r
+wait SHOWCASE: ui: showing gallery-layout
+pause 1000
+screen showcase-gallery/gallery-layout.png
+serial \r
+wait SHOWCASE: ui: showing gallery-type
+pause 1000
+screen showcase-gallery/gallery-type.png
+serial \r
+wait SHOWCASE: ui: showing gallery-text
+pause 1000
+screen showcase-gallery/gallery-text.png
+serial \r
+wait SHOWCASE: ui: showing gallery-buttons
+pause 1000
+screen showcase-gallery/gallery-buttons.png
+serial \r
+wait SHOWCASE: ui: showing gallery-surfaces
+pause 1000
+screen showcase-gallery/gallery-surfaces.png
+serial \r
+wait SHOWCASE: ui: showing gallery-fields
+pause 1000
+screen showcase-gallery/gallery-fields.png
+serial \r
+wait SHOWCASE: ui: showing gallery-choices
+pause 1000
+screen showcase-gallery/gallery-choices.png
+serial \r
+wait SHOWCASE: ui: showing gallery-keyboard
+pause 1000
+screen showcase-gallery/gallery-keyboard.png
+serial \r
+wait SHOWCASE: ui: showing gallery-scroll
+pause 1000
+screen showcase-gallery/gallery-scroll.png
+serial \r
+wait SHOWCASE: ui: showing gallery-icons
+pause 1000
+screen showcase-gallery/gallery-icons.png
+serial \r
+wait SHOWCASE: ui: showing gallery-css
+pause 1000
+screen showcase-gallery/gallery-css.png
+serial \e[Z\r
+wait SHOWCASE: ui: showing gallery-icons
+serial \e[Z\r
+wait SHOWCASE: ui: showing gallery-scroll
+serial \e[Z\r
+wait SHOWCASE: ui: showing gallery-keyboard
+serial \t\t\r
+wait SHOWCASE: ui: action Check
+pause 1000
+screen showcase-gallery/gallery-keyboard-error.png
+serial \r

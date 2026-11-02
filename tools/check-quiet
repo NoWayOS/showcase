@@ -11,11 +11,13 @@ variant, systems/BOARD/NAME.system):
   display program, which prints a hash of every frame, can run in
   it; a product built on the Showcase checks its own systems with its own
   programs' prefix instead (--programs);
-* Showcase's display program runs the display PD quiet: PDS/display/src/main.rs
-  calls nowayos_display_stub::init_quiet, never init;
+* Showcase's display programs run the display PD quiet: PDS/display/src/main.rs
+  calls nowayos_display_stub::init_quiet, never init, and, where there is one,
+  the QEMU screen's PDS/display-ramfb/src/main.rs nowayos_display_ramfb's;
 * every expect file that checks it - systems/NAME.expect, and
   systems/BOARD/NAME.expect if there is one - forbids a frame's or scan-out
-  hash (`!display-stub: frame`);
+  hash (`!display-stub: frame`; and, for a system running the ramfb display,
+  its hash line too, `!NOWAYOS: display: showing 0x`);
 * everything its script (systems/NAME.qmp) types starts with a marker that
   every expect file of NAME forbids, so a run fails if what was typed ever
   reaches the log. Each serial step is decoded as NoWayOS's tools/qemu-test
@@ -46,6 +48,11 @@ import xml.etree.ElementTree as ET
 
 MARKERS = ("zqvj", "9081726354")
 HASH_LINE = "display-stub: frame"
+# The ramfb display's hash line, when it is not quiet, and its program.
+RAMFB_HASH_LINE = "NOWAYOS: display: showing 0x"
+RAMFB_PROGRAM = "showcase-display-ramfb.elf"
+# Each display program and the library whose PD it runs: each must run quiet.
+DISPLAYS = (("display", "nowayos_display_stub"), ("display-ramfb", "nowayos_display_ramfb"))
 # The escapes a serial step may hold, as NoWayOS's tools/qemu-test reads them.
 SERIAL_ESCAPES = {"e": 0x1B, "r": 0x0D, "n": 0x0A, "t": 0x09, "b": 0x08, "\\": 0x5C}
 ESC = 0x1B
@@ -176,16 +183,19 @@ def script_problems(systems):
 
 def problems(systems, pds, programs="showcase"):
     found = []
-    display = os.path.join(pds, "display", "src", "main.rs")
-    try:
-        with open(display, encoding="utf-8") as handle:
-            source = handle.read()
-    except OSError as err:
-        return [f"{display}: {err}"]
-    code = "\n".join(line for line in source.splitlines() if not line.lstrip().startswith("//"))
-    if "init_quiet()" not in code or re.search(r"nowayos_display_stub::init\(\)", code):
-        found.append(f"{display}: the display PD must run quiet (nowayos_display_stub::init_quiet), "
-                     f"never init, which prints a hash of every frame")
+    for folder, library in DISPLAYS:
+        display = os.path.join(pds, folder, "src", "main.rs")
+        if folder != "display" and not os.path.exists(display):
+            continue
+        try:
+            with open(display, encoding="utf-8") as handle:
+                source = handle.read()
+        except OSError as err:
+            return [f"{display}: {err}"]
+        code = "\n".join(line for line in source.splitlines() if not line.lstrip().startswith("//"))
+        if f"{library}::init_quiet()" not in code or re.search(rf"{library}::init\(\)", code):
+            found.append(f"{display}: the display PD must run quiet ({library}::init_quiet), "
+                         f"never init, which prints a hash of every frame")
     paths = sorted(glob.glob(os.path.join(systems, "*.system")) +
                    glob.glob(os.path.join(systems, "*", "*.system")))
     if not paths:
@@ -214,6 +224,8 @@ def problems(systems, pds, programs="showcase"):
             texts = forbidden(expect)
             if HASH_LINE not in texts:
                 found.append(f"{erel}: must forbid '{HASH_LINE}' (a frame's or scan-out hash)")
+            if RAMFB_PROGRAM in images and RAMFB_HASH_LINE not in texts:
+                found.append(f"{erel}: must forbid '{RAMFB_HASH_LINE}' (the ramfb display's frame hash)")
     return found + script_problems(systems)
 
 

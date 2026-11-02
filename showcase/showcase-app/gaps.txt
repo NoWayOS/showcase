@@ -2,10 +2,21 @@
 # tools/screens: `make screens` checks it, `make screens-bless` rewrites it.
 # The screens are synthetic (tsx/); a gap blocks every screen listed.
 
-screens: 6 - 6 convert, 0 refused
+screens: 17 - 17 convert, 0 refused
 
 convert:
   attract
+  gallery-buttons
+  gallery-choices
+  gallery-css
+  gallery-fields
+  gallery-icons
+  gallery-keyboard
+  gallery-layout
+  gallery-scroll
+  gallery-surfaces
+  gallery-text
+  gallery-type
   launcher
   pump-bar
   service-desk-bar
