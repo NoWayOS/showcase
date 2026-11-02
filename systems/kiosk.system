@@ -61,7 +61,7 @@
     <memory_region name="keys_control" size="0x1000" />
     <memory_region name="debug_uart_regs" size="@debug_uart" phys_addr="@debug_uart" />
     <memory_region name="debug_uart_facts" prefill_path="device-debug_uart.bin" />
-    <memory_region name="screen" prefill_path="screen-1920x1064.bin" />
+    <memory_region name="screen" prefill_path="screen-1920x1080.bin" />
     <!-- The app-UI contract's rings: the UI's actions, and the application's
          reports. -->
     <memory_region name="actions_messages" size="0x1000" />

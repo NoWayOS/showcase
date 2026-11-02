@@ -7,8 +7,8 @@
 //!
 //! The kiosk's layout size is 800 x 480, where a screen must fit. Each
 //! screen is also laid out at 1920 x 1080, and as the Pi 5's monitor shows
-//! it, drawn at its own pixels: the 1920 x 1064 window at device
-//! scale 2 - a 960 x 532 screen - with each font's atlas twice the size,
+//! it, drawn at its own pixels: the 1920 x 1080 window at device
+//! scale 2 - a 960 x 540 screen - with each font's atlas twice the size,
 //! and must fit there too.
 //! Each is checked as it is built - every group hidden and every slot empty -
 //! and as the application may show it: every group visible, every slot
@@ -34,7 +34,7 @@ use showcase_kiosk_screens::generated::{Build, CAPACITY, SCREENS};
 const VIEWPORTS: [(&str, Rect, u32); 3] = [
     ("800 x 480", Rect::new(0, 0, 800, 480), 1),
     ("1920 x 1080", Rect::new(0, 0, 1920, 1080), 1),
-    ("960 x 532 at 2x", Rect::new(0, 0, 1920, 1064), 2),
+    ("960 x 540 at 2x", Rect::new(0, 0, 1920, 1080), 2),
 ];
 
 /// NoWayOS's two themes, as the UI PDs lay screens out with them.

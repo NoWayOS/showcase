@@ -4,7 +4,7 @@
 # variant lacks. What is plugged into them is printed between these lines and
 # not checked: the tour is typed through the Debug Probe.
 # The display PD shows each frame at the monitor's own pixels.
-NOWAYOS: display-stub: showing each frame on the board's 1920x1080 r5g6b5 framebuffer at its own pixels, from row 16
+NOWAYOS: display-stub: showing each frame on the board's 1920x1080 r5g6b5 framebuffer at its own pixels, from row 0
 NOWAYOS: usb0: starting
 NOWAYOS: usb0: controller identified
 NOWAYOS: usb0: halted and reset
@@ -16,7 +16,7 @@ NOWAYOS: usb1: halted and reset
 NOWAYOS: usb1: running: a No Op command came back through DMA
 NOWAYOS: usb1: ready
 SHOWCASE: ui: starting
-SHOWCASE: ui: the display is 1920x1064 Rgb565 at scale 2
+SHOWCASE: ui: the display is 1920x1080 Rgb565 at scale 2
 SHOWCASE: ui: showing welcome
 SHOWCASE: ui: action Start
 SHOWCASE: ui: showing step-text

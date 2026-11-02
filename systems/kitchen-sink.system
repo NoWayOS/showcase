@@ -32,7 +32,7 @@
     framebuffer, read-write in the UI and read-only in the display) - no
     device, interrupt or physical address. The display holds only its side
     of those rings and the framebuffer, read-only. The broker holds its two
-    rings and the screen's size (1920x1064, read-only configuration: the Pi 5's
+    rings and the screen's size (1920x1080, read-only configuration: the Pi 5's
     window, drawn at its own pixels at device scale 2).
     uart_input holds the debug UART's window, uncached and read-only, and its
     facts, read-only - it reads the receive side only and writes nothing - its ring
@@ -57,7 +57,7 @@
     <memory_region name="keys_control" size="0x1000" />
     <memory_region name="debug_uart_regs" size="@debug_uart" phys_addr="@debug_uart" />
     <memory_region name="debug_uart_facts" prefill_path="device-debug_uart.bin" />
-    <memory_region name="screen" prefill_path="screen-1920x1064.bin" />
+    <memory_region name="screen" prefill_path="screen-1920x1080.bin" />
 
     <protection_domain name="timer" priority="5" stack_size="0x10000">
         <program_image path="showcase-timer.elf" />

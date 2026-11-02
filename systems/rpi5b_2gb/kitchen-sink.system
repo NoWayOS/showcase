@@ -35,7 +35,7 @@
     <memory_region name="firmware_fb" size="@firmware_fb" phys_addr="@firmware_fb" />
     <memory_region name="firmware_fb_facts" prefill_path="device-firmware_fb.bin" />
     <memory_region name="debug_uart_facts" prefill_path="device-debug_uart.bin" />
-    <memory_region name="screen" prefill_path="screen-1920x1064.bin" />
+    <memory_region name="screen" prefill_path="screen-1920x1080.bin" />
     <memory_region name="xhci0_regs" size="@xhci0" phys_addr="@xhci0" />
     <memory_region name="xhci0_facts" prefill_path="device-xhci0.bin" />
     <memory_region name="usb0_memory" size="0x13000" />

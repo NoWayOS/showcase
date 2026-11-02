@@ -16,7 +16,7 @@
 # showcase's own board run here.
 NOWAYOS: watchdog: watching no PD: the PM watchdog is serviced on every tick, for 6 s, for as long as the ticks come
 NOWAYOS: watchdog-stand-in: ticker: a tick to the watchdog every 2000 ms for the run length, 300 s
-NOWAYOS: display-stub: showing each frame on the board's 1920x1080 r5g6b5 framebuffer at its own pixels, from row 16
+NOWAYOS: display-stub: showing each frame on the board's 1920x1080 r5g6b5 framebuffer at its own pixels, from row 0
 NOWAYOS: usb0: starting
 NOWAYOS: usb0: controller identified
 NOWAYOS: usb0: halted and reset
@@ -34,7 +34,7 @@ SHOWCASE: app: check-in 1: not approved; awaiting approval, code 3FA1 075C E219 
 SHOWCASE: app: checking in: 2
 SHOWCASE: app: check-in 2: approved, epoch 2; in service
 SHOWCASE: ui: starting
-SHOWCASE: ui: the display is 1920x1064 Rgb565 at scale 2
+SHOWCASE: ui: the display is 1920x1080 Rgb565 at scale 2
 SHOWCASE: ui: showing launcher
 SHOWCASE: ui: theme launcher
 SHOWCASE: ui: action Visitor sign-in
@@ -58,9 +58,9 @@ SHOWCASE: visitor: session 1 ended: submitted
 SHOWCASE: ui: showing signed-in
 SHOWCASE: ui: seconds left: 10
 SHOWCASE: ui: seconds left: 9
-SHOWCASE: ui: countdown drawn alone: 61x47 px of the 1920x1064 screen
+SHOWCASE: ui: countdown drawn alone: 61x47 px of the 1920x1080 screen
 SHOWCASE: ui: seconds left: 8
-SHOWCASE: ui: countdown drawn alone: 46x47 px of the 1920x1064 screen
+SHOWCASE: ui: countdown drawn alone: 46x47 px of the 1920x1080 screen
 SHOWCASE: ui: action Done
 SHOWCASE: ui: showing launcher
 SHOWCASE: ui: theme launcher
@@ -125,9 +125,9 @@ SHOWCASE: app: session 3 ended: submitted
 SHOWCASE: ui: showing submitted
 SHOWCASE: ui: seconds left: 10
 SHOWCASE: ui: seconds left: 9
-SHOWCASE: ui: countdown drawn alone: 61x47 px of the 1920x1064 screen
+SHOWCASE: ui: countdown drawn alone: 61x47 px of the 1920x1080 screen
 SHOWCASE: ui: seconds left: 8
-SHOWCASE: ui: countdown drawn alone: 46x47 px of the 1920x1064 screen
+SHOWCASE: ui: countdown drawn alone: 46x47 px of the 1920x1080 screen
 SHOWCASE: ui: action Done
 SHOWCASE: ui: showing launcher
 SHOWCASE: ui: action Service desk

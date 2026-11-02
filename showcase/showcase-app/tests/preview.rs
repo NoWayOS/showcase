@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT OR Apache-2.0
 //! The showcase's screens drawn as the Pi draws them - each in its own
-//! brand's theme, at the monitor's own pixels: the 1920 x 1064
+//! brand's theme, at the monitor's own pixels: the 1920 x 1080
 //! window at device scale 2 - to images a person can look at before
 //! the board does: set `SHOWCASE_PREVIEW_DIR` to a folder, and each
 //! screen is written there as a PNG, the launcher and each example's
@@ -28,7 +28,7 @@ use showcase_pump::generated::{
 use showcase_pump::{Approval, Stage, figures};
 
 /// The Pi 5's window.
-const WINDOW: nowayos_display::Rect = nowayos_display::Rect::new(0, 0, 1920, 1064);
+const WINDOW: nowayos_display::Rect = nowayos_display::Rect::new(0, 0, 1920, 1080);
 
 fn draw_tree<const N: usize>(tree: &Tree<N>, theme: &Theme<Rgb888>, name: &str) {
     let size = tree.viewport().size;
@@ -113,7 +113,7 @@ fn fresh() -> Showcase {
 #[test]
 fn every_pump_screen_draws() {
     let theme = brands::TARNWICK.theme();
-    let viewport = nowayos_display::Rect::new(0, 0, 1920, 1064);
+    let viewport = nowayos_display::Rect::new(0, 0, 1920, 1080);
     let approval = Approval {
         pump: 3,
         fuel: 0,

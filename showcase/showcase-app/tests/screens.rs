@@ -7,7 +7,7 @@
 //!
 //! The showcase draws in the light theme, its body text 18 px. On
 //! the Pi 5 it is laid out at the monitor's own pixels: the 1920 x
-//! 1064 window at device scale 2, a 960 x 532 screen, its text from the 36
+//! 1080 window at device scale 2, a 960 x 540 screen, its text from the 36
 //! px atlas - so each screen must fit there, and at the kiosk's 800 x 480
 //! layout size, in that theme, and at 1920 x 1080 in both of NoWayOS's
 //! themes, each with its own metrics: type scale, minimum target size and
@@ -39,8 +39,8 @@ fn cases() -> [(&'static str, Rect, TextMetrics); 4] {
     let large = Theme::<Rgb888>::high_contrast();
     [
         (
-            "960 x 532 at 2x, light",
-            Rect::new(0, 0, 1920, 1064),
+            "960 x 540 at 2x, light",
+            Rect::new(0, 0, 1920, 1080),
             light.metrics_at(2),
         ),
         (

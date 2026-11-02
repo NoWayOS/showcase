@@ -41,7 +41,7 @@ wait SHOWCASE: ui: showing submitted
 # Done, once the confirmation has counted down a second and drawn the
 # countdown alone - the same moment in QEMU's test image and on the
 # Pi, whose confirmations last 4 s and 10 s.
-wait SHOWCASE: ui: countdown drawn alone: 46x47 px of the 1920x1064 screen
+wait SHOWCASE: ui: countdown drawn alone: 46x47 px of the 1920x1080 screen
 serial \r
 wait SHOWCASE: ui: showing welcome
 # The next person starts, types a name and cancels (the reference, then
