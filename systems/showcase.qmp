@@ -2,9 +2,10 @@
 # opened from it twice - signed in, with a pass; and with the building
 # service down, which sends the visitor to reception - then the
 # Service desk example four times - closed with Home, with Cancel, after
-# sending, and by walking away - and last the pay at the pump twice, followed
+# sending, and by walking away - then the pay at the pump twice, followed
 # to all done and declined, its 24 s on the Pi past a board run's
-# end - by keyboard alone, as Showcase's host test
+# end, then "Why is this secure?" and the Screen Compiler gallery round
+# all its screens - by keyboard alone, as Showcase's host test
 # of the showcase does (showcase/showcase-app/tests/showcase.rs,
 # the_qemu_script_s_keys_on_the_host). The visitor comes first, so a board
 # run, which the watchdog cuts at 15 s, sees them whole. Each `serial` step is one burst of
@@ -144,6 +145,39 @@ wait SHOWCASE: ui: showing launcher
 serial \e[B\e[C\e[C\r
 wait SHOWCASE: ui: showing why-secure
 serial \r
+wait SHOWCASE: ui: showing launcher
+# The Screen Compiler gallery: Down, Right to the fifth tile. Next has the
+# focus, so Enter goes round all eleven screens and back to the first; on
+# the keyboard screen, Tab past the empty code to Check - its error line
+# asks for four digits - and Shift-Tab twice back to Next. Then Shift-Tab
+# twice to Home.
+serial \e[B\e[C\r
+wait SHOWCASE: ui: showing gallery-layout
+serial \r
+wait SHOWCASE: ui: showing gallery-type
+serial \r
+wait SHOWCASE: ui: showing gallery-text
+serial \r
+wait SHOWCASE: ui: showing gallery-buttons
+serial \r
+wait SHOWCASE: ui: showing gallery-surfaces
+serial \r
+wait SHOWCASE: ui: showing gallery-fields
+serial \r
+wait SHOWCASE: ui: showing gallery-choices
+serial \r
+wait SHOWCASE: ui: showing gallery-keyboard
+serial \t\t\r
+wait SHOWCASE: ui: action Check
+serial \e[Z\e[Z\r
+wait SHOWCASE: ui: showing gallery-scroll
+serial \r
+wait SHOWCASE: ui: showing gallery-icons
+serial \r
+wait SHOWCASE: ui: showing gallery-css
+serial \r
+wait SHOWCASE: ui: showing gallery-layout
+serial \e[Z\e[Z\r
 wait SHOWCASE: ui: showing launcher
 # The attract loop: left alone, the launcher gives way to slides
 # (after 5 s, each for 2 s, in QEMU's test image); Enter only wakes it.

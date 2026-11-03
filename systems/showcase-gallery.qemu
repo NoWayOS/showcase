@@ -1,0 +1,3 @@
+# QEMU devices showcase-gallery's PDs drive (NoWayOS's tools/make/system.mk): the ramfb
+# display, which the display PD shows each frame on.
+-device ramfb

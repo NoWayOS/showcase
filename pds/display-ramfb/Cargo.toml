@@ -1,0 +1,21 @@
+[package]
+name = "showcase-display-ramfb"
+description = "In QEMU only: the display PD - NoWayOS's ramfb one, run from a program of Showcase's own - showing the UI's frames on QEMU's ramfb, quiet, so a script can match each screen with its approved image"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+rust-version.workspace = true
+publish.workspace = true
+
+[[bin]]
+name = "showcase-display-ramfb"
+path = "src/main.rs"
+test = false
+bench = false
+
+[dependencies]
+nowayos-display-ramfb.workspace = true
+sel4-microkit.workspace = true
+
+[lints]
+workspace = true

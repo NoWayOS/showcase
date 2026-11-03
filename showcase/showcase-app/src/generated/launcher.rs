@@ -13,7 +13,7 @@ pub mod tokens {
     pub const EDGE: u16 = 16;
 }
 
-/// Screen `LauncherScreen` (launcher.tsx:34:8).
+/// Screen `LauncherScreen` (launcher.tsx:33:8).
 pub mod launcher_screen {
     use super::ui;
 
@@ -29,8 +29,8 @@ pub mod launcher_screen {
         pub const EXTRA: ui::ActionId = ui::ActionId::new(3);
         /// Callback prop `onPump`.
         pub const PUMP: ui::ActionId = ui::ActionId::new(4);
-        /// Callback prop `onComingSoon`.
-        pub const COMING_SOON: ui::ActionId = ui::ActionId::new(5);
+        /// Callback prop `onGallery`.
+        pub const GALLERY: ui::ActionId = ui::ActionId::new(5);
         /// Callback prop `onWhySecure`.
         pub const WHY_SECURE: ui::ActionId = ui::ActionId::new(6);
     }
@@ -39,21 +39,19 @@ pub mod launcher_screen {
     pub mod groups {
         use super::ui;
 
-        /// Prop `extra` (launcher.tsx:62:12).
+        /// Prop `extra` (launcher.tsx:61:12).
         pub const EXTRA: ui::GroupId = ui::GroupId::new(1);
-        /// Prop `comingSoon` (launcher.tsx:99:10).
-        pub const COMING_SOON: ui::GroupId = ui::GroupId::new(2);
     }
 
     /// Slots for text the application sets, one per prop, numbered from 1 in document order.
     pub mod slots {
         use super::ui;
 
-        /// Prop `extraBrand` (launcher.tsx:64:15).
+        /// Prop `extraBrand` (launcher.tsx:63:15).
         pub const EXTRA_BRAND: ui::SlotId = ui::SlotId::new(1);
-        /// Prop `extraTitle` (launcher.tsx:65:15).
+        /// Prop `extraTitle` (launcher.tsx:64:15).
         pub const EXTRA_TITLE: ui::SlotId = ui::SlotId::new(2);
-        /// Prop `extraLine` (launcher.tsx:69:15).
+        /// Prop `extraLine` (launcher.tsx:68:15).
         pub const EXTRA_LINE: ui::SlotId = ui::SlotId::new(3);
     }
 
@@ -62,17 +60,19 @@ pub mod launcher_screen {
     pub struct Nodes<N> {
         /// The root node: install it as the screen's root.
         pub root: N,
-        /// `id="title"` (launcher.tsx:40:11).
+        /// `id="title"` (launcher.tsx:39:11).
         pub title: N,
-        /// `id="service-desk"` (launcher.tsx:49:13).
+        /// `id="service-desk"` (launcher.tsx:48:13).
         pub service_desk: N,
-        /// `id="visitor"` (launcher.tsx:57:13).
+        /// `id="visitor"` (launcher.tsx:56:13).
         pub visitor: N,
-        /// `id="extra"` (launcher.tsx:66:15).
+        /// `id="extra"` (launcher.tsx:65:15).
         pub extra: N,
-        /// `id="pump"` (launcher.tsx:77:13).
+        /// `id="pump"` (launcher.tsx:76:13).
         pub pump: N,
-        /// `id="why-secure"` (launcher.tsx:93:13).
+        /// `id="gallery"` (launcher.tsx:84:13).
+        pub gallery: N,
+        /// `id="why-secure"` (launcher.tsx:92:13).
         pub why_secure: N,
     }
 
@@ -82,51 +82,48 @@ pub mod launcher_screen {
     ///
     /// Returns the builder's error, for example when its node arena is full.
     pub fn build<B: ui::UiBuilder>(b: &mut B) -> Result<Nodes<B::Node>, B::Error> {
-        let n2 = b.icon(&ui::icons::HOUSE)?; // launcher.tsx:39:11 <Icon>
-        let n3 = b.text_styled("Choose a kiosk to try", ui::TextStyle::new(ui::TextRole::Heading))?; // launcher.tsx:40:11 <Text>
-        let n4 = b.spacer(None)?; // launcher.tsx:41:11 <Spacer>
-        let n5 = b.text("Demo: nothing kept")?; // launcher.tsx:42:11 <Text>
-        let n1 = b.row_on(ui::Surface::Header, ui::Layout::new().gap(super::tokens::GAP_TILES).padding(super::tokens::GAP), &[n2, n3, n4, n5])?; // launcher.tsx:38:9 <HeaderBar>
-        let n6 = b.text("React, run natively: no browser here")?; // launcher.tsx:44:9 <Text>
-        let n9 = b.text("Ready")?; // launcher.tsx:47:13 <Text>
-        let n10 = b.text("Kitchen sink")?; // launcher.tsx:48:13 <Text>
-        let n11 = b.button("Service desk", actions::SERVICE_DESK)?; // launcher.tsx:49:13 <Button>
-        let n12 = b.text("Every control")?; // launcher.tsx:52:13 <Text>
-        let n8 = b.column(ui::Layout::new().gap(super::tokens::GAP), &[n9, n10, n11, n12])?; // launcher.tsx:46:11 <Column>
-        let n14 = b.text("Ready")?; // launcher.tsx:55:13 <Text>
-        let n15 = b.text("Orrinvale")?; // launcher.tsx:56:13 <Text>
-        let n16 = b.button("Visitor sign-in", actions::VISITOR)?; // launcher.tsx:57:13 <Button>
-        let n17 = b.text("Forgets you")?; // launcher.tsx:60:13 <Text>
-        let n13 = b.column(ui::Layout::new().gap(super::tokens::GAP), &[n14, n15, n16, n17])?; // launcher.tsx:54:11 <Column>
-        let n20 = b.slot(slots::EXTRA_BRAND)?; // launcher.tsx:64:15 <Text>
-        let n21 = b.slot_styled(slots::EXTRA_TITLE, ui::TextStyle::new(ui::TextRole::Body).bold())?; // launcher.tsx:65:15 <Text>
-        let n22 = b.button("Try it", actions::EXTRA)?; // launcher.tsx:66:15 <Button>
-        let n23 = b.slot(slots::EXTRA_LINE)?; // launcher.tsx:69:15 <Text>
-        let n19 = b.column(ui::Layout::new().gap(super::tokens::GAP), &[n20, n21, n22, n23])?; // launcher.tsx:63:13 <Column>
-        let n18 = b.group(groups::EXTRA, n19)?; // launcher.tsx:62:12 {extra && ...}
-        let n7 = b.row(ui::Layout::new().gap(super::tokens::GAP_TILES), &[n8, n13, n18])?; // launcher.tsx:45:9 <Row>
-        let n26 = b.text("Ready")?; // launcher.tsx:75:13 <Text>
-        let n27 = b.text("Tarnwick Fuel")?; // launcher.tsx:76:13 <Text>
-        let n28 = b.button("Pay at the pump", actions::PUMP)?; // launcher.tsx:77:13 <Button>
-        let n29 = b.text("Never sees a card")?; // launcher.tsx:80:13 <Text>
-        let n25 = b.column(ui::Layout::new().gap(super::tokens::GAP), &[n26, n27, n28, n29])?; // launcher.tsx:74:11 <Column>
-        let n31 = b.text("Coming soon")?; // launcher.tsx:83:13 <Text>
-        let n32 = b.text("Larchway Kitchen")?; // launcher.tsx:84:13 <Text>
-        let n33 = b.button_with("Order food", actions::COMING_SOON, ui::ButtonVariant::Secondary)?; // launcher.tsx:85:13 <Button>
-        let n34 = b.text("Pictures, a basket")?; // launcher.tsx:88:13 <Text>
-        let n30 = b.column(ui::Layout::new().gap(super::tokens::GAP), &[n31, n32, n33, n34])?; // launcher.tsx:82:11 <Column>
-        let n36 = b.text("Ready")?; // launcher.tsx:91:13 <Text>
-        let n37 = b.text("Under the glass")?; // launcher.tsx:92:13 <Text>
-        let n38 = b.button("Why is this secure?", actions::WHY_SECURE)?; // launcher.tsx:93:13 <Button>
-        let n39 = b.text("Built or simulated")?; // launcher.tsx:96:13 <Text>
-        let n35 = b.column(ui::Layout::new().gap(super::tokens::GAP), &[n36, n37, n38, n39])?; // launcher.tsx:90:11 <Column>
-        let n24 = b.row(ui::Layout::new().gap(super::tokens::GAP_TILES), &[n25, n30, n35])?; // launcher.tsx:73:9 <Row>
-        let n42 = b.text("Coming soon: that example is not built yet. Try a Ready one.")?; // launcher.tsx:101:13 <Text>
-        let n41 = b.column_on(ui::Surface::Notice(ui::Tone::Caution), ui::Layout::new(), &[n42])?; // launcher.tsx:100:11 <Notice>
-        let n40 = b.group(groups::COMING_SOON, n41)?; // launcher.tsx:99:10 {comingSoon && ...}
-        let n43 = b.spacer(None)?; // launcher.tsx:104:9 <Spacer>
-        let n44 = b.text("Fictional brands. Arrows or Tab move, Enter chooses.")?; // launcher.tsx:105:9 <Text>
-        let n0 = b.column(ui::Layout::new().gap(super::tokens::GAP).padding(super::tokens::EDGE), &[n1, n6, n7, n24, n40, n43, n44])?; // launcher.tsx:37:7 <Column>
-        Ok(Nodes { root: n0, title: n3, service_desk: n11, visitor: n16, extra: n22, pump: n28, why_secure: n38 })
+        let n2 = b.icon(&ui::icons::HOUSE)?; // launcher.tsx:38:11 <Icon>
+        let n3 = b.text_styled("Choose a kiosk to try", ui::TextStyle::new(ui::TextRole::Heading))?; // launcher.tsx:39:11 <Text>
+        let n4 = b.spacer(None)?; // launcher.tsx:40:11 <Spacer>
+        let n5 = b.text("Demo: nothing kept")?; // launcher.tsx:41:11 <Text>
+        let n1 = b.row_on(ui::Surface::Header, ui::Layout::new().gap(super::tokens::GAP_TILES).padding(super::tokens::GAP), &[n2, n3, n4, n5])?; // launcher.tsx:37:9 <HeaderBar>
+        let n6 = b.text("React, run natively: no browser here")?; // launcher.tsx:43:9 <Text>
+        let n9 = b.text("Ready")?; // launcher.tsx:46:13 <Text>
+        let n10 = b.text("Kitchen sink")?; // launcher.tsx:47:13 <Text>
+        let n11 = b.button("Service desk", actions::SERVICE_DESK)?; // launcher.tsx:48:13 <Button>
+        let n12 = b.text("Every control")?; // launcher.tsx:51:13 <Text>
+        let n8 = b.column(ui::Layout::new().gap(super::tokens::GAP), &[n9, n10, n11, n12])?; // launcher.tsx:45:11 <Column>
+        let n14 = b.text("Ready")?; // launcher.tsx:54:13 <Text>
+        let n15 = b.text("Orrinvale")?; // launcher.tsx:55:13 <Text>
+        let n16 = b.button("Visitor sign-in", actions::VISITOR)?; // launcher.tsx:56:13 <Button>
+        let n17 = b.text("Forgets you")?; // launcher.tsx:59:13 <Text>
+        let n13 = b.column(ui::Layout::new().gap(super::tokens::GAP), &[n14, n15, n16, n17])?; // launcher.tsx:53:11 <Column>
+        let n20 = b.slot(slots::EXTRA_BRAND)?; // launcher.tsx:63:15 <Text>
+        let n21 = b.slot_styled(slots::EXTRA_TITLE, ui::TextStyle::new(ui::TextRole::Body).bold())?; // launcher.tsx:64:15 <Text>
+        let n22 = b.button("Try it", actions::EXTRA)?; // launcher.tsx:65:15 <Button>
+        let n23 = b.slot(slots::EXTRA_LINE)?; // launcher.tsx:68:15 <Text>
+        let n19 = b.column(ui::Layout::new().gap(super::tokens::GAP), &[n20, n21, n22, n23])?; // launcher.tsx:62:13 <Column>
+        let n18 = b.group(groups::EXTRA, n19)?; // launcher.tsx:61:12 {extra && ...}
+        let n7 = b.row(ui::Layout::new().gap(super::tokens::GAP_TILES), &[n8, n13, n18])?; // launcher.tsx:44:9 <Row>
+        let n26 = b.text("Ready")?; // launcher.tsx:74:13 <Text>
+        let n27 = b.text("Tarnwick Fuel")?; // launcher.tsx:75:13 <Text>
+        let n28 = b.button("Pay at the pump", actions::PUMP)?; // launcher.tsx:76:13 <Button>
+        let n29 = b.text("Never sees a card")?; // launcher.tsx:79:13 <Text>
+        let n25 = b.column(ui::Layout::new().gap(super::tokens::GAP), &[n26, n27, n28, n29])?; // launcher.tsx:73:11 <Column>
+        let n31 = b.text("Ready")?; // launcher.tsx:82:13 <Text>
+        let n32 = b.text("Screen Compiler")?; // launcher.tsx:83:13 <Text>
+        let n33 = b.button("React gallery", actions::GALLERY)?; // launcher.tsx:84:13 <Button>
+        let n34 = b.text("Every component")?; // launcher.tsx:87:13 <Text>
+        let n30 = b.column(ui::Layout::new().gap(super::tokens::GAP), &[n31, n32, n33, n34])?; // launcher.tsx:81:11 <Column>
+        let n36 = b.text("Ready")?; // launcher.tsx:90:13 <Text>
+        let n37 = b.text("Under the glass")?; // launcher.tsx:91:13 <Text>
+        let n38 = b.button("Why is this secure?", actions::WHY_SECURE)?; // launcher.tsx:92:13 <Button>
+        let n39 = b.text("Built or simulated")?; // launcher.tsx:95:13 <Text>
+        let n35 = b.column(ui::Layout::new().gap(super::tokens::GAP), &[n36, n37, n38, n39])?; // launcher.tsx:89:11 <Column>
+        let n24 = b.row(ui::Layout::new().gap(super::tokens::GAP_TILES), &[n25, n30, n35])?; // launcher.tsx:72:9 <Row>
+        let n40 = b.spacer(None)?; // launcher.tsx:98:9 <Spacer>
+        let n41 = b.text("Fictional brands. Arrows or Tab move, Enter chooses.")?; // launcher.tsx:99:9 <Text>
+        let n0 = b.column(ui::Layout::new().gap(super::tokens::GAP).padding(super::tokens::EDGE), &[n1, n6, n7, n24, n40, n41])?; // launcher.tsx:36:7 <Column>
+        Ok(Nodes { root: n0, title: n3, service_desk: n11, visitor: n16, extra: n22, pump: n28, gallery: n33, why_secure: n38 })
     }
 }

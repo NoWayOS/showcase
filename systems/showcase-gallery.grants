@@ -1,0 +1,164 @@
+# Everything systems/showcase-gallery.system grants, one fact per line. NoWayOS's
+# tools/check-system fails the build if the system description grants
+# anything not listed here, or lists anything it does not grant, and checks
+# the grants again in the kernel objects the Microkit tool generates. A change
+# here is a security change: call it out in the pull request.
+
+# The showcase: the grants of the reference kiosk's system
+# (kiosk.grants), the UI PD running the showcase's program
+# (showcase-ui) - the launcher and its examples - in place of the
+# kiosk's own: a UI's program needs no grant of its own. And the visitor
+# sign-in's application PD and the pay at the pump's, each
+# granted
+# exactly what the Service desk's is, over rings of its own, and the UI's
+# rings to them.
+
+# A demo system: uart_input runs a development-only program (NoWayOS's
+# grant-rules.toml, [development_only]: *-uart-input.elf), refused in a
+# product system; and app, visitor and pump run one too, each its service
+# a stand-in built into it ([development_only]: *-stand-in.elf). Each PD's role (NoWayOS's tools/grant-rules.toml): the UI, the
+# broker and the application may hold no device or interrupt, and the
+# application no physical address.
+system demo
+role timer driver
+role display display
+role input_broker broker
+role uart_input input
+role app app
+role visitor app
+role pump app
+role ui ui
+
+# The timer above every PD, so the others may call it; the display above the
+# broker and the UI, so a presented frame is shown at once; the broker above
+# uart_input, so a key that finds the ring full is drained at once when
+# uart_input notifies it - a key's events are sent whole or not at all;
+# uart_input above the application and the UI, so the UART's receive FIFO is
+# read however busy they are; the Service desk's application above the
+# visitor sign-in's and that above the pay at the pump's, so their
+# lines do not
+# mix, and all above the UI, so their replies,
+# and a privacy reset, never wait for drawing. Full budgets: each PD runs
+# only when notified or called, and each run is bounded - the display copies
+# one frame, the broker drains at most its rings, uart_input takes at most
+# 256 bytes a poll, the application at most its ring of actions and eight
+# timed events - until the UI's frame budget is measured, as in
+# NoWayOS's ui-interactive.
+pd timer priority=9 budget=1000 period=1000
+pd display priority=8 budget=1000 period=1000
+pd input_broker priority=7 budget=1000 period=1000
+pd uart_input priority=6 budget=1000 period=1000
+pd app priority=5 budget=1000 period=1000
+pd visitor priority=4 budget=1000 period=1000
+pd pump priority=2 budget=1000 period=1000
+pd ui priority=1 budget=1000 period=1000
+
+# The UI: exactly the grants NoWayOS's ui-demo.grants gives its UI PD.
+map ui present_messages rw
+map ui present_control r
+map ui display_messages r
+map ui display_control rw
+map ui framebuffer rw
+map ui input_messages r
+map ui input_control rw
+channel display ui
+channel input_broker ui
+
+# The UI's side of the app-UI contract: its actions (messages written by the
+# UI only) and the application's reports (read-only but for its own index);
+# a channel each way.
+map ui actions_messages rw
+map ui actions_control r
+map ui reports_messages r
+map ui reports_control rw
+channel app ui
+
+# The application: the other side of those rings, and the timer, for its
+# deadlines. Nothing else - no device, interrupt, physical address or
+# storage; the service it sends to is a stand-in inside it.
+map app actions_messages r
+map app actions_control rw
+map app reports_messages rw
+map app reports_control r
+channel app timer notify=timer
+call app timer
+
+# The visitor sign-in: the same contract over rings of its own to its
+# own application PD - its building service a stand-in inside it - and the
+# timer, for its deadlines. The UI's side, then the application's; nothing
+# else - no device, interrupt, physical address or storage.
+map ui visitor_actions_messages rw
+map ui visitor_actions_control r
+map ui visitor_reports_messages r
+map ui visitor_reports_control rw
+channel ui visitor
+map visitor visitor_actions_messages r
+map visitor visitor_actions_control rw
+map visitor visitor_reports_messages rw
+map visitor visitor_reports_control r
+channel timer visitor notify=timer
+call visitor timer
+
+# The pay at the pump: the same again, over rings of its own to its
+# own application PD - its card reader and pump controller a stand-in inside
+# it - and the timer.
+map ui pump_actions_messages rw
+map ui pump_actions_control r
+map ui pump_reports_messages r
+map ui pump_reports_control rw
+channel pump ui
+map pump pump_actions_messages r
+map pump pump_actions_control rw
+map pump pump_reports_messages rw
+map pump pump_reports_control r
+channel pump timer notify=timer
+call pump timer
+
+# The UI's idle clock: it calls the timer, and the timer notifies
+# it, for the launcher's attract loop alone - when the launcher has had no
+# input for a while. Nothing it holds depends on it.
+channel timer ui notify=timer
+call ui timer
+
+# The display: its side of the display contract, and the framebuffer,
+# read-only, as in NoWayOS's ui-demo.grants; and, beyond showcase.grants,
+# what QEMU's ramfb needs, as in NoWayOS's ui-interactive.grants: the
+# screen's size, read-only; fw_cfg's registers; and its two DMA regions -
+# fw_cfg's requests and the scan-out buffer - with their physical addresses.
+# QEMU only: a test system's, never the Pi's.
+map display present_messages r
+map display present_control rw
+map display display_messages rw
+map display display_control r
+map display framebuffer r
+map display screen r
+device display fw_cfg rw
+map display requests rw
+paddr display requests
+map display scan_out rw
+paddr display scan_out
+
+# The broker: the UI's input ring (messages written by the broker only), and
+# uart_input's ring, read-only but for its own index; the screen's size,
+# read-only configuration.
+map input_broker input_messages rw
+map input_broker input_control r
+map input_broker keys_messages r
+map input_broker keys_control rw
+map input_broker screen r
+channel input_broker uart_input notify=uart_input
+
+# uart_input: the debug UART's registers, uncached and read-only, this PD
+# only, and the board's facts about it, read-only - it reads the receive side
+# and writes nothing; its ring to the broker; no interrupt: it polls on the
+# timer.
+device uart_input debug_uart r
+map uart_input debug_uart_facts r
+map uart_input keys_messages rw
+map uart_input keys_control r
+channel uart_input timer notify=timer
+call uart_input timer
+
+# The timer: QEMU's CPU timer, its interrupt (rpi5b_2gb/showcase.grants:
+# BCM2712's system timer).
+irq timer phys_timer

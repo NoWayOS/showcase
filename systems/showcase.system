@@ -7,7 +7,8 @@
     kiosk.system, the visitor sign-in and the pay at the pump
     , each with its kiosk flow in an application PD of its own
     deciding every screen, and a bar with Home above each screen. Another
-    tile says it is coming; the third, a program's own example's,
+    tile opens the Screen Compiler gallery, every component it converts, in
+    the launcher's place; the third, a program's own example's,
     is hidden, as the showcase's program adds none. Home, or the end of a session, wipes the example - the
     UI's copies and outbox, and the application's session - and shows the
     launcher.

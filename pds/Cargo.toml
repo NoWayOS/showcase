@@ -27,6 +27,7 @@ members = [
     # each run from a program of Showcase's own
     "screens-ui",
     "display",
+    "display-ramfb",
     "input-broker",
     "uart-input",
     "usb-host",
@@ -60,6 +61,7 @@ nowayos-display = { path = "../../nowayos/crates/nowayos-display" }
 nowayos-ui-loop = { path = "../../nowayos/pds/ui-loop" }
 nowayos-ui = { path = "../../nowayos/crates/nowayos-ui" }
 nowayos-display-stub = { path = "../../nowayos/pds/display-stub" }
+nowayos-display-ramfb = { path = "../../nowayos/pds/display-ramfb" }
 nowayos-input-broker = { path = "../../nowayos/pds/input-broker" }
 nowayos-uart-input = { path = "../../nowayos/pds/uart-input" }
 nowayos-usb-host = { path = "../../nowayos/pds/usb-host" }

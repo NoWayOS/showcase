@@ -5,7 +5,7 @@
 # with the service down, the Service desk four times, closed with
 # Home, with Cancel, after sending and by the privacy reset, then the pay at
 # the pump twice, followed to all done and declined, "Why is this
-# secure?", and the attract loop, woken by a key, the
+# secure?", the Screen Compiler gallery round all its screens, and the attract loop, woken by a key, the
 # launcher showing again each time;
 # each screen as the UI shows it and the theme it draws in, each
 # button pressed, what the service stand-in does, and how each session
@@ -165,6 +165,33 @@ SHOWCASE: pump: session 2 ended: cancelled
 SHOWCASE: ui: showing launcher
 SHOWCASE: ui: action Why is this secure?
 SHOWCASE: ui: showing why-secure
+SHOWCASE: ui: action Home
+SHOWCASE: ui: showing launcher
+SHOWCASE: ui: action React gallery
+SHOWCASE: ui: showing gallery-layout
+SHOWCASE: ui: action Next
+SHOWCASE: ui: showing gallery-type
+SHOWCASE: ui: action Next
+SHOWCASE: ui: showing gallery-text
+SHOWCASE: ui: action Next
+SHOWCASE: ui: showing gallery-buttons
+SHOWCASE: ui: action Next
+SHOWCASE: ui: showing gallery-surfaces
+SHOWCASE: ui: action Next
+SHOWCASE: ui: showing gallery-fields
+SHOWCASE: ui: action Next
+SHOWCASE: ui: showing gallery-choices
+SHOWCASE: ui: action Next
+SHOWCASE: ui: showing gallery-keyboard
+SHOWCASE: ui: action Check
+SHOWCASE: ui: action Next
+SHOWCASE: ui: showing gallery-scroll
+SHOWCASE: ui: action Next
+SHOWCASE: ui: showing gallery-icons
+SHOWCASE: ui: action Next
+SHOWCASE: ui: showing gallery-css
+SHOWCASE: ui: action Next
+SHOWCASE: ui: showing gallery-layout
 SHOWCASE: ui: action Home
 SHOWCASE: ui: showing launcher
 SHOWCASE: ui: showing attract-1

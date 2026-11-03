@@ -1,0 +1,199 @@
+#!/usr/bin/env python3
+# SPDX-License-Identifier: MIT OR Apache-2.0
+"""The Screen Compiler gallery shows everything Screen Compiler converts.
+
+Asks `screen-compiler subset` for the subset as data - every component of
+the kit, its props and the values each takes, and its style properties -
+and checks the gallery's screens (DIR/gallery-*.tsx) use them all:
+
+* every component;
+* every prop of every component, on that component, but `id` and
+  `style` (an id shows nothing; a style is its properties, below);
+* every value of every prop that takes one of a list (a text's every
+  role, a button's every variant, every icon...);
+* every style property, on a component that takes it: the components
+  whose styles take the same properties - the columns and rows, on a
+  surface or not - share them.
+
+So when the subset gains a component, a prop, a value or a style property,
+this fails until the gallery shows it. The gallery is our own synthetic
+TSX: never point this at untrusted files.
+
+Usage: gallery-coverage --screen-compiler BIN --tsx DIR
+Exit status: 0 the gallery shows everything, 1 something is missing,
+2 usage error or Screen Compiler failed.
+"""
+
+import argparse
+import glob
+import json
+import os
+import re
+import subprocess
+import sys
+
+NAME = re.compile(r"[A-Za-z][A-Za-z0-9]*")
+ATTRIBUTE = re.compile(r"([A-Za-z][A-Za-z0-9]*)\s*=\s*")
+STYLE_KEY = re.compile(r"([A-Za-z][A-Za-z0-9]*)\s*:")
+
+
+def fail(message):
+    print(f"gallery-coverage: error: {message}", file=sys.stderr)
+    sys.exit(2)
+
+
+def subset(screen_compiler):
+    """The subset, as `screen-compiler subset` prints it."""
+    try:
+        done = subprocess.run(
+            [screen_compiler, "subset"], capture_output=True, text=True, timeout=120, check=False
+        )
+    except OSError as error:
+        fail(f"cannot run {screen_compiler}: {error}")
+    if done.returncode != 0:
+        fail(f"`screen-compiler subset` exited {done.returncode}: {done.stderr.strip()}")
+    try:
+        return json.loads(done.stdout)
+    except json.JSONDecodeError as error:
+        fail(f"`screen-compiler subset` printed no JSON: {error}")
+
+
+def balanced(text, at, opening, closing):
+    """The index just past the bracket closing the one at `at`, skipping
+    string literals; len(text) if it never closes."""
+    depth = 0
+    quote = None
+    i = at
+    while i < len(text):
+        c = text[i]
+        if quote:
+            if c == "\\":
+                i += 1
+            elif c == quote:
+                quote = None
+        elif c in "\"'`":
+            quote = c
+        elif c == opening:
+            depth += 1
+        elif c == closing:
+            depth -= 1
+            if depth == 0:
+                return i + 1
+        i += 1
+    return len(text)
+
+
+def tags(source):
+    """Every opening tag of a capitalised element: (name, {prop: value
+    text}, [style keys])."""
+    found = []
+    i = 0
+    while True:
+        i = source.find("<", i)
+        if i < 0:
+            return found
+        name = NAME.match(source, i + 1)
+        i += 1
+        if not name or not name.group(0)[0].isupper():
+            continue
+        props = {}
+        style = []
+        j = name.end()
+        while j < len(source):
+            while j < len(source) and source[j].isspace():
+                j += 1
+            if source.startswith("/>", j) or source.startswith(">", j):
+                break
+            attribute = ATTRIBUTE.match(source, j)
+            if not attribute:
+                # A bare attribute, or something this simple scanner does
+                # not read: skip a word.
+                word = NAME.match(source, j)
+                j = word.end() if word else j + 1
+                continue
+            key = attribute.group(1)
+            j = attribute.end()
+            if j < len(source) and source[j] in "\"'":
+                end = source.index(source[j], j + 1) + 1
+            elif j < len(source) and source[j] == "{":
+                end = balanced(source, j, "{", "}")
+            else:
+                end = j
+            value = source[j:end]
+            props[key] = value
+            if key == "style" and value.startswith("{{"):
+                inner = value[2:-2]
+                depth = 0
+                for k, c in enumerate(inner):
+                    if c in "{[(":
+                        depth += 1
+                    elif c in "}])":
+                        depth -= 1
+                    elif depth == 0:
+                        match = STYLE_KEY.match(inner, k)
+                        if match and (k == 0 or not inner[k - 1].isalnum()):
+                            style.append(match.group(1))
+            j = end
+        found.append((name.group(0), props, style))
+        i = j
+
+
+def main():
+    parser = argparse.ArgumentParser(description="The gallery shows everything Screen Compiler converts.")
+    parser.add_argument("--screen-compiler", required=True)
+    parser.add_argument("--tsx", required=True)
+    args = parser.parse_args()
+    data = subset(args.screen_compiler)
+    files = sorted(glob.glob(os.path.join(args.tsx, "gallery-*.tsx")))
+    if not files:
+        fail(f"no gallery screens in {args.tsx}")
+    used = []
+    for path in files:
+        with open(path, encoding="utf-8") as file:
+            used.extend(tags(file.read()))
+
+    missing = []
+    components = data["components"]
+    for component in components:
+        name = component["name"]
+        on = [(props, style) for tag, props, style in used if tag == name]
+        if not on:
+            missing.append(f"<{name}>")
+            continue
+        for prop in component["props"]:
+            if prop["name"] in ("id", "style"):
+                continue
+            given = [props[prop["name"]] for props, _ in on if prop["name"] in props]
+            if not given:
+                missing.append(f"{prop['name']} on <{name}>")
+                continue
+            for value in prop["value"].get("values", []) if prop["value"]["kind"] == "choice" else []:
+                if not any(v.strip("\"'") == value for v in given):
+                    missing.append(f'{prop["name"]}="{value}" on <{name}>')
+
+    # Style properties, by the components whose styles take the same.
+    groups = {}
+    for component in components:
+        names = tuple(p["name"] for p in component["style"])
+        if names:
+            groups.setdefault(names, []).append(component["name"])
+    for names, members in groups.items():
+        styled = {key for tag, _, style in used if tag in members for key in style}
+        for property in names:
+            if property not in styled:
+                missing.append(f"style {property} on {' or '.join(f'<{m}>' for m in members)}")
+
+    if missing:
+        print(f"gallery-coverage: the gallery ({args.tsx}/gallery-*.tsx) does not show:", file=sys.stderr)
+        for what in missing:
+            print(f"  {what}", file=sys.stderr)
+        print("Show each on a gallery screen, then make screens-bless.", file=sys.stderr)
+        sys.exit(1)
+    print(
+        f"gallery-coverage: PASS - the gallery's {len(files)} screens show all {len(components)} components, "
+        "every prop and every value listed, and every style property"
+    )
+
+
+if __name__ == "__main__":
+    main()
