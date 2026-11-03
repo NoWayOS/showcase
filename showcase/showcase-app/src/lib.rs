@@ -73,11 +73,11 @@ use nowayos_display::Rect;
 use nowayos_input::{KeyCode, TouchPhase};
 use nowayos_render_eg::{Rgb888, Theme};
 use nowayos_ui::builder::{
-    ButtonVariant, Input, Layout, Look, Picker, Space, Surface, TextStyle, UiBuilder,
+    ButtonVariant, Input, Layout, Look, Picker, Space, Surface, Template, TextStyle, UiBuilder,
 };
 use nowayos_ui::{
     ActionId, FieldId, GroupId, InputEvent, Navigator, NodeId, NodeKind, ScreenId, SlotId,
-    TextMetrics, Tree, UiError,
+    SwitchId, TextMetrics, Tree, UiError,
 };
 use showcase_kiosk_contract::Action;
 use showcase_kiosk_screens::kiosk::{
@@ -383,9 +383,9 @@ enum Showing {
 }
 
 /// A builder that makes a converted screen's nodes in a tree with its
-/// action, field, group and slot numbers moved by `by`, so that two screens
-/// built into one tree - the bar and an example's screen - never share one.
-/// [`frame_with`] builds a bar with it.
+/// action, field, group, switch and slot numbers moved by `by`, so that
+/// two screens built into one tree - the bar and an example's screen -
+/// never share one. [`frame_with`] builds a bar with it.
 pub struct Shifted<'t> {
     tree: &'t mut Tree<{ generated::CAPACITY }>,
     by: u16,
@@ -449,6 +449,23 @@ impl UiBuilder for Shifted<'_> {
         let slot = SlotId::new(self.shift(slot.get()));
         UiBuilder::slot_styled(&mut *self.tree, slot, style)
     }
+    fn slot_template(
+        &mut self,
+        slot: SlotId,
+        template: &'static Template,
+    ) -> Result<NodeId, UiError> {
+        let slot = SlotId::new(self.shift(slot.get()));
+        UiBuilder::slot_template(&mut *self.tree, slot, template)
+    }
+    fn slot_template_styled(
+        &mut self,
+        slot: SlotId,
+        template: &'static Template,
+        style: TextStyle,
+    ) -> Result<NodeId, UiError> {
+        let slot = SlotId::new(self.shift(slot.get()));
+        UiBuilder::slot_template_styled(&mut *self.tree, slot, template, style)
+    }
     fn icon(&mut self, icon: &'static nowayos_ui::icons::Icon) -> Result<NodeId, UiError> {
         UiBuilder::icon(&mut *self.tree, icon)
     }
@@ -493,6 +510,24 @@ impl UiBuilder for Shifted<'_> {
     ) -> Result<NodeId, UiError> {
         let group = GroupId::new(self.shift(group.get()));
         UiBuilder::either(&mut *self.tree, group, when_visible, otherwise)
+    }
+    fn unless(&mut self, group: GroupId, child: NodeId) -> Result<NodeId, UiError> {
+        let group = GroupId::new(self.shift(group.get()));
+        UiBuilder::unless(&mut *self.tree, group, child)
+    }
+    fn case(&mut self, switch: SwitchId, when: u8, child: NodeId) -> Result<NodeId, UiError> {
+        let switch = SwitchId::new(self.shift(switch.get()));
+        UiBuilder::case(&mut *self.tree, switch, when, child)
+    }
+    fn case_or(
+        &mut self,
+        switch: SwitchId,
+        when: u8,
+        when_matched: NodeId,
+        otherwise: NodeId,
+    ) -> Result<NodeId, UiError> {
+        let switch = SwitchId::new(self.shift(switch.get()));
+        UiBuilder::case_or(&mut *self.tree, switch, when, when_matched, otherwise)
     }
     fn input(&mut self, field: FieldId, input: Input) -> Result<NodeId, UiError> {
         let field = FieldId::new(self.shift(field.get()));

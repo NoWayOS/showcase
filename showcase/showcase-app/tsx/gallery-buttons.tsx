@@ -58,11 +58,12 @@ export function GalleryButtonsScreen(props: GalleryProps) {
             <Text role="caption">{'variant="quiet"'}</Text>
           </Column>
         </Row>
-        <Button onPress={props.onTry} style={{ backgroundColor: "text", color: "background" }}>
+        <Button onClick={() => props.onTry()} style={{ backgroundColor: "text", color: "background" }}>
           Styled
         </Button>
         <Text role="caption">{'<Button style={{ backgroundColor: "text", color: "background" }}>'}</Text>
         <Text role="caption">{'<Button onPress={props.onSave}>: a callback prop becomes an action'}</Text>
+        <Text role="caption">{'<Button onClick={() => props.onSave()}>: React DOM\'s onClick, and a function that only calls a prop'}</Text>
       </Column>
     </Screen>
   );
