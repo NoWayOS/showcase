@@ -14,7 +14,7 @@
 # The display PD shows each frame at the monitor's own pixels.
 # Each countdown tick draws its digits' slot alone: the confirmation's
 # first is checked here, and any tick drawing more fails the run.
-NOWAYOS: display-stub: showing each frame on the board's 1920x1080 r5g6b5 framebuffer at its own pixels, from row 0
+NOWAYOS: display-stub: showing each frame on the board's 1920x1080 x8r8g8b8 framebuffer at its own pixels, from row 0
 NOWAYOS: usb0: starting
 NOWAYOS: usb0: controller identified
 NOWAYOS: usb0: halted and reset
@@ -35,7 +35,7 @@ SHOWCASE: app: check-in 1: not approved; awaiting approval, code 3FA1 075C E219 
 SHOWCASE: app: checking in: 2
 SHOWCASE: app: check-in 2: approved, epoch 2; in service
 SHOWCASE: ui: starting
-SHOWCASE: ui: the display is 1920x1080 Rgb565 at scale 2
+SHOWCASE: ui: the display is 1920x1080 Xrgb8888 at scale 2
 SHOWCASE: ui: showing launcher
 SHOWCASE: ui: theme launcher
 SHOWCASE: ui: action Visitor sign-in

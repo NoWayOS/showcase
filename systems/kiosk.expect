@@ -17,7 +17,7 @@ SHOWCASE: app: check-in 1: not approved; awaiting approval, code 3FA1 075C E219 
 SHOWCASE: app: checking in: 2
 SHOWCASE: app: check-in 2: approved, epoch 2; in service
 SHOWCASE: ui: starting
-SHOWCASE: ui: the display is 1920x1080 Rgb565 at scale 2
+SHOWCASE: ui: the display is 1920x1080 Xrgb8888 at scale 2
 SHOWCASE: ui: showing welcome
 SHOWCASE: ui: action Start
 SHOWCASE: ui: showing step-text
