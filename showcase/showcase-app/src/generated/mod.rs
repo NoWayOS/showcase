@@ -5,7 +5,7 @@
 use nowayos_ui::{NodeId, Tree, UiError};
 
 /// Nodes a screen may use: more than any converted screen needs.
-pub const CAPACITY: usize = 64;
+pub const CAPACITY: usize = 96;
 
 /// Bytes of long text a screen may hold (builder contract v16): more than
 /// any converted screen needs.

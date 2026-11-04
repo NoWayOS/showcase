@@ -455,6 +455,14 @@ impl UiBuilder for Shifted<'_> {
     fn scroll_view(&mut self, layout: Layout, child: NodeId) -> Result<NodeId, UiError> {
         UiBuilder::scroll_view(&mut *self.tree, layout, child)
     }
+    fn scroll_view_axes(
+        &mut self,
+        layout: Layout,
+        axes: nowayos_ui::ScrollAxes,
+        child: NodeId,
+    ) -> Result<NodeId, UiError> {
+        UiBuilder::scroll_view_axes(&mut *self.tree, layout, axes, child)
+    }
     fn slot(&mut self, slot: SlotId) -> Result<NodeId, UiError> {
         let slot = SlotId::new(self.shift(slot.get()));
         UiBuilder::slot(&mut *self.tree, slot)
