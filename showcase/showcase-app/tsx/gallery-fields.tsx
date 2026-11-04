@@ -1,10 +1,10 @@
 // The Screen Compiler gallery, 6 of 11: a text input in each input mode, with a placeholder and a
-// length limit. The application reads and sets each field by its id;
+// length limit, and a text area of several lines. The application reads and sets each field by its id;
 // what is typed here is wiped as the screen closes.
 // Each example is captioned with the TSX that made it. Written for the showcase in TSX and
 // converted at build time like every other screen here; the launcher's Screen Compiler
 // tile opens the first, and Back and Next go round them all.
-import { Button, Column, HeaderBar, Row, Screen, Spacer, Text, TextInput } from "nowayos:kit";
+import { Button, Column, HeaderBar, Row, Screen, Spacer, Text, TextArea, TextInput } from "nowayos:kit";
 
 const GAP = 8;
 const EDGE = 16;
@@ -58,6 +58,10 @@ export function GalleryFieldsScreen(props: GalleryProps) {
             <TextInput id="count" placeholder="How many" inputMode="numeric" maxLength={3} />
           </Column>
         </Row>
+        <Column gap={4}>
+          <Text role="caption">{'<TextArea id="note" rows={3} maxLength={500} />: Enter starts a line'}</Text>
+          <TextArea id="note" rows={3} maxLength={500} placeholder="A note of several lines" />
+        </Column>
       </Column>
     </Screen>
   );
