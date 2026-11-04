@@ -76,7 +76,7 @@ use nowayos_ui::{TextMetrics, Tree, UiError};
 use nowayos_ui_loop::{LoopError, UiChannels, UiLoop};
 use sel4_microkit::{Channel, ChannelSet, Handler, Infallible, NullHandler, debug_println};
 use showcase_kiosk_contract::MAX_RECORD_LEN;
-use showcase_kiosk_screens::generated::CAPACITY;
+use showcase_kiosk_screens::generated::{CAPACITY, TEXT};
 use showcase_kiosk_screens::kiosk::{KioskScreens, RING_SLOTS};
 
 /// The channel to the display PD.
@@ -231,7 +231,7 @@ struct State<'g, D> {
     notice: Option<LoopError>,
     /// The tree the last frame drew, compared by address only: while the
     /// same tree shows, a frame draws only what changed in it.
-    drawn: Option<*const Tree<CAPACITY>>,
+    drawn: Option<*const Tree<CAPACITY, TEXT>>,
     /// The idle clock.
     idle: Idle,
 }
@@ -474,7 +474,7 @@ impl<D: KioskScreens> State<'_, D> {
         if !self.dirty || !self.ui.can_draw() {
             return Ok(());
         }
-        let tree: *const Tree<CAPACITY> = self.kiosk.tree();
+        let tree: *const Tree<CAPACITY, TEXT> = self.kiosk.tree();
         let only_changes = self.drawn == Some(tree);
         // A tick's drawing timed, where the system grants the timer.
         let started = if D::TIMES_TICKS && self.ticked && only_changes {

@@ -20,8 +20,8 @@ use nowayos_ui::Tree;
 use showcase_app::{Showcase, brands, pump_frame};
 use showcase_kiosk_screens::kiosk::KioskScreens;
 use showcase_pump::generated::{
-    CAPACITY, SCREENS as PUMP_SCREENS, amount::amount_step as amount, check::check_screen as check,
-    fuel::fuel_step as fuel, fuelling::fuelling_screen as fuelling,
+    CAPACITY, SCREENS as PUMP_SCREENS, TEXT, amount::amount_step as amount,
+    check::check_screen as check, fuel::fuel_step as fuel, fuelling::fuelling_screen as fuelling,
     idle_warning::idle_warning_screen as idle, not_accepted::not_accepted_screen as failed,
     pump::pump_step as pump,
 };
@@ -30,7 +30,7 @@ use showcase_pump::{Approval, Stage, figures};
 /// The Pi 5's window.
 const WINDOW: nowayos_display::Rect = nowayos_display::Rect::new(0, 0, 1920, 1080);
 
-fn draw_tree<const N: usize>(tree: &Tree<N>, theme: &Theme<Rgb888>, name: &str) {
+fn draw_tree<const N: usize, const T: usize>(tree: &Tree<N, T>, theme: &Theme<Rgb888>, name: &str) {
     let size = tree.viewport().size;
     let mut fb = Framebuffer::new(size.width, size.height).unwrap();
     {
@@ -160,7 +160,7 @@ fn every_pump_screen_draws() {
             &[None]
         };
         for (at, stage) in stages.iter().enumerate() {
-            let mut tree = Tree::<CAPACITY>::new();
+            let mut tree = Tree::<CAPACITY, TEXT>::new();
             let body = build(&mut tree).unwrap();
             let root = pump_frame(&mut tree, body, name).unwrap();
             tree.set_root(root).unwrap();

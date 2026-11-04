@@ -27,7 +27,7 @@
 use nowayos_display::Rect;
 use nowayos_render_eg::{Rgb888, Theme};
 use nowayos_ui::{GroupId, NodeKind, SlotId, TextMetrics, Tree, UiError};
-use showcase_kiosk_screens::generated::{Build, CAPACITY, SCREENS};
+use showcase_kiosk_screens::generated::{Build, CAPACITY, SCREENS, TEXT};
 
 /// The kiosk's layout size, the Pi monitor's resolution, and the Pi 5's
 /// window at device scale 2: each with its device scale.
@@ -57,8 +57,8 @@ fn laid_out(
     shown: bool,
     viewport: Rect,
     metrics: TextMetrics,
-) -> Tree<CAPACITY> {
-    let mut tree = Tree::<CAPACITY>::new();
+) -> Tree<CAPACITY, TEXT> {
+    let mut tree = Tree::<CAPACITY, TEXT>::new();
     let root = build(&mut tree).unwrap_or_else(|err| panic!("{name}: {err:?}"));
     tree.set_root(root).unwrap();
     if shown {
@@ -81,7 +81,7 @@ fn laid_out(
 /// every line of one that wraps - is shown whole, each in its own
 /// role and weight (`Node::cut_text`); a slot's text, the application's,
 /// only if it wraps.
-fn assert_fits(tree: &Tree<CAPACITY>, viewport: Rect, metrics: &TextMetrics, what: &str) {
+fn assert_fits(tree: &Tree<CAPACITY, TEXT>, viewport: Rect, metrics: &TextMetrics, what: &str) {
     for (id, node) in tree.paint_order() {
         assert!(
             viewport.contains_rect(&node.rect()),
@@ -153,7 +153,7 @@ fn an_error_line_takes_space_only_while_the_application_shows_it() {
         .unwrap();
     let (_, viewport, _) = VIEWPORTS[0];
     let metrics = Theme::<Rgb888>::light().metrics();
-    let last_top = |tree: &Tree<CAPACITY>| {
+    let last_top = |tree: &Tree<CAPACITY, TEXT>| {
         let (_, last) = tree.paint_order().last().unwrap();
         (tree.paint_order().count(), last.rect().top())
     };

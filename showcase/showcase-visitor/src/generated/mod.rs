@@ -7,8 +7,12 @@ use nowayos_ui::{NodeId, Tree, UiError};
 /// Nodes a screen may use: more than any converted screen needs.
 pub const CAPACITY: usize = 64;
 
+/// Bytes of long text a screen may hold (builder contract v16): more than
+/// any converted screen needs.
+pub const TEXT: usize = 4096;
+
 /// Builds a screen on a real tree and returns its root node.
-pub type Build = fn(&mut Tree<CAPACITY>) -> Result<NodeId, UiError>;
+pub type Build = fn(&mut Tree<CAPACITY, TEXT>) -> Result<NodeId, UiError>;
 
 /// Every converted screen: its file's name and the function that builds it.
 pub const SCREENS: &[(&str, Build)] = &[
@@ -35,7 +39,7 @@ pub mod about_you {
 /// # Errors
 ///
 /// The tree's error, if the screen does not fit it.
-pub fn build_about_you(tree: &mut Tree<CAPACITY>) -> Result<NodeId, UiError> {
+pub fn build_about_you(tree: &mut Tree<CAPACITY, TEXT>) -> Result<NodeId, UiError> {
     about_you::about_you_step::build(tree).map(|nodes| nodes.root)
 }
 
@@ -49,7 +53,7 @@ pub mod check {
 /// # Errors
 ///
 /// The tree's error, if the screen does not fit it.
-pub fn build_check(tree: &mut Tree<CAPACITY>) -> Result<NodeId, UiError> {
+pub fn build_check(tree: &mut Tree<CAPACITY, TEXT>) -> Result<NodeId, UiError> {
     check::check_screen::build(tree).map(|nodes| nodes.root)
 }
 
@@ -63,7 +67,7 @@ pub mod idle_warning {
 /// # Errors
 ///
 /// The tree's error, if the screen does not fit it.
-pub fn build_idle_warning(tree: &mut Tree<CAPACITY>) -> Result<NodeId, UiError> {
+pub fn build_idle_warning(tree: &mut Tree<CAPACITY, TEXT>) -> Result<NodeId, UiError> {
     idle_warning::idle_warning_screen::build(tree).map(|nodes| nodes.root)
 }
 
@@ -77,7 +81,7 @@ pub mod not_signed_in {
 /// # Errors
 ///
 /// The tree's error, if the screen does not fit it.
-pub fn build_not_signed_in(tree: &mut Tree<CAPACITY>) -> Result<NodeId, UiError> {
+pub fn build_not_signed_in(tree: &mut Tree<CAPACITY, TEXT>) -> Result<NodeId, UiError> {
     not_signed_in::not_signed_in_screen::build(tree).map(|nodes| nodes.root)
 }
 
@@ -91,7 +95,7 @@ pub mod purpose {
 /// # Errors
 ///
 /// The tree's error, if the screen does not fit it.
-pub fn build_purpose(tree: &mut Tree<CAPACITY>) -> Result<NodeId, UiError> {
+pub fn build_purpose(tree: &mut Tree<CAPACITY, TEXT>) -> Result<NodeId, UiError> {
     purpose::purpose_step::build(tree).map(|nodes| nodes.root)
 }
 
@@ -105,7 +109,7 @@ pub mod signed_in {
 /// # Errors
 ///
 /// The tree's error, if the screen does not fit it.
-pub fn build_signed_in(tree: &mut Tree<CAPACITY>) -> Result<NodeId, UiError> {
+pub fn build_signed_in(tree: &mut Tree<CAPACITY, TEXT>) -> Result<NodeId, UiError> {
     signed_in::signed_in_screen::build(tree).map(|nodes| nodes.root)
 }
 
@@ -119,7 +123,7 @@ pub mod signing_in {
 /// # Errors
 ///
 /// The tree's error, if the screen does not fit it.
-pub fn build_signing_in(tree: &mut Tree<CAPACITY>) -> Result<NodeId, UiError> {
+pub fn build_signing_in(tree: &mut Tree<CAPACITY, TEXT>) -> Result<NodeId, UiError> {
     signing_in::signing_in_screen::build(tree).map(|nodes| nodes.root)
 }
 
@@ -133,7 +137,7 @@ pub mod signing_out {
 /// # Errors
 ///
 /// The tree's error, if the screen does not fit it.
-pub fn build_signing_out(tree: &mut Tree<CAPACITY>) -> Result<NodeId, UiError> {
+pub fn build_signing_out(tree: &mut Tree<CAPACITY, TEXT>) -> Result<NodeId, UiError> {
     signing_out::signing_out_screen::build(tree).map(|nodes| nodes.root)
 }
 
@@ -147,7 +151,7 @@ pub mod site_rules {
 /// # Errors
 ///
 /// The tree's error, if the screen does not fit it.
-pub fn build_site_rules(tree: &mut Tree<CAPACITY>) -> Result<NodeId, UiError> {
+pub fn build_site_rules(tree: &mut Tree<CAPACITY, TEXT>) -> Result<NodeId, UiError> {
     site_rules::site_rules_step::build(tree).map(|nodes| nodes.root)
 }
 
@@ -161,7 +165,7 @@ pub mod visiting {
 /// # Errors
 ///
 /// The tree's error, if the screen does not fit it.
-pub fn build_visiting(tree: &mut Tree<CAPACITY>) -> Result<NodeId, UiError> {
+pub fn build_visiting(tree: &mut Tree<CAPACITY, TEXT>) -> Result<NodeId, UiError> {
     visiting::visiting_step::build(tree).map(|nodes| nodes.root)
 }
 
@@ -175,6 +179,6 @@ pub mod welcome {
 /// # Errors
 ///
 /// The tree's error, if the screen does not fit it.
-pub fn build_welcome(tree: &mut Tree<CAPACITY>) -> Result<NodeId, UiError> {
+pub fn build_welcome(tree: &mut Tree<CAPACITY, TEXT>) -> Result<NodeId, UiError> {
     welcome::welcome_screen::build(tree).map(|nodes| nodes.root)
 }

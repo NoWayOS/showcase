@@ -58,7 +58,7 @@ use showcase_kiosk_screens::kiosk::{
 use showcase_kiosk_screens::stand_in::Policy;
 
 use generated::{
-    CAPACITY, about_you::about_you_step as about_you, check::check_screen as check,
+    CAPACITY, TEXT, about_you::about_you_step as about_you, check::check_screen as check,
     idle_warning::idle_warning_screen as idle, not_signed_in::not_signed_in_screen as failed,
     purpose::purpose_step as purpose, signed_in::signed_in_screen as signed_in,
     signing_out::signing_out_screen as signing_out, site_rules::site_rules_step as rules,
@@ -66,6 +66,7 @@ use generated::{
 };
 
 const _: () = assert!(CAPACITY == showcase_kiosk_screens::generated::CAPACITY);
+const _: () = assert!(TEXT == showcase_kiosk_screens::generated::TEXT);
 
 /// The visitor's name: required, one line of text, at most 32 bytes.
 pub const NAME: FieldId = FieldId(1);
@@ -238,7 +239,7 @@ impl Screens for Visitor {
             .unwrap_or("welcome")
     }
 
-    fn build(screen: ScreenId, tree: &mut Tree<CAPACITY>) -> Result<NodeId, UiError> {
+    fn build(screen: ScreenId, tree: &mut Tree<CAPACITY, TEXT>) -> Result<NodeId, UiError> {
         match screen {
             Self::WELCOME => generated::build_welcome(tree),
             ABOUT_YOU => generated::build_about_you(tree),
@@ -314,7 +315,7 @@ impl Screens for Visitor {
 
     fn fill(
         screen: ScreenId,
-        tree: &mut Tree<CAPACITY>,
+        tree: &mut Tree<CAPACITY, TEXT>,
         copies: &Copies,
         failed: Option<ShowFailed>,
     ) -> Result<(), UiError> {

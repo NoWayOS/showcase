@@ -65,7 +65,7 @@ use showcase_kiosk_flow::{FailureReason, FieldId as FormField, Issue};
 
 use crate::form::{AGREE, DETAILS, NAME, RECEIPT, REFERENCE, TOPIC, TOPICS, VALUE_LEN};
 use crate::generated::{
-    CAPACITY, build_failed, build_idle_warning, build_review, build_step_checkbox,
+    CAPACITY, TEXT, build_failed, build_idle_warning, build_review, build_step_checkbox,
     build_step_choice, build_step_notice, build_step_text, build_submitted, build_submitting,
     build_welcome, failed::failed_screen as failed, idle_warning::idle_warning_screen as idle,
     review::review_screen as review, step_checkbox::confirm_step as confirm,
@@ -222,7 +222,7 @@ pub trait Screens {
     /// # Errors
     ///
     /// The tree's error.
-    fn build(screen: ScreenId, tree: &mut Tree<CAPACITY>) -> Result<NodeId, UiError>;
+    fn build(screen: ScreenId, tree: &mut Tree<CAPACITY, TEXT>) -> Result<NodeId, UiError>;
 
     /// What a screen's button asks for, and its label for the log.
     fn button(screen: ScreenId, action: ActionId) -> Option<(Request, &'static str)>;
@@ -256,7 +256,7 @@ pub trait Screens {
     /// The tree's error.
     fn fill(
         screen: ScreenId,
-        tree: &mut Tree<CAPACITY>,
+        tree: &mut Tree<CAPACITY, TEXT>,
         copies: &Copies,
         failed: Option<ShowFailed>,
     ) -> Result<(), UiError>;
@@ -286,7 +286,7 @@ pub trait Screens {
 /// part of it that changed, unless it no longer fits; a group
 /// shown or hidden lays the screen out again.
 pub struct Follow<'t> {
-    tree: &'t mut Tree<CAPACITY>,
+    tree: &'t mut Tree<CAPACITY, TEXT>,
     metrics: &'t TextMetrics,
     relayout: bool,
 }
@@ -345,13 +345,13 @@ impl Follow<'_> {
 /// the first control of the screen itself takes the focus when it shows -
 /// on a screen with none, nothing does. Its action, slot, group and field
 /// numbers must differ from every screen's.
-pub type Frame = fn(&mut Tree<CAPACITY>, NodeId, &'static str) -> Result<NodeId, UiError>;
+pub type Frame = fn(&mut Tree<CAPACITY, TEXT>, NodeId, &'static str) -> Result<NodeId, UiError>;
 
 /// Builds screen `screen` into the empty `tree`, inside `frame` if there is
 /// one.
 fn build_framed<S: Screens>(
     screen: ScreenId,
-    tree: &mut Tree<CAPACITY>,
+    tree: &mut Tree<CAPACITY, TEXT>,
     frame: Option<Frame>,
 ) -> Result<NodeId, UiError> {
     let body = S::build(screen, tree)?;
@@ -362,7 +362,7 @@ fn build_framed<S: Screens>(
 }
 
 /// Whether `id` is `part` or lies below it.
-fn within(tree: &Tree<CAPACITY>, id: NodeId, part: Option<NodeId>) -> bool {
+fn within(tree: &Tree<CAPACITY, TEXT>, id: NodeId, part: Option<NodeId>) -> bool {
     let mut at = Some(id);
     // Each step goes one level up; the bound only guards against corrupt
     // links.
@@ -502,10 +502,10 @@ pub trait KioskScreens {
     /// grants the UI the timer - the showcase's - may. Off by default.
     const TIMES_TICKS: bool = false;
     /// The tree to draw.
-    fn tree(&self) -> &Tree<CAPACITY>;
+    fn tree(&self) -> &Tree<CAPACITY, TEXT>;
     /// The tree to draw, to draw only what changed and then mark it drawn
     /// (`nowayos-ui-loop`'s `draw_dirty`).
-    fn tree_mut(&mut self) -> &mut Tree<CAPACITY>;
+    fn tree_mut(&mut self) -> &mut Tree<CAPACITY, TEXT>;
     /// Lays every screen out in the display's `viewport` with `metrics` -
     /// the theme's at the display's device scale - from now on, the one
     /// showing at once, keeping what it holds: what the UI PD calls
@@ -576,10 +576,10 @@ pub trait KioskScreens {
 impl<S: Screens> KioskScreens for FormUi<S> {
     const APPS: usize = 1;
 
-    fn tree(&self) -> &Tree<CAPACITY> {
+    fn tree(&self) -> &Tree<CAPACITY, TEXT> {
         Self::tree(self)
     }
-    fn tree_mut(&mut self) -> &mut Tree<CAPACITY> {
+    fn tree_mut(&mut self) -> &mut Tree<CAPACITY, TEXT> {
         Self::tree_mut(self)
     }
     fn resize(&mut self, viewport: Rect, metrics: TextMetrics) -> Result<(), UiError> {
@@ -668,7 +668,7 @@ impl From<UiError> for KioskUiError {
 
 /// A form kiosk's UI, showing the screens `S` (see the [module](self)).
 pub struct FormUi<S> {
-    tree: Tree<CAPACITY>,
+    tree: Tree<CAPACITY, TEXT>,
     nav: Navigator<1>,
     metrics: TextMetrics,
     copies: Copies,
@@ -769,7 +769,7 @@ impl<S: Screens> FormUi<S> {
 
     /// The tree, to draw only what changed and then mark it drawn
     /// (`Tree::clear_dirty`, through `nowayos-ui-loop`'s `draw_dirty`).
-    pub const fn tree_mut(&mut self) -> &mut Tree<CAPACITY> {
+    pub const fn tree_mut(&mut self) -> &mut Tree<CAPACITY, TEXT> {
         &mut self.tree
     }
 
@@ -789,7 +789,7 @@ impl<S: Screens> FormUi<S> {
 
     /// The tree to draw.
     #[must_use]
-    pub const fn tree(&self) -> &Tree<CAPACITY> {
+    pub const fn tree(&self) -> &Tree<CAPACITY, TEXT> {
         &self.tree
     }
 
@@ -1616,7 +1616,7 @@ impl Screens for Reference {
             .unwrap_or("welcome")
     }
 
-    fn build(screen: ScreenId, tree: &mut Tree<CAPACITY>) -> Result<NodeId, UiError> {
+    fn build(screen: ScreenId, tree: &mut Tree<CAPACITY, TEXT>) -> Result<NodeId, UiError> {
         match screen {
             Self::WELCOME => build_welcome(tree),
             ABOUT_YOU => build_step_text(tree),
@@ -1681,7 +1681,7 @@ impl Screens for Reference {
 
     fn fill(
         screen: ScreenId,
-        tree: &mut Tree<CAPACITY>,
+        tree: &mut Tree<CAPACITY, TEXT>,
         copies: &Copies,
         failed: Option<ShowFailed>,
     ) -> Result<(), UiError> {
