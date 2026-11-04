@@ -271,6 +271,76 @@ const GALLERY_ICONS: usize = 9;
 /// text shows [`GALLERY_STORY`].
 const GALLERY_SCROLL: usize = 8;
 
+/// How many rows the scroll screen's virtual list holds.
+const GALLERY_ROWS: u32 = 1_000;
+
+/// The scroll screen's virtual list's rows' texts, by pool row.
+const GALLERY_ROW_SLOTS: [SlotId; 8] = [
+    scroll_screen::slots::ROWS_1_LABEL,
+    scroll_screen::slots::ROWS_2_LABEL,
+    scroll_screen::slots::ROWS_3_LABEL,
+    scroll_screen::slots::ROWS_4_LABEL,
+    scroll_screen::slots::ROWS_5_LABEL,
+    scroll_screen::slots::ROWS_6_LABEL,
+    scroll_screen::slots::ROWS_7_LABEL,
+    scroll_screen::slots::ROWS_8_LABEL,
+];
+
+/// Binds each row of the scroll screen's virtual list to the item it
+/// shows - "Row 1" to "Row 1000" - as an application binds its own,
+/// skipping the rows already showing theirs.
+fn bind_gallery_rows(
+    tree: &mut Tree<{ generated::CAPACITY }, { generated::TEXT }>,
+) -> Result<(), UiError> {
+    let list = scroll_screen::lists::ROWS;
+    let Some(window) = tree.list_window(list) else {
+        return Ok(());
+    };
+    let last = window.first.saturating_add(window.pool).min(window.count);
+    for item in window.first..last {
+        let Some(slot) = tree
+            .list_row(list, item)
+            .and_then(|row| GALLERY_ROW_SLOTS.get(usize::from(row)))
+        else {
+            continue;
+        };
+        let mut text = [0_u8; 16];
+        let label = row_label(item.saturating_add(1), &mut text);
+        if tree.slot_text(*slot) != Some(label) {
+            tree.set_slot(*slot, label)?;
+        }
+    }
+    Ok(())
+}
+
+/// "Row N", written into `text`.
+fn row_label(number: u32, text: &mut [u8; 16]) -> &str {
+    let mut digits = [0_u8; 10];
+    let mut rest = number;
+    let mut count = 0_usize;
+    loop {
+        if let Some(digit) = digits.get_mut(count) {
+            *digit = b'0'.saturating_add(u8::try_from(rest % 10).unwrap_or(0));
+        }
+        count = count.saturating_add(1);
+        rest /= 10;
+        if rest == 0 || count >= digits.len() {
+            break;
+        }
+    }
+    let prefix = b"Row ";
+    for (slot, byte) in text
+        .iter_mut()
+        .zip(prefix.iter().chain(digits.iter().take(count).rev()))
+    {
+        *slot = *byte;
+    }
+    let len = prefix.len().saturating_add(count).min(text.len());
+    text.get(..len)
+        .and_then(|bytes| core::str::from_utf8(bytes).ok())
+        .unwrap_or("Row")
+}
+
 /// What the scroll screen's long text shows: paragraphs the application
 /// sets at run time (builder contract v16).
 const GALLERY_STORY: &str = "A long text holds paragraphs the application sets while the screen shows - an article, a message, the terms of a service - up to the bytes its screen gives it, kept in the screen's tree, so nothing is allocated.\nIt wraps onto as many lines as it needs at the width it is given. A line break starts a new paragraph, and when the text changes only the lines that differ are drawn again.";
@@ -303,6 +373,8 @@ fn build_gallery(
     }
     if place == GALLERY_SCROLL {
         tree.set_slot(scroll_screen::slots::STORY, GALLERY_STORY)?;
+        tree.set_list_count(scroll_screen::lists::ROWS, GALLERY_ROWS)?;
+        bind_gallery_rows(tree)?;
     }
     Ok(root)
 }
@@ -462,6 +534,16 @@ impl UiBuilder for Shifted<'_> {
         child: NodeId,
     ) -> Result<NodeId, UiError> {
         UiBuilder::scroll_view_axes(&mut *self.tree, layout, axes, child)
+    }
+    fn virtual_list(
+        &mut self,
+        layout: Layout,
+        list: nowayos_ui::ListId,
+        row_height: u16,
+        rows: &[NodeId],
+    ) -> Result<NodeId, UiError> {
+        let list = nowayos_ui::ListId::new(self.shift(list.get()));
+        UiBuilder::virtual_list(&mut *self.tree, layout, list, row_height, rows)
     }
     fn slot(&mut self, slot: SlotId) -> Result<NodeId, UiError> {
         let slot = SlotId::new(self.shift(slot.get()));
@@ -1268,6 +1350,13 @@ impl<E: Extra> KioskScreens for Showcase<E> {
                 {
                     self.check_code();
                     Some("Check")
+                }
+                // The virtual list's window moved: its rows bound again.
+                nowayos_ui::UiEvent::ListMoved(_)
+                    if gallery_place(self.nav.current()) == Some(GALLERY_SCROLL) =>
+                {
+                    let _ = bind_gallery_rows(&mut self.launcher);
+                    None
                 }
                 _ => None,
             },

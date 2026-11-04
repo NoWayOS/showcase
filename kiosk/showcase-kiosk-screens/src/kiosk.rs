@@ -939,6 +939,8 @@ impl<S: Screens> FormUi<S> {
                 }
                 None
             }
+            // A kiosk's screens hold no virtual list.
+            UiEvent::ListMoved(_) => None,
             UiEvent::Action(action) => {
                 let Some((request, label)) = S::button(screen, action) else {
                     return Some(Pressed::Other(action));

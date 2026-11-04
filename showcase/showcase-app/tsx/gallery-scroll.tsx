@@ -1,11 +1,11 @@
 // The Screen Compiler gallery, 9 of 11: one child seen through a view that scrolls - with a mouse's wheel,
 // a drag, the keys or its scrollbar - starting with paragraphs the application sets, wrapped onto as many
 // lines as they need; a row that scrolls across; and, inside the view, panels that scroll down and both
-// ways.
+// ways, and a virtual list of a thousand rows through a pool of eight.
 // Each example is captioned with the TSX that made it. Written for the showcase in TSX and
 // converted at build time like every other screen here; the launcher's Screen Compiler
 // tile opens the first, and Back and Next go round them all.
-import { Button, Card, Column, HeaderBar, Row, Screen, ScrollView, Spacer, Text } from "nowayos:kit";
+import { Button, Card, Column, HeaderBar, Row, Screen, ScrollView, Spacer, Text, VirtualList } from "nowayos:kit";
 
 const GAP = 8;
 const EDGE = 16;
@@ -17,6 +17,7 @@ type GalleryProps = {
   onBack: () => void;
   onNext: () => void;
   story: string;
+  rows: { label: string }[];
 };
 
 export function GalleryScrollScreen(props: GalleryProps) {
@@ -86,22 +87,16 @@ export function GalleryScrollScreen(props: GalleryProps) {
               </Column>
             </Row>
             <Text role="caption">{'<Column style={{ overflowY: "scroll" }}>, and overflow: "auto" both ways, inside the view'}</Text>
+            <VirtualList rowHeight={32} style={{ width: 480, height: 160 }}>
+              {props.rows.slice(0, 8).map((row) => (
+                <Text>{row.label}</Text>
+              ))}
+            </VirtualList>
+            <Text role="caption">{'<VirtualList rowHeight={32}>{props.rows.slice(0, 8).map(...)}: a thousand rows through eight'}</Text>
             <Text>Line 1: the top</Text>
             <Text>Line 2</Text>
             <Text>Line 3</Text>
-            <Text>Line 4</Text>
-            <Text>Line 5</Text>
-            <Text>Line 6</Text>
-            <Text>Line 7</Text>
-            <Text>Line 8</Text>
-            <Text>Line 9</Text>
-            <Text>Line 10</Text>
-            <Text>Line 11</Text>
-            <Text>Line 12</Text>
-            <Text>Line 13</Text>
-            <Text>Line 14</Text>
-            <Text>Line 15</Text>
-            <Text>Line 16: the end</Text>
+            <Text>Line 4: the end</Text>
           </Column>
         </ScrollView>
       </Column>
