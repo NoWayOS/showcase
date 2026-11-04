@@ -48,6 +48,7 @@ impl Brand {
             button: self.accent,
             button_pressed: self.pressed,
             focus: self.accent,
+            link: self.accent,
             surfaces: Surfaces {
                 header: self.header(),
                 ..light.surfaces
