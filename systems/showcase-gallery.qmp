@@ -1,6 +1,8 @@
 # What showcase-gallery's terminal types, and what QEMU's screen must show:
 # the launcher, then its Screen Compiler gallery - Down, Right to the fifth
-# tile, then Next, which has the focus, round all eleven screens - then
+# tile, then Next, which has the focus, round all eleven screens, opening
+# the buttons screen's menu (choosing Rename closes it) and its dialog
+# (Done closes it) on the way - then
 # Back three times, to the keyboard screen, and its Check with the code
 # empty, whose error line asks for four digits. After each screen shows, a
 # second for its frame to reach the ramfb, then a screendump, which must
@@ -30,7 +32,20 @@ serial \r
 wait SHOWCASE: ui: showing gallery-buttons
 pause 1000
 screen showcase-gallery/gallery-buttons.png
+serial \t\t\t\t\t\r
+wait SHOWCASE: ui: action More
+pause 1000
+screen showcase-gallery/gallery-buttons-menu.png
 serial \r
+pause 500
+serial \t\r
+wait SHOWCASE: ui: action Ask
+pause 1000
+screen showcase-gallery/gallery-buttons-dialog.png
+serial \r
+wait SHOWCASE: ui: action Done
+pause 500
+serial \e[Z\e[Z\e[Z\e[Z\e[Z\e[Z\r
 wait SHOWCASE: ui: showing gallery-surfaces
 pause 1000
 screen showcase-gallery/gallery-surfaces.png
