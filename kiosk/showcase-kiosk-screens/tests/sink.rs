@@ -124,10 +124,13 @@ fn the_tour_follows_the_displays_layout_and_scale() {
     type_text(&mut sink, "ada");
     let window = Rect::new(0, 0, 1920, 1080);
     let large = TextMetrics::from_atlas(&REGULAR_48)
-        .with_scale(2)
+        .with_scale(nowayos_display::DeviceScale::TWO)
         .with_min_target(48);
     sink.resize(window, large).unwrap();
-    assert_eq!((sink.tree().viewport(), sink.tree().scale()), (window, 2));
+    assert_eq!(
+        (sink.tree().viewport(), sink.tree().scale()),
+        (window, nowayos_display::DeviceScale::TWO)
+    );
     assert_eq!(sink.tree().value(about_you::fields::NAME), Some("ada"));
     for (_, node) in sink.tree().paint_order() {
         assert!(window.contains_rect(&node.rect()), "{:?}", node.rect());

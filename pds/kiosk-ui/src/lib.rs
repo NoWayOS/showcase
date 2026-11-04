@@ -67,13 +67,14 @@
 #![no_std]
 
 use nowayos_bounded::Wipe;
-use nowayos_display::{Rect, UiEvent};
+use nowayos_display::{DeviceScale, Rect, UiEvent};
 use nowayos_ipc::{Consumer, Producer};
 use nowayos_region::{RingRx, RingTx, read_only, read_write, ring_consumer, ring_producer};
+use nowayos_render_eg::{DEFAULT_BYTES, DEFAULT_SLOTS, Glyphs};
 use nowayos_timer_api::Client;
 use nowayos_ui::{TextMetrics, Tree, UiError};
 use nowayos_ui_loop::{LoopError, UiChannels, UiLoop};
-use sel4_microkit::{Channel, ChannelSet, Handler, Infallible, debug_println};
+use sel4_microkit::{Channel, ChannelSet, Handler, Infallible, NullHandler, debug_println};
 use showcase_kiosk_contract::MAX_RECORD_LEN;
 use showcase_kiosk_screens::generated::CAPACITY;
 use showcase_kiosk_screens::kiosk::{KioskScreens, RING_SLOTS};
@@ -122,22 +123,41 @@ fn bind_app(app: usize) -> Result<AppRings, LoopError> {
 }
 
 /// Starts the UI PD on the screens `make` makes, with the theme's metrics:
-/// the reference kiosk's UI (`KioskUi::new`), or the showcase's.
-pub fn init<D: KioskScreens>(make: fn(TextMetrics) -> Result<D, UiError>) -> UiPd<D> {
+/// the reference kiosk's UI (`KioskUi::new`), or the showcase's - and runs
+/// its event loop, never returning. The glyph store's storage lives in this
+/// frame, as a PD has no heap: every system gives the UI PD a stack to hold
+/// it (`stack_size="0x600000"`).
+pub fn init<D: KioskScreens>(make: fn(TextMetrics) -> Result<D, UiError>) -> NullHandler {
     debug_println!("SHOWCASE: ui: starting");
-    let state = match start(make) {
+    let mut pixels = [0_u8; DEFAULT_BYTES];
+    let mut slots = [nowayos_render_eg::Slot::EMPTY; DEFAULT_SLOTS];
+    let glyphs = Glyphs::new(&mut pixels, &mut slots);
+    let state = match start(make, glyphs) {
         Ok(state) => Some(state),
         Err(error) => {
             debug_println!("SHOWCASE: ui: gave up: {error}; nothing was shown");
             None
         }
     };
-    UiPd { state }
+    run_forever(&mut UiPd { state })
+}
+
+/// rust-sel4's event loop for `pd`, which never returns.
+#[allow(
+    unreachable_code,
+    reason = "Handler::run never returns: its type, Result<Never, Infallible>, has no value"
+)]
+fn run_forever<D: KioskScreens>(pd: &mut UiPd<'_, D>) -> ! {
+    match pd.run() {
+        Ok(never) => match never {},
+        Err(infallible) => match infallible {},
+    }
 }
 
 fn start<D: KioskScreens>(
     make: fn(TextMetrics) -> Result<D, UiError>,
-) -> Result<State<D>, LoopError> {
+    glyphs: Glyphs<'_>,
+) -> Result<State<'_, D>, LoopError> {
     let channels = UiChannels::bind()?;
     if D::APPS == 0 || D::APPS > MAX_APPS {
         return Err(LoopError::Ring);
@@ -154,6 +174,7 @@ fn start<D: KioskScreens>(
     Ok(State {
         channels,
         ui,
+        glyphs,
         kiosk,
         apps,
         // No theme yet: the first frame draws in the one the first screen
@@ -181,9 +202,11 @@ impl Wipe for Slot {
 }
 
 /// Everything the UI PD holds once started.
-struct State<D> {
+struct State<'g, D> {
     channels: UiChannels,
     ui: UiLoop,
+    /// Where text's glyphs come from: drawn from the outlines, kept.
+    glyphs: Glyphs<'g>,
     kiosk: D,
     /// Each application PD's rings, by number; `None` past the screens'
     /// count.
@@ -228,7 +251,7 @@ struct Idle {
     stopped: bool,
 }
 
-impl<D: KioskScreens> State<D> {
+impl<D: KioskScreens> State<'_, D> {
     /// Takes every record from the display and acts on it.
     fn serve(&mut self) -> Result<(), LoopError> {
         while let Some(record) = self.channels.next_from_display()? {
@@ -239,7 +262,7 @@ impl<D: KioskScreens> State<D> {
                         layout.width(),
                         layout.height(),
                         layout.format(),
-                        self.ui.scale().unwrap_or(1)
+                        self.ui.scale().unwrap_or(DeviceScale::ONE)
                     );
                     // The screens laid out in the display's own pixels, at
                     // its scale.
@@ -460,10 +483,14 @@ impl<D: KioskScreens> State<D> {
             None
         };
         let present = if only_changes {
-            self.ui
-                .draw_dirty(self.kiosk.tree_mut(), self.channels.frame())?
+            self.ui.draw_dirty(
+                self.kiosk.tree_mut(),
+                self.channels.frame(),
+                &mut self.glyphs,
+            )?
         } else {
-            self.ui.draw_all(self.kiosk.tree(), self.channels.frame())?
+            self.ui
+                .draw_all(self.kiosk.tree(), self.channels.frame(), &mut self.glyphs)?
         };
         self.drawn = Some(tree);
         if core::mem::replace(&mut self.ticked, false) && only_changes {
@@ -495,7 +522,7 @@ impl<D: KioskScreens> State<D> {
         if name == self.theme {
             return Ok(());
         }
-        self.ui.set_theme(theme)?;
+        self.ui.set_theme(theme);
         self.theme = name;
         if let Some(viewport) = self.ui.viewport() {
             self.kiosk
@@ -570,11 +597,11 @@ impl<D: KioskScreens> State<D> {
 
 /// The UI PD's state: running, out of service (`closed`), or `None` if it
 /// could not start or the display could not take the wiped screen.
-pub struct UiPd<D> {
-    state: Option<State<D>>,
+pub struct UiPd<'g, D> {
+    state: Option<State<'g, D>>,
 }
 
-impl<D: KioskScreens> Handler for UiPd<D> {
+impl<D: KioskScreens> Handler for UiPd<'_, D> {
     type Error = Infallible;
 
     fn notified(&mut self, channels: ChannelSet) -> Result<(), Self::Error> {

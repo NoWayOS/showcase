@@ -41,7 +41,7 @@ fn cases() -> [(&'static str, Rect, TextMetrics); 4] {
         (
             "960 x 540 at 2x, light",
             Rect::new(0, 0, 1920, 1080),
-            light.metrics_at(2),
+            light.metrics_at(nowayos_display::DeviceScale::TWO),
         ),
         (
             "800 x 480, light",

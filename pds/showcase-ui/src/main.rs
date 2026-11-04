@@ -9,11 +9,10 @@
 #![no_std]
 #![no_main]
 
-use sel4_microkit::protection_domain;
+use sel4_microkit::{NullHandler, protection_domain};
 use showcase_app::Showcase;
-use showcase_kiosk_ui::UiPd;
 
 #[protection_domain]
-fn init() -> UiPd<Showcase> {
-    showcase_kiosk_ui::init(Showcase::new)
+fn init() -> NullHandler {
+    showcase_kiosk_ui::init::<Showcase>(Showcase::new)
 }

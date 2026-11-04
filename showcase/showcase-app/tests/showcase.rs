@@ -612,12 +612,16 @@ fn the_launcher_and_the_service_desk_follow_the_displays_scale() {
     let window = Rect::new(0, 0, 1920, 1080);
     let mut stand = Stand::new();
     let large = TextMetrics::from_atlas(&REGULAR_48)
-        .with_scale(2)
+        .with_scale(nowayos_display::DeviceScale::TWO)
         .with_min_target(48);
     stand.ui.resize(window, large).unwrap();
     let fits = |stand: &Stand, what: &str| {
         let tree = stand.ui.tree();
-        assert_eq!((tree.viewport(), tree.scale()), (window, 2), "{what}");
+        assert_eq!(
+            (tree.viewport(), tree.scale()),
+            (window, nowayos_display::DeviceScale::TWO),
+            "{what}"
+        );
         for (_, node) in tree.paint_order() {
             assert!(
                 window.contains_rect(&node.rect()),
@@ -630,14 +634,17 @@ fn the_launcher_and_the_service_desk_follow_the_displays_scale() {
     stand.in_use();
     fits(&stand, "a step of the Service desk");
     let desk = stand.ui.service_desk().tree();
-    assert_eq!((desk.viewport(), desk.scale()), (window, 2));
+    assert_eq!(
+        (desk.viewport(), desk.scale()),
+        (window, nowayos_display::DeviceScale::TWO)
+    );
     assert_eq!(stand.click(HOME), Some("Home"));
     stand.assert_back_at_the_launcher("after Home at 2x");
     fits(&stand, "the launcher after Home");
     let desk = stand.ui.service_desk().tree();
     assert_eq!(
         (desk.viewport(), desk.scale()),
-        (window, 2),
+        (window, nowayos_display::DeviceScale::TWO),
         "the wiped example"
     );
 }

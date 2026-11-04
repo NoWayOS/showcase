@@ -29,6 +29,7 @@ nowayos-bounded.workspace = true
 nowayos-display.workspace = true
 nowayos-ipc.workspace = true
 nowayos-region.workspace = true
+nowayos-render-eg.workspace = true
 nowayos-timer-api.workspace = true
 nowayos-ui.workspace = true
 nowayos-ui-loop.workspace = true

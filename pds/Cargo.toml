@@ -59,6 +59,7 @@ sel4-microkit = { git = "https://github.com/seL4/rust-sel4", rev = "d441a8809382
 # programs of its own.
 nowayos-display = { path = "../../nowayos/crates/nowayos-display" }
 nowayos-ui-loop = { path = "../../nowayos/pds/ui-loop" }
+nowayos-render-eg = { path = "../../nowayos/crates/nowayos-render-eg" }
 nowayos-ui = { path = "../../nowayos/crates/nowayos-ui" }
 nowayos-display-stub = { path = "../../nowayos/pds/display-stub" }
 nowayos-display-ramfb = { path = "../../nowayos/pds/display-ramfb" }
