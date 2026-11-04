@@ -11,6 +11,10 @@ with what is checked in:
 * SCREENS/gaps.txt - which screens convert, and every construct Screen Compiler
   refuses, grouped into gaps and ranked by how many screens each blocks.
 
+If SCREENS/pictures.names exists, it is the list of pictures the screens may
+show (`screen-compiler --pictures`): the names of the crate's `pictures`
+module, one a line.
+
 With --bless it writes them instead (then review the diff). The screens are
 our own synthetic files: never point this at untrusted .tsx.
 
@@ -73,11 +77,13 @@ def fail(message):
     sys.exit(2)
 
 
-def run(screen_compiler, command, name, cwd):
-    """Runs Screen Compiler on one screen; returns (status, stdout, stderr)."""
+def run(screen_compiler, command, name, cwd, pictures=None):
+    """Runs Screen Compiler on one screen, given the names of the pictures
+    it may show; returns (status, stdout, stderr)."""
+    given = ["--pictures", pictures] if pictures else []
     try:
         done = subprocess.run(
-            [screen_compiler, command, name], cwd=cwd, capture_output=True, text=True, timeout=120
+            [screen_compiler, command, *given, name], cwd=cwd, capture_output=True, text=True, timeout=120
         )
     except (OSError, subprocess.TimeoutExpired) as err:
         fail(f"screen-compiler {command} {name}: {err}")
@@ -98,16 +104,16 @@ def module_name(stem):
     return re.sub(r"[^a-z0-9]", "_", stem.lower())
 
 
-def analyse(screen_compiler, tsx_dir):
+def analyse(screen_compiler, tsx_dir, pictures=None):
     """Every screen: its Rust if it converts, else its diagnostics."""
     names = sorted(n for n in os.listdir(tsx_dir) if n.endswith(".tsx"))
     if not names:
         fail(f"no screens in {tsx_dir}")
     converted, refused = {}, {}
     for name in names:
-        status, out, err = run(screen_compiler, "check", name, tsx_dir)
+        status, out, err = run(screen_compiler, "check", name, tsx_dir, pictures)
         if status == 0:
-            status, rust, err = run(screen_compiler, "convert", name, tsx_dir)
+            status, rust, err = run(screen_compiler, "convert", name, tsx_dir, pictures)
             if status != 0:
                 fail(f"screen-compiler check accepts {name} but convert fails:\n{err}")
             converted[name] = rust
@@ -219,7 +225,9 @@ def main():
     tsx_dir = os.path.join(root, "tsx")
     generated = os.path.join(root, "src", "generated")
 
-    names, converted, refused = analyse(os.path.abspath(args.screen_compiler), tsx_dir)
+    pictures = os.path.join(root, "pictures.names")
+    pictures = pictures if os.path.isfile(pictures) else None
+    names, converted, refused = analyse(os.path.abspath(args.screen_compiler), tsx_dir, pictures)
     expected = {os.path.join(root, "gaps.txt"): report(names, converted, refused)}
     expected[os.path.join(generated, "mod.rs")] = mod_rs(converted)
     for name, rust in converted.items():
