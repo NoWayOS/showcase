@@ -1,6 +1,6 @@
 // The Screen Compiler gallery, 11 of 11: the style properties a screen may declare: sizes, alignment, and
 // the theme's colours by name - never a colour value, so the
-// large-text, high-contrast theme recolours them.
+// large-text, high-contrast theme recolours them - and the theme's shadows, gradients and opacity.
 // Each example is captioned with the TSX that made it. Written for the showcase in TSX and
 // converted at build time like every other screen here; the launcher's Screen Compiler
 // tile opens the first, and Back and Next go round them all.
@@ -70,6 +70,24 @@ export function GalleryCssScreen(props: GalleryProps) {
           <Text>320 and 560</Text>
         </Row>
         <Text role="caption">{'<Row style={{ minWidth: 320, maxWidth: 560, justifyContent: "space-between" }}>'}</Text>
+        <Row gap={EDGE}>
+          <Card padding={TIGHT} style={{ boxShadow: "low" }}>
+            <Text>low</Text>
+          </Card>
+          <Card padding={TIGHT} style={{ boxShadow: "medium" }}>
+            <Text>medium</Text>
+          </Card>
+          <Card padding={TIGHT} style={{ boxShadow: "high" }}>
+            <Text>high</Text>
+          </Card>
+          <Column padding={TIGHT} style={{ background: "linear-gradient(to right, button, text)", borderRadius: 8 }}>
+            <Text style={{ color: "button-text" }}>A gradient</Text>
+          </Column>
+          <Card padding={TIGHT} style={{ opacity: 0.5 }}>
+            <Text>Half see-through</Text>
+          </Card>
+        </Row>
+        <Text role="caption">{'style={{ boxShadow: "medium" }}, { background: "linear-gradient(to right, button, text)" }, { opacity: 0.5 }'}</Text>
       </Column>
     </Screen>
   );
