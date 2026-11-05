@@ -658,6 +658,16 @@ impl UiBuilder for Shifted<'_> {
         let field = FieldId::new(self.shift(field.get()));
         UiBuilder::input(&mut *self.tree, field, input)
     }
+    fn text_area(
+        &mut self,
+        field: FieldId,
+        rows: u8,
+        max_len: u16,
+        placeholder: &'static str,
+    ) -> Result<NodeId, UiError> {
+        let field = FieldId::new(self.shift(field.get()));
+        UiBuilder::text_area(&mut *self.tree, field, rows, max_len, placeholder)
+    }
     fn checkbox(&mut self, field: FieldId, label: &'static str) -> Result<NodeId, UiError> {
         let field = FieldId::new(self.shift(field.get()));
         UiBuilder::checkbox(&mut *self.tree, field, label)
