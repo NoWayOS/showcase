@@ -5,7 +5,9 @@
 # (Done closes it) on the way - then
 # Back three times, to the keyboard screen, and its Check with the code
 # empty, whose error line asks for four digits. After each screen shows, a
-# second for its frame to reach the ramfb, then a screendump, which must
+# second for its frame to reach the ramfb (three where something moves in:
+# the dialog, and the CSS screen's pulse and fades, which start once its
+# first frame is shown), then a screendump, which must
 # match its approved image in showcase-gallery/ pixel for pixel (NoWayOS's
 # tools/qemu-test). Check is pressed again last: the error line is redrawn
 # the same, so the run's own last screen (showcase-gallery.screen.png) is
@@ -40,7 +42,7 @@ serial \r
 pause 500
 serial \t\r
 wait SHOWCASE: ui: action Ask
-pause 1000
+pause 3000
 screen showcase-gallery/gallery-buttons-dialog.png
 serial \r
 wait SHOWCASE: ui: action Done
@@ -71,7 +73,7 @@ pause 1000
 screen showcase-gallery/gallery-icons.png
 serial \r
 wait SHOWCASE: ui: showing gallery-css
-pause 1000
+pause 3000
 screen showcase-gallery/gallery-css.png
 serial \e[Z\r
 wait SHOWCASE: ui: showing gallery-icons
