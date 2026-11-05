@@ -7,8 +7,12 @@ use nowayos_ui::{NodeId, Tree, UiError};
 /// Nodes a screen may use: more than any converted screen needs.
 pub const CAPACITY: usize = 64;
 
+/// Bytes of long text a screen may hold (builder contract v16): more than
+/// any converted screen needs.
+pub const TEXT: usize = 4096;
+
 /// Builds a screen on a real tree and returns its root node.
-pub type Build = fn(&mut Tree<CAPACITY>) -> Result<NodeId, UiError>;
+pub type Build = fn(&mut Tree<CAPACITY, TEXT>) -> Result<NodeId, UiError>;
 
 /// Every converted screen: its file's name and the function that builds it.
 pub const SCREENS: &[(&str, Build)] = &[
@@ -41,7 +45,7 @@ pub mod attract {
 /// # Errors
 ///
 /// The tree's error, if the screen does not fit it.
-pub fn build_attract(tree: &mut Tree<CAPACITY>) -> Result<NodeId, UiError> {
+pub fn build_attract(tree: &mut Tree<CAPACITY, TEXT>) -> Result<NodeId, UiError> {
     attract::attract_screen::build(tree).map(|nodes| nodes.root)
 }
 
@@ -55,7 +59,7 @@ pub mod gallery_buttons {
 /// # Errors
 ///
 /// The tree's error, if the screen does not fit it.
-pub fn build_gallery_buttons(tree: &mut Tree<CAPACITY>) -> Result<NodeId, UiError> {
+pub fn build_gallery_buttons(tree: &mut Tree<CAPACITY, TEXT>) -> Result<NodeId, UiError> {
     gallery_buttons::gallery_buttons_screen::build(tree).map(|nodes| nodes.root)
 }
 
@@ -69,7 +73,7 @@ pub mod gallery_choices {
 /// # Errors
 ///
 /// The tree's error, if the screen does not fit it.
-pub fn build_gallery_choices(tree: &mut Tree<CAPACITY>) -> Result<NodeId, UiError> {
+pub fn build_gallery_choices(tree: &mut Tree<CAPACITY, TEXT>) -> Result<NodeId, UiError> {
     gallery_choices::gallery_choices_screen::build(tree).map(|nodes| nodes.root)
 }
 
@@ -83,7 +87,7 @@ pub mod gallery_css {
 /// # Errors
 ///
 /// The tree's error, if the screen does not fit it.
-pub fn build_gallery_css(tree: &mut Tree<CAPACITY>) -> Result<NodeId, UiError> {
+pub fn build_gallery_css(tree: &mut Tree<CAPACITY, TEXT>) -> Result<NodeId, UiError> {
     gallery_css::gallery_css_screen::build(tree).map(|nodes| nodes.root)
 }
 
@@ -97,7 +101,7 @@ pub mod gallery_fields {
 /// # Errors
 ///
 /// The tree's error, if the screen does not fit it.
-pub fn build_gallery_fields(tree: &mut Tree<CAPACITY>) -> Result<NodeId, UiError> {
+pub fn build_gallery_fields(tree: &mut Tree<CAPACITY, TEXT>) -> Result<NodeId, UiError> {
     gallery_fields::gallery_fields_screen::build(tree).map(|nodes| nodes.root)
 }
 
@@ -111,7 +115,7 @@ pub mod gallery_icons {
 /// # Errors
 ///
 /// The tree's error, if the screen does not fit it.
-pub fn build_gallery_icons(tree: &mut Tree<CAPACITY>) -> Result<NodeId, UiError> {
+pub fn build_gallery_icons(tree: &mut Tree<CAPACITY, TEXT>) -> Result<NodeId, UiError> {
     gallery_icons::gallery_icons_screen::build(tree).map(|nodes| nodes.root)
 }
 
@@ -125,7 +129,7 @@ pub mod gallery_keyboard {
 /// # Errors
 ///
 /// The tree's error, if the screen does not fit it.
-pub fn build_gallery_keyboard(tree: &mut Tree<CAPACITY>) -> Result<NodeId, UiError> {
+pub fn build_gallery_keyboard(tree: &mut Tree<CAPACITY, TEXT>) -> Result<NodeId, UiError> {
     gallery_keyboard::gallery_keyboard_screen::build(tree).map(|nodes| nodes.root)
 }
 
@@ -139,7 +143,7 @@ pub mod gallery_layout {
 /// # Errors
 ///
 /// The tree's error, if the screen does not fit it.
-pub fn build_gallery_layout(tree: &mut Tree<CAPACITY>) -> Result<NodeId, UiError> {
+pub fn build_gallery_layout(tree: &mut Tree<CAPACITY, TEXT>) -> Result<NodeId, UiError> {
     gallery_layout::gallery_layout_screen::build(tree).map(|nodes| nodes.root)
 }
 
@@ -153,7 +157,7 @@ pub mod gallery_scroll {
 /// # Errors
 ///
 /// The tree's error, if the screen does not fit it.
-pub fn build_gallery_scroll(tree: &mut Tree<CAPACITY>) -> Result<NodeId, UiError> {
+pub fn build_gallery_scroll(tree: &mut Tree<CAPACITY, TEXT>) -> Result<NodeId, UiError> {
     gallery_scroll::gallery_scroll_screen::build(tree).map(|nodes| nodes.root)
 }
 
@@ -167,7 +171,7 @@ pub mod gallery_surfaces {
 /// # Errors
 ///
 /// The tree's error, if the screen does not fit it.
-pub fn build_gallery_surfaces(tree: &mut Tree<CAPACITY>) -> Result<NodeId, UiError> {
+pub fn build_gallery_surfaces(tree: &mut Tree<CAPACITY, TEXT>) -> Result<NodeId, UiError> {
     gallery_surfaces::gallery_surfaces_screen::build(tree).map(|nodes| nodes.root)
 }
 
@@ -181,7 +185,7 @@ pub mod gallery_text {
 /// # Errors
 ///
 /// The tree's error, if the screen does not fit it.
-pub fn build_gallery_text(tree: &mut Tree<CAPACITY>) -> Result<NodeId, UiError> {
+pub fn build_gallery_text(tree: &mut Tree<CAPACITY, TEXT>) -> Result<NodeId, UiError> {
     gallery_text::gallery_text_screen::build(tree).map(|nodes| nodes.root)
 }
 
@@ -195,7 +199,7 @@ pub mod gallery_type {
 /// # Errors
 ///
 /// The tree's error, if the screen does not fit it.
-pub fn build_gallery_type(tree: &mut Tree<CAPACITY>) -> Result<NodeId, UiError> {
+pub fn build_gallery_type(tree: &mut Tree<CAPACITY, TEXT>) -> Result<NodeId, UiError> {
     gallery_type::gallery_type_screen::build(tree).map(|nodes| nodes.root)
 }
 
@@ -209,7 +213,7 @@ pub mod launcher {
 /// # Errors
 ///
 /// The tree's error, if the screen does not fit it.
-pub fn build_launcher(tree: &mut Tree<CAPACITY>) -> Result<NodeId, UiError> {
+pub fn build_launcher(tree: &mut Tree<CAPACITY, TEXT>) -> Result<NodeId, UiError> {
     launcher::launcher_screen::build(tree).map(|nodes| nodes.root)
 }
 
@@ -223,7 +227,7 @@ pub mod pump_bar {
 /// # Errors
 ///
 /// The tree's error, if the screen does not fit it.
-pub fn build_pump_bar(tree: &mut Tree<CAPACITY>) -> Result<NodeId, UiError> {
+pub fn build_pump_bar(tree: &mut Tree<CAPACITY, TEXT>) -> Result<NodeId, UiError> {
     pump_bar::pump_bar_screen::build(tree).map(|nodes| nodes.root)
 }
 
@@ -237,7 +241,7 @@ pub mod service_desk_bar {
 /// # Errors
 ///
 /// The tree's error, if the screen does not fit it.
-pub fn build_service_desk_bar(tree: &mut Tree<CAPACITY>) -> Result<NodeId, UiError> {
+pub fn build_service_desk_bar(tree: &mut Tree<CAPACITY, TEXT>) -> Result<NodeId, UiError> {
     service_desk_bar::service_desk_bar_screen::build(tree).map(|nodes| nodes.root)
 }
 
@@ -251,7 +255,7 @@ pub mod visitor_bar {
 /// # Errors
 ///
 /// The tree's error, if the screen does not fit it.
-pub fn build_visitor_bar(tree: &mut Tree<CAPACITY>) -> Result<NodeId, UiError> {
+pub fn build_visitor_bar(tree: &mut Tree<CAPACITY, TEXT>) -> Result<NodeId, UiError> {
     visitor_bar::visitor_bar_screen::build(tree).map(|nodes| nodes.root)
 }
 
@@ -265,6 +269,6 @@ pub mod why_secure {
 /// # Errors
 ///
 /// The tree's error, if the screen does not fit it.
-pub fn build_why_secure(tree: &mut Tree<CAPACITY>) -> Result<NodeId, UiError> {
+pub fn build_why_secure(tree: &mut Tree<CAPACITY, TEXT>) -> Result<NodeId, UiError> {
     why_secure::why_secure_screen::build(tree).map(|nodes| nodes.root)
 }

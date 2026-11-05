@@ -26,7 +26,7 @@
 use nowayos_display::Rect;
 use nowayos_render_eg::{Rgb888, Theme};
 use nowayos_ui::{GroupId, NodeId, NodeKind, SlotId, TextMetrics, Tree, UiError};
-use showcase_app::generated::{CAPACITY, SCREENS};
+use showcase_app::generated::{CAPACITY, SCREENS, TEXT};
 use showcase_app::{pump_frame, service_desk_frame, visitor_frame};
 use showcase_kiosk_screens::generated::SCREENS as KIOSK_SCREENS;
 use showcase_pump::generated::SCREENS as PUMP_SCREENS;
@@ -75,12 +75,12 @@ const SHOWN_DISPLAY: &str = "£888.88";
 /// when `shown`, and lays it out.
 fn laid_out(
     what: &str,
-    build: impl FnOnce(&mut Tree<CAPACITY>) -> Result<NodeId, UiError>,
+    build: impl FnOnce(&mut Tree<CAPACITY, TEXT>) -> Result<NodeId, UiError>,
     shown: bool,
     viewport: Rect,
     metrics: TextMetrics,
-) -> Tree<CAPACITY> {
-    let mut tree = Tree::<CAPACITY>::new();
+) -> Tree<CAPACITY, TEXT> {
+    let mut tree = Tree::<CAPACITY, TEXT>::new();
     let root = build(&mut tree).unwrap_or_else(|err| panic!("{what}: {err:?}"));
     tree.set_root(root).unwrap();
     if shown {
@@ -103,7 +103,7 @@ fn laid_out(
 
 /// Whether `id` is inside a scroll view, which shows what lies past its
 /// edges by scrolling, so it may.
-fn in_scroll_view(tree: &Tree<CAPACITY>, id: NodeId) -> bool {
+fn in_scroll_view(tree: &Tree<CAPACITY, TEXT>, id: NodeId) -> bool {
     let mut at = tree.get(id).and_then(|node| node.parent());
     while let Some(parent) = at {
         let node = tree.get(parent).unwrap();
@@ -119,7 +119,7 @@ fn in_scroll_view(tree: &Tree<CAPACITY>, id: NodeId) -> bool {
 /// which itself does - and every fixed text - every line of one that
 /// wraps - is shown whole, each in its own role and weight
 /// (`Node::cut_text`); a slot's text, the application's, only if it wraps.
-fn assert_fits(tree: &Tree<CAPACITY>, viewport: Rect, metrics: &TextMetrics, what: &str) {
+fn assert_fits(tree: &Tree<CAPACITY, TEXT>, viewport: Rect, metrics: &TextMetrics, what: &str) {
     for (id, node) in tree.paint_order() {
         if in_scroll_view(tree, id) {
             continue;
@@ -215,7 +215,7 @@ fn the_launcher_fits_with_a_program_s_tile() {
         .unwrap();
     for (case, viewport, metrics) in cases() {
         let what = format!("launcher with a program's tile at {case}");
-        let mut tree = Tree::<CAPACITY>::new();
+        let mut tree = Tree::<CAPACITY, TEXT>::new();
         let root = build(&mut tree).unwrap();
         tree.set_root(root).unwrap();
         tree.set_slot(slots::EXTRA_BRAND, "Larchway Kitchen")
@@ -348,7 +348,7 @@ fn every_attract_slide_fits() {
     for (title, line, _) in SLIDES {
         for (case, viewport, metrics) in cases() {
             let what = format!("slide {title:?} at {case}");
-            let mut tree = Tree::<CAPACITY>::new();
+            let mut tree = Tree::<CAPACITY, TEXT>::new();
             let root = build(&mut tree).unwrap();
             tree.set_root(root).unwrap();
             tree.set_slot(slots::TITLE, title).unwrap();

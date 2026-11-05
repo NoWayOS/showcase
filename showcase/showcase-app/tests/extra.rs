@@ -14,8 +14,8 @@
 use nowayos_glyphs::REGULAR_24;
 use nowayos_input::{InputEvent, KeyCode};
 use nowayos_ui::{NodeId, NodeKind, TextMetrics, Tree, UiError};
-use showcase_app::generated::CAPACITY;
 use showcase_app::generated::launcher::launcher_screen as launcher;
+use showcase_app::generated::{CAPACITY, TEXT};
 use showcase_app::{EXTRA_APP, Extra, HOME, Showcase, Tile, brands, service_desk_frame};
 use showcase_kiosk_contract::{EndReason, MAX_RECORD_LEN, Report};
 use showcase_kiosk_screens::app::KioskApp;
@@ -37,7 +37,7 @@ impl Extra for Sample {
     });
 
     fn frame(
-        tree: &mut Tree<CAPACITY>,
+        tree: &mut Tree<CAPACITY, TEXT>,
         body: NodeId,
         screen: &'static str,
     ) -> Result<NodeId, UiError> {

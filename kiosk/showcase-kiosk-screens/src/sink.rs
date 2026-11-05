@@ -50,7 +50,7 @@ use nowayos_ui::{
 };
 
 use crate::generated::{
-    CAPACITY, build_failed, build_idle_warning, build_review, build_step_checkbox,
+    CAPACITY, TEXT, build_failed, build_idle_warning, build_review, build_step_checkbox,
     build_step_choice, build_step_notice, build_step_text, build_submitted, build_submitting,
     build_welcome, failed::failed_screen as failed, idle_warning::idle_warning_screen as idle,
     review::review_screen as review, step_checkbox::confirm_step as confirm,
@@ -139,7 +139,7 @@ const DEPTH: usize = TOUR.len();
 const TOPICS: [&str; 3] = ["Opening hours", "An order", "Something else"];
 
 /// Builds the tour's screen `screen` into the empty `tree`.
-fn build(screen: ScreenId, tree: &mut Tree<CAPACITY>) -> Result<NodeId, UiError> {
+fn build(screen: ScreenId, tree: &mut Tree<CAPACITY, TEXT>) -> Result<NodeId, UiError> {
     match screen {
         WELCOME => build_welcome(tree),
         ABOUT_YOU => build_step_text(tree),
@@ -206,7 +206,7 @@ impl Wipe for Answers {
 
 /// The ten screens on a tour; see the [module](self).
 pub struct KitchenSink {
-    tree: Tree<CAPACITY>,
+    tree: Tree<CAPACITY, TEXT>,
     nav: Navigator<DEPTH>,
     metrics: TextMetrics,
     answers: Answers,
@@ -233,13 +233,13 @@ impl KitchenSink {
 
     /// The tree to draw.
     #[must_use]
-    pub const fn tree(&self) -> &Tree<CAPACITY> {
+    pub const fn tree(&self) -> &Tree<CAPACITY, TEXT> {
         &self.tree
     }
 
     /// The tree, to draw only what changed and then mark it drawn
     /// (`Tree::clear_dirty`, through `nowayos-ui-loop`'s `draw_dirty`).
-    pub const fn tree_mut(&mut self) -> &mut Tree<CAPACITY> {
+    pub const fn tree_mut(&mut self) -> &mut Tree<CAPACITY, TEXT> {
         &mut self.tree
     }
 
@@ -507,7 +507,7 @@ fn copy(text: &str) -> BoundedStr<64> {
 
 /// Sets `field` back to `value`, unless it is empty.
 fn set_value(
-    tree: &mut Tree<CAPACITY>,
+    tree: &mut Tree<CAPACITY, TEXT>,
     field: FieldId,
     value: &BoundedStr<64>,
 ) -> Result<(), UiError> {

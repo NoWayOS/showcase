@@ -1255,7 +1255,10 @@ fn a_card_declined_says_payment_not_accepted_and_starts_no_pump() {
 #[test]
 fn no_pump_screen_asks_for_a_card_number_or_a_pin() {
     for (name, build) in showcase_pump::generated::SCREENS {
-        let mut tree = nowayos_ui::Tree::<{ showcase_pump::generated::CAPACITY }>::new();
+        let mut tree = nowayos_ui::Tree::<
+            { showcase_pump::generated::CAPACITY },
+            { showcase_pump::generated::TEXT },
+        >::new();
         let root = build(&mut tree).unwrap();
         tree.set_root(root).unwrap();
         assert!(

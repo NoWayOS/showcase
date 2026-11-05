@@ -7,8 +7,12 @@ use nowayos_ui::{NodeId, Tree, UiError};
 /// Nodes a screen may use: more than any converted screen needs.
 pub const CAPACITY: usize = 64;
 
+/// Bytes of long text a screen may hold (builder contract v16): more than
+/// any converted screen needs.
+pub const TEXT: usize = 4096;
+
 /// Builds a screen on a real tree and returns its root node.
-pub type Build = fn(&mut Tree<CAPACITY>) -> Result<NodeId, UiError>;
+pub type Build = fn(&mut Tree<CAPACITY, TEXT>) -> Result<NodeId, UiError>;
 
 /// Every converted screen: its file's name and the function that builds it.
 pub const SCREENS: &[(&str, Build)] = &[
@@ -33,7 +37,7 @@ pub mod amount {
 /// # Errors
 ///
 /// The tree's error, if the screen does not fit it.
-pub fn build_amount(tree: &mut Tree<CAPACITY>) -> Result<NodeId, UiError> {
+pub fn build_amount(tree: &mut Tree<CAPACITY, TEXT>) -> Result<NodeId, UiError> {
     amount::amount_step::build(tree).map(|nodes| nodes.root)
 }
 
@@ -47,7 +51,7 @@ pub mod check {
 /// # Errors
 ///
 /// The tree's error, if the screen does not fit it.
-pub fn build_check(tree: &mut Tree<CAPACITY>) -> Result<NodeId, UiError> {
+pub fn build_check(tree: &mut Tree<CAPACITY, TEXT>) -> Result<NodeId, UiError> {
     check::check_screen::build(tree).map(|nodes| nodes.root)
 }
 
@@ -61,7 +65,7 @@ pub mod fuel {
 /// # Errors
 ///
 /// The tree's error, if the screen does not fit it.
-pub fn build_fuel(tree: &mut Tree<CAPACITY>) -> Result<NodeId, UiError> {
+pub fn build_fuel(tree: &mut Tree<CAPACITY, TEXT>) -> Result<NodeId, UiError> {
     fuel::fuel_step::build(tree).map(|nodes| nodes.root)
 }
 
@@ -75,7 +79,7 @@ pub mod fuelling {
 /// # Errors
 ///
 /// The tree's error, if the screen does not fit it.
-pub fn build_fuelling(tree: &mut Tree<CAPACITY>) -> Result<NodeId, UiError> {
+pub fn build_fuelling(tree: &mut Tree<CAPACITY, TEXT>) -> Result<NodeId, UiError> {
     fuelling::fuelling_screen::build(tree).map(|nodes| nodes.root)
 }
 
@@ -89,7 +93,7 @@ pub mod idle_warning {
 /// # Errors
 ///
 /// The tree's error, if the screen does not fit it.
-pub fn build_idle_warning(tree: &mut Tree<CAPACITY>) -> Result<NodeId, UiError> {
+pub fn build_idle_warning(tree: &mut Tree<CAPACITY, TEXT>) -> Result<NodeId, UiError> {
     idle_warning::idle_warning_screen::build(tree).map(|nodes| nodes.root)
 }
 
@@ -103,7 +107,7 @@ pub mod not_accepted {
 /// # Errors
 ///
 /// The tree's error, if the screen does not fit it.
-pub fn build_not_accepted(tree: &mut Tree<CAPACITY>) -> Result<NodeId, UiError> {
+pub fn build_not_accepted(tree: &mut Tree<CAPACITY, TEXT>) -> Result<NodeId, UiError> {
     not_accepted::not_accepted_screen::build(tree).map(|nodes| nodes.root)
 }
 
@@ -117,7 +121,7 @@ pub mod paying {
 /// # Errors
 ///
 /// The tree's error, if the screen does not fit it.
-pub fn build_paying(tree: &mut Tree<CAPACITY>) -> Result<NodeId, UiError> {
+pub fn build_paying(tree: &mut Tree<CAPACITY, TEXT>) -> Result<NodeId, UiError> {
     paying::paying_screen::build(tree).map(|nodes| nodes.root)
 }
 
@@ -131,7 +135,7 @@ pub mod pump {
 /// # Errors
 ///
 /// The tree's error, if the screen does not fit it.
-pub fn build_pump(tree: &mut Tree<CAPACITY>) -> Result<NodeId, UiError> {
+pub fn build_pump(tree: &mut Tree<CAPACITY, TEXT>) -> Result<NodeId, UiError> {
     pump::pump_step::build(tree).map(|nodes| nodes.root)
 }
 
@@ -145,6 +149,6 @@ pub mod welcome {
 /// # Errors
 ///
 /// The tree's error, if the screen does not fit it.
-pub fn build_welcome(tree: &mut Tree<CAPACITY>) -> Result<NodeId, UiError> {
+pub fn build_welcome(tree: &mut Tree<CAPACITY, TEXT>) -> Result<NodeId, UiError> {
     welcome::welcome_screen::build(tree).map(|nodes| nodes.root)
 }

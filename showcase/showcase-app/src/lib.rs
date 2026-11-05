@@ -97,6 +97,7 @@ use generated::attract::attract_screen as attract;
 use generated::gallery_icons::gallery_icons_screen as gallery_icons;
 use generated::gallery_keyboard::gallery_keyboard_screen as gallery_keyboard;
 use generated::gallery_layout::gallery_layout_screen as gallery;
+use generated::gallery_scroll::gallery_scroll_screen as scroll_screen;
 use generated::launcher::launcher_screen as launcher;
 use generated::pump_bar::pump_bar_screen as pump_bar;
 use generated::service_desk_bar::service_desk_bar_screen as bar;
@@ -151,7 +152,7 @@ pub trait Extra {
     ///
     /// The tree's error, if it is full.
     fn frame(
-        tree: &mut Tree<{ generated::CAPACITY }>,
+        tree: &mut Tree<{ generated::CAPACITY }, { generated::TEXT }>,
         body: NodeId,
         screen: &'static str,
     ) -> Result<NodeId, UiError>;
@@ -189,7 +190,7 @@ impl Extra for NoExtra {
     const TILE: Option<Tile> = None;
 
     fn frame(
-        tree: &mut Tree<{ generated::CAPACITY }>,
+        tree: &mut Tree<{ generated::CAPACITY }, { generated::TEXT }>,
         body: NodeId,
         _screen: &'static str,
     ) -> Result<NodeId, UiError> {
@@ -266,6 +267,13 @@ const GALLERY_KEYBOARD: usize = 7;
 /// The gallery's icons screen, by its place in [`GALLERY`]: its
 /// progress bar shows three quarters.
 const GALLERY_ICONS: usize = 9;
+/// The gallery's scroll screen, by its place in [`GALLERY`]: its long
+/// text shows [`GALLERY_STORY`].
+const GALLERY_SCROLL: usize = 8;
+
+/// What the scroll screen's long text shows: paragraphs the application
+/// sets at run time (builder contract v16).
+const GALLERY_STORY: &str = "A long text holds paragraphs the application sets while the screen shows - an article, a message, the terms of a service - up to the bytes its screen gives it, kept in the screen's tree, so nothing is allocated.\nIt wraps onto as many lines as it needs at the width it is given. A line break starts a new paragraph, and when the text changes only the lines that differ are drawn again.";
 
 /// The code the keyboard screen's Check asks for: four digits.
 const CODE_DIGITS: usize = 4;
@@ -286,12 +294,15 @@ fn gallery_place(screen: ScreenId) -> Option<usize> {
 /// progress bar, if it has one, set.
 fn build_gallery(
     place: usize,
-    tree: &mut Tree<{ generated::CAPACITY }>,
+    tree: &mut Tree<{ generated::CAPACITY }, { generated::TEXT }>,
 ) -> Result<NodeId, UiError> {
     let (_, build) = GALLERY.get(place).copied().ok_or(UiError::NoRoot)?;
     let root = build(tree)?;
     if place == GALLERY_ICONS {
         tree.set_progress(gallery_icons::slots::DONE, 3, 4)?;
+    }
+    if place == GALLERY_SCROLL {
+        tree.set_slot(scroll_screen::slots::STORY, GALLERY_STORY)?;
     }
     Ok(root)
 }
@@ -393,7 +404,7 @@ enum Showing {
 /// two screens built into one tree - the bar and an example's screen -
 /// never share one. [`frame_with`] builds a bar with it.
 pub struct Shifted<'t> {
-    tree: &'t mut Tree<{ generated::CAPACITY }>,
+    tree: &'t mut Tree<{ generated::CAPACITY }, { generated::TEXT }>,
     by: u16,
 }
 
@@ -474,6 +485,15 @@ impl UiBuilder for Shifted<'_> {
     }
     fn icon(&mut self, icon: &'static nowayos_ui::icons::Icon) -> Result<NodeId, UiError> {
         UiBuilder::icon(&mut *self.tree, icon)
+    }
+    fn long_text(
+        &mut self,
+        slot: SlotId,
+        capacity: u16,
+        style: TextStyle,
+    ) -> Result<NodeId, UiError> {
+        let slot = SlotId::new(self.shift(slot.get()));
+        UiBuilder::long_text(&mut *self.tree, slot, capacity, style)
     }
     fn image(
         &mut self,
@@ -589,7 +609,7 @@ impl UiBuilder for Shifted<'_> {
 ///
 /// The tree's error, if it is full.
 pub fn frame_with(
-    tree: &mut Tree<{ generated::CAPACITY }>,
+    tree: &mut Tree<{ generated::CAPACITY }, { generated::TEXT }>,
     body: NodeId,
     bar: impl FnOnce(&mut Shifted<'_>) -> Result<NodeId, UiError>,
 ) -> Result<NodeId, UiError> {
@@ -607,7 +627,7 @@ pub fn frame_with(
 ///
 /// The tree's error, if it is full.
 pub fn service_desk_frame(
-    tree: &mut Tree<{ generated::CAPACITY }>,
+    tree: &mut Tree<{ generated::CAPACITY }, { generated::TEXT }>,
     body: NodeId,
     _screen: &'static str,
 ) -> Result<NodeId, UiError> {
@@ -621,7 +641,7 @@ pub fn service_desk_frame(
 ///
 /// The tree's error, if it is full.
 pub fn visitor_frame(
-    tree: &mut Tree<{ generated::CAPACITY }>,
+    tree: &mut Tree<{ generated::CAPACITY }, { generated::TEXT }>,
     body: NodeId,
     _screen: &'static str,
 ) -> Result<NodeId, UiError> {
@@ -637,7 +657,7 @@ pub fn visitor_frame(
 ///
 /// The tree's error, if it is full.
 pub fn pump_frame(
-    tree: &mut Tree<{ generated::CAPACITY }>,
+    tree: &mut Tree<{ generated::CAPACITY }, { generated::TEXT }>,
     body: NodeId,
     _screen: &'static str,
 ) -> Result<NodeId, UiError> {
@@ -648,7 +668,7 @@ pub fn pump_frame(
 /// `tree`: the launcher with `E`'s tile filled and shown, if it has one.
 fn build_launcher<E: Extra>(
     screen: ScreenId,
-    tree: &mut Tree<{ generated::CAPACITY }>,
+    tree: &mut Tree<{ generated::CAPACITY }, { generated::TEXT }>,
 ) -> Result<NodeId, UiError> {
     if let Some(place) = gallery_place(screen) {
         return build_gallery(place, tree);
@@ -694,7 +714,7 @@ const fn slides<E: Extra>() -> usize {
 /// The showcase's UI, with the example a program adds, if any (`E`); see
 /// the [crate documentation](crate).
 pub struct Showcase<E: Extra = NoExtra> {
-    launcher: Tree<{ generated::CAPACITY }>,
+    launcher: Tree<{ generated::CAPACITY }, { generated::TEXT }>,
     nav: Navigator<1>,
     service_desk: KioskUi,
     visitor: VisitorUi,
@@ -1077,7 +1097,7 @@ impl<E: Extra> KioskScreens for Showcase<E> {
         EXTRA_APP
     };
 
-    fn tree(&self) -> &Tree<{ generated::CAPACITY }> {
+    fn tree(&self) -> &Tree<{ generated::CAPACITY }, { generated::TEXT }> {
         match (self.showing, self.extra.as_ref()) {
             (Showing::ServiceDesk, _) => self.service_desk.tree(),
             (Showing::Visitor, _) => self.visitor.tree(),
@@ -1087,7 +1107,7 @@ impl<E: Extra> KioskScreens for Showcase<E> {
         }
     }
 
-    fn tree_mut(&mut self) -> &mut Tree<{ generated::CAPACITY }> {
+    fn tree_mut(&mut self) -> &mut Tree<{ generated::CAPACITY }, { generated::TEXT }> {
         match (self.showing, self.extra.as_mut()) {
             (Showing::ServiceDesk, _) => self.service_desk.tree_mut(),
             (Showing::Visitor, _) => self.visitor.tree_mut(),

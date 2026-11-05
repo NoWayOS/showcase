@@ -58,13 +58,14 @@ use showcase_kiosk_screens::kiosk::{
 use showcase_kiosk_screens::stand_in::Policy;
 
 use generated::{
-    CAPACITY, amount::amount_step as amount, check::check_screen as check, fuel::fuel_step as fuel,
-    fuelling::fuelling_screen as fuelling, idle_warning::idle_warning_screen as idle,
-    not_accepted::not_accepted_screen as failed, pump::pump_step as pump,
-    welcome::welcome_screen as welcome,
+    CAPACITY, TEXT, amount::amount_step as amount, check::check_screen as check,
+    fuel::fuel_step as fuel, fuelling::fuelling_screen as fuelling,
+    idle_warning::idle_warning_screen as idle, not_accepted::not_accepted_screen as failed,
+    pump::pump_step as pump, welcome::welcome_screen as welcome,
 };
 
 const _: () = assert!(CAPACITY == showcase_kiosk_screens::generated::CAPACITY);
+const _: () = assert!(TEXT == showcase_kiosk_screens::generated::TEXT);
 
 /// Which pump: required, one of four.
 pub const PUMP: FieldId = FieldId(1);
@@ -374,7 +375,7 @@ impl Screens for Pump {
             .unwrap_or("welcome")
     }
 
-    fn build(screen: ScreenId, tree: &mut Tree<CAPACITY>) -> Result<NodeId, UiError> {
+    fn build(screen: ScreenId, tree: &mut Tree<CAPACITY, TEXT>) -> Result<NodeId, UiError> {
         match screen {
             Self::WELCOME => generated::build_welcome(tree),
             PUMP_STEP => generated::build_pump(tree),
@@ -436,7 +437,7 @@ impl Screens for Pump {
 
     fn fill(
         screen: ScreenId,
-        tree: &mut Tree<CAPACITY>,
+        tree: &mut Tree<CAPACITY, TEXT>,
         copies: &Copies,
         failed: Option<ShowFailed>,
     ) -> Result<(), UiError> {

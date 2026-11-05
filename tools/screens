@@ -67,8 +67,12 @@ use nowayos_ui::{NodeId, Tree, UiError};
 /// Nodes a screen may use: more than any converted screen needs.
 pub const CAPACITY: usize = 64;
 
+/// Bytes of long text a screen may hold (builder contract v16): more than
+/// any converted screen needs.
+pub const TEXT: usize = 4096;
+
 /// Builds a screen on a real tree and returns its root node.
-pub type Build = fn(&mut Tree<CAPACITY>) -> Result<NodeId, UiError>;
+pub type Build = fn(&mut Tree<CAPACITY, TEXT>) -> Result<NodeId, UiError>;
 """
 
 
@@ -199,7 +203,7 @@ def mod_rs(converted):
             modules.append("/// # Errors")
             modules.append("///")
             modules.append("/// The tree's error, if the screen does not fit it.")
-            modules.append(f"pub fn {function}(tree: &mut Tree<CAPACITY>) -> Result<NodeId, UiError> {{")
+            modules.append(f"pub fn {function}(tree: &mut Tree<CAPACITY, TEXT>) -> Result<NodeId, UiError> {{")
             modules.append(f"    {module}::{screen}::build(tree).map(|nodes| nodes.root)")
             modules.append("}")
             modules.append("")

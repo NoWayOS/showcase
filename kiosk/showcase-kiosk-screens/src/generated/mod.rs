@@ -7,8 +7,12 @@ use nowayos_ui::{NodeId, Tree, UiError};
 /// Nodes a screen may use: more than any converted screen needs.
 pub const CAPACITY: usize = 64;
 
+/// Bytes of long text a screen may hold (builder contract v16): more than
+/// any converted screen needs.
+pub const TEXT: usize = 4096;
+
 /// Builds a screen on a real tree and returns its root node.
-pub type Build = fn(&mut Tree<CAPACITY>) -> Result<NodeId, UiError>;
+pub type Build = fn(&mut Tree<CAPACITY, TEXT>) -> Result<NodeId, UiError>;
 
 /// Every converted screen: its file's name and the function that builds it.
 pub const SCREENS: &[(&str, Build)] = &[
@@ -34,7 +38,7 @@ pub mod failed {
 /// # Errors
 ///
 /// The tree's error, if the screen does not fit it.
-pub fn build_failed(tree: &mut Tree<CAPACITY>) -> Result<NodeId, UiError> {
+pub fn build_failed(tree: &mut Tree<CAPACITY, TEXT>) -> Result<NodeId, UiError> {
     failed::failed_screen::build(tree).map(|nodes| nodes.root)
 }
 
@@ -48,7 +52,7 @@ pub mod idle_warning {
 /// # Errors
 ///
 /// The tree's error, if the screen does not fit it.
-pub fn build_idle_warning(tree: &mut Tree<CAPACITY>) -> Result<NodeId, UiError> {
+pub fn build_idle_warning(tree: &mut Tree<CAPACITY, TEXT>) -> Result<NodeId, UiError> {
     idle_warning::idle_warning_screen::build(tree).map(|nodes| nodes.root)
 }
 
@@ -62,7 +66,7 @@ pub mod review {
 /// # Errors
 ///
 /// The tree's error, if the screen does not fit it.
-pub fn build_review(tree: &mut Tree<CAPACITY>) -> Result<NodeId, UiError> {
+pub fn build_review(tree: &mut Tree<CAPACITY, TEXT>) -> Result<NodeId, UiError> {
     review::review_screen::build(tree).map(|nodes| nodes.root)
 }
 
@@ -76,7 +80,7 @@ pub mod step_checkbox {
 /// # Errors
 ///
 /// The tree's error, if the screen does not fit it.
-pub fn build_step_checkbox(tree: &mut Tree<CAPACITY>) -> Result<NodeId, UiError> {
+pub fn build_step_checkbox(tree: &mut Tree<CAPACITY, TEXT>) -> Result<NodeId, UiError> {
     step_checkbox::confirm_step::build(tree).map(|nodes| nodes.root)
 }
 
@@ -90,7 +94,7 @@ pub mod step_choice {
 /// # Errors
 ///
 /// The tree's error, if the screen does not fit it.
-pub fn build_step_choice(tree: &mut Tree<CAPACITY>) -> Result<NodeId, UiError> {
+pub fn build_step_choice(tree: &mut Tree<CAPACITY, TEXT>) -> Result<NodeId, UiError> {
     step_choice::question_step::build(tree).map(|nodes| nodes.root)
 }
 
@@ -104,7 +108,7 @@ pub mod step_notice {
 /// # Errors
 ///
 /// The tree's error, if the screen does not fit it.
-pub fn build_step_notice(tree: &mut Tree<CAPACITY>) -> Result<NodeId, UiError> {
+pub fn build_step_notice(tree: &mut Tree<CAPACITY, TEXT>) -> Result<NodeId, UiError> {
     step_notice::notice_step::build(tree).map(|nodes| nodes.root)
 }
 
@@ -118,7 +122,7 @@ pub mod step_text {
 /// # Errors
 ///
 /// The tree's error, if the screen does not fit it.
-pub fn build_step_text(tree: &mut Tree<CAPACITY>) -> Result<NodeId, UiError> {
+pub fn build_step_text(tree: &mut Tree<CAPACITY, TEXT>) -> Result<NodeId, UiError> {
     step_text::about_you_step::build(tree).map(|nodes| nodes.root)
 }
 
@@ -132,7 +136,7 @@ pub mod submitted {
 /// # Errors
 ///
 /// The tree's error, if the screen does not fit it.
-pub fn build_submitted(tree: &mut Tree<CAPACITY>) -> Result<NodeId, UiError> {
+pub fn build_submitted(tree: &mut Tree<CAPACITY, TEXT>) -> Result<NodeId, UiError> {
     submitted::submitted_screen::build(tree).map(|nodes| nodes.root)
 }
 
@@ -146,7 +150,7 @@ pub mod submitting {
 /// # Errors
 ///
 /// The tree's error, if the screen does not fit it.
-pub fn build_submitting(tree: &mut Tree<CAPACITY>) -> Result<NodeId, UiError> {
+pub fn build_submitting(tree: &mut Tree<CAPACITY, TEXT>) -> Result<NodeId, UiError> {
     submitting::submitting_screen::build(tree).map(|nodes| nodes.root)
 }
 
@@ -160,6 +164,6 @@ pub mod welcome {
 /// # Errors
 ///
 /// The tree's error, if the screen does not fit it.
-pub fn build_welcome(tree: &mut Tree<CAPACITY>) -> Result<NodeId, UiError> {
+pub fn build_welcome(tree: &mut Tree<CAPACITY, TEXT>) -> Result<NodeId, UiError> {
     welcome::welcome_screen::build(tree).map(|nodes| nodes.root)
 }
