@@ -673,6 +673,15 @@ impl UiBuilder for Shifted<'_> {
         let field = FieldId::new(self.shift(field.get()));
         UiBuilder::text_area(&mut *self.tree, field, rows, max_len, placeholder)
     }
+    /// A rich text's runs are a constant: their links' actions are not
+    /// moved, so a bar holds none.
+    fn rich_text(
+        &mut self,
+        runs: &'static [nowayos_ui::rich::Run],
+        style: TextStyle,
+    ) -> Result<NodeId, UiError> {
+        UiBuilder::rich_text(&mut *self.tree, runs, style)
+    }
     fn dialog(&mut self, layer: LayerId, child: NodeId) -> Result<NodeId, UiError> {
         let layer = LayerId::new(self.shift(layer.get()));
         UiBuilder::dialog(&mut *self.tree, layer, child)

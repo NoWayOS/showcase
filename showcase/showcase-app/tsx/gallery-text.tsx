@@ -1,4 +1,5 @@
-// The Screen Compiler gallery, 3 of 11: a text's weight, the lines it may wrap onto and where its lines sit.
+// The Screen Compiler gallery, 3 of 11: a text's weight, the lines it may wrap onto, where its lines sit,
+// and a rich text mixing Bold, italics, code, a colour and a link.
 // Each example is captioned with the TSX that made it. Written for the showcase in TSX and
 // converted at build time like every other screen here; the launcher's Screen Compiler
 // tile opens the first, and Back and Next go round them all.
@@ -12,6 +13,7 @@ type GalleryProps = {
   onHome: () => void;
   onBack: () => void;
   onNext: () => void;
+  onGuide: () => void;
 };
 
 export function GalleryTextScreen(props: GalleryProps) {
@@ -50,6 +52,11 @@ export function GalleryTextScreen(props: GalleryProps) {
           <Text align="end">End</Text>
         </Card>
         <Text role="caption">{'<Text align="start">, align="center" and align="end"'}</Text>
+        <Text>
+          Mix <strong>Bold</strong>, <em>italics</em>, <code>code</code>,{" "}
+          <span style={{ color: "error" }}>a colour</span> and <a onClick={props.onGuide}>a link</a> in one text.
+        </Text>
+        <Text role="caption">{'<strong>, <em>, <code>, <span style={{ color }}> and <a onClick> inside a <Text>'}</Text>
       </Column>
     </Screen>
   );
