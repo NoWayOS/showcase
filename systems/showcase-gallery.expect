@@ -12,6 +12,9 @@ SHOWCASE: ui: action Next
 SHOWCASE: ui: showing gallery-text
 SHOWCASE: ui: action Next
 SHOWCASE: ui: showing gallery-buttons
+SHOWCASE: ui: action More
+SHOWCASE: ui: action Ask
+SHOWCASE: ui: action Done
 SHOWCASE: ui: action Next
 SHOWCASE: ui: showing gallery-surfaces
 SHOWCASE: ui: action Next

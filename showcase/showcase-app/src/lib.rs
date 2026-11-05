@@ -82,7 +82,7 @@ use nowayos_ui::builder::{
     ButtonVariant, Input, Layout, Look, Picker, Space, Surface, Template, TextStyle, UiBuilder,
 };
 use nowayos_ui::{
-    ActionId, FieldId, GroupId, InputEvent, Navigator, NodeId, NodeKind, ScreenId, SlotId,
+    ActionId, FieldId, GroupId, InputEvent, LayerId, Navigator, NodeId, NodeKind, ScreenId, SlotId,
     SwitchId, TextMetrics, Tree, UiError,
 };
 use showcase_kiosk_contract::Action;
@@ -94,6 +94,7 @@ use showcase_visitor::VisitorUi;
 
 use brands::Brand;
 use generated::attract::attract_screen as attract;
+use generated::gallery_buttons::gallery_buttons_screen as gallery_buttons;
 use generated::gallery_icons::gallery_icons_screen as gallery_icons;
 use generated::gallery_keyboard::gallery_keyboard_screen as gallery_keyboard;
 use generated::gallery_layout::gallery_layout_screen as gallery;
@@ -259,6 +260,10 @@ const _: () = {
 /// The gallery's first screen in the launcher's tree: each shows as
 /// `ScreenId(GALLERY_FROM + its place in GALLERY)`.
 const GALLERY_FROM: u16 = 16;
+
+/// The gallery's buttons screen, by its place in [`GALLERY`]: its More,
+/// Ask and Info open a menu, a dialog and a popover over it.
+const GALLERY_BUTTONS: usize = 3;
 
 /// The gallery's keyboard screen, by its place in [`GALLERY`]: its
 /// Check sets or clears the code's error line.
@@ -668,6 +673,26 @@ impl UiBuilder for Shifted<'_> {
         let field = FieldId::new(self.shift(field.get()));
         UiBuilder::text_area(&mut *self.tree, field, rows, max_len, placeholder)
     }
+    fn dialog(&mut self, layer: LayerId, child: NodeId) -> Result<NodeId, UiError> {
+        let layer = LayerId::new(self.shift(layer.get()));
+        UiBuilder::dialog(&mut *self.tree, layer, child)
+    }
+    fn menu(&mut self, layer: LayerId, anchor: NodeId, child: NodeId) -> Result<NodeId, UiError> {
+        let layer = LayerId::new(self.shift(layer.get()));
+        UiBuilder::menu(&mut *self.tree, layer, anchor, child)
+    }
+    fn popover(
+        &mut self,
+        layer: LayerId,
+        anchor: NodeId,
+        child: NodeId,
+    ) -> Result<NodeId, UiError> {
+        let layer = LayerId::new(self.shift(layer.get()));
+        UiBuilder::popover(&mut *self.tree, layer, anchor, child)
+    }
+    fn tooltip(&mut self, anchor: NodeId, text: &'static str) -> Result<NodeId, UiError> {
+        UiBuilder::tooltip(&mut *self.tree, anchor, text)
+    }
     fn checkbox(&mut self, field: FieldId, label: &'static str) -> Result<NodeId, UiError> {
         let field = FieldId::new(self.shift(field.get()));
         UiBuilder::checkbox(&mut *self.tree, field, label)
@@ -1058,6 +1083,30 @@ impl<E: Extra> Showcase<E> {
         }
     }
 
+    /// The buttons screen's More, Ask and Info open their menu, dialog and
+    /// popover; the dialog's Done, or Escape in it, closes it.
+    fn gallery_layers(
+        &mut self,
+        action: Option<nowayos_ui::ActionId>,
+        dismissed: Option<nowayos_ui::LayerId>,
+    ) -> Option<&'static str> {
+        use gallery_buttons::{actions, layers};
+        let (opened, said) = match (action, dismissed) {
+            (Some(actions::MORE), _) => (Some(layers::MENU_OPEN), "More"),
+            (Some(actions::ASK), _) => (Some(layers::ASKING), "Ask"),
+            (Some(actions::INFO), _) => (Some(layers::INFO_OPEN), "Info"),
+            (Some(actions::DONE), _) | (None, Some(layers::ASKING)) => {
+                let _ = self.launcher.close(layers::ASKING);
+                return Some("Done");
+            }
+            _ => return None,
+        };
+        if let Some(layer) = opened {
+            let _ = self.launcher.open(layer);
+        }
+        Some(said)
+    }
+
     /// The keyboard screen's Check: the code's error line cleared if it is
     /// four digits, and set otherwise - as an application would.
     fn check_code(&mut self) {
@@ -1354,6 +1403,18 @@ impl<E: Extra> KioskScreens for Showcase<E> {
                 nowayos_ui::UiEvent::Action(gallery::actions::NEXT) => {
                     self.turn_gallery(true);
                     Some("Next")
+                }
+                // The buttons screen's layers, opened and closed as an
+                // application would.
+                nowayos_ui::UiEvent::Action(action)
+                    if gallery_place(self.nav.current()) == Some(GALLERY_BUTTONS) =>
+                {
+                    self.gallery_layers(Some(action), None)
+                }
+                nowayos_ui::UiEvent::Dismissed(layer)
+                    if gallery_place(self.nav.current()) == Some(GALLERY_BUTTONS) =>
+                {
+                    self.gallery_layers(None, Some(layer))
                 }
                 nowayos_ui::UiEvent::Action(gallery_keyboard::actions::CHECK)
                     if gallery_place(self.nav.current()) == Some(GALLERY_KEYBOARD) =>
