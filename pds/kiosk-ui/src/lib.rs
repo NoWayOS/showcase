@@ -189,6 +189,7 @@ fn start<D: KioskScreens>(
         notice: None,
         drawn: None,
         idle: Idle::default(),
+        frame_at: None,
     })
 }
 
@@ -234,6 +235,8 @@ struct State<'g, D> {
     drawn: Option<*const Tree<CAPACITY, TEXT>>,
     /// The idle clock.
     idle: Idle,
+    /// When the frame clock last ticked, in milliseconds (#10086).
+    frame_at: Option<u64>,
 }
 
 /// The idle clock's state.
@@ -272,8 +275,15 @@ impl<D: KioskScreens> State<'_, D> {
                         .map_err(|_| LoopError::Ring)?;
                     self.note_screen();
                     self.dirty = true;
+                    // Transitions and animations, now the frame clock runs
+                    // (#10086).
+                    self.kiosk
+                        .tree_mut()
+                        .set_motion(nowayos_ui::motion::MotionSetting::Full);
                 }
                 UiEvent::PresentDone(_) => {
+                    // The frame clock: while anything moves, the next frame.
+                    self.next_frame()?;
                     // Ready for more input once nothing waits to be drawn.
                     if !self.dirty && !self.closed {
                         INPUT.notify();
@@ -282,6 +292,33 @@ impl<D: KioskScreens> State<'_, D> {
             }
         }
         self.present()
+    }
+
+    /// The frame clock (#10086): once the display has shown a frame, while
+    /// anything on the screen moves, lets the time since the last pass and
+    /// presents what moved - so motion runs at the display's rate. Without
+    /// the timer, a frame counts as a sixtieth of a second.
+    fn next_frame(&mut self) -> Result<(), LoopError> {
+        if !self.kiosk.tree().is_moving() {
+            self.frame_at = None;
+            return Ok(());
+        }
+        let now = TIMER.now().ok().map(|now| now.as_nanos() / 1_000_000);
+        let elapsed = match (now, self.frame_at) {
+            (Some(now), Some(then)) => u32::try_from(now.saturating_sub(then)).unwrap_or(u32::MAX),
+            _ => 16,
+        };
+        self.frame_at = now;
+        if let Some(present) = self.ui.tick(
+            self.kiosk.tree_mut(),
+            self.channels.frame(),
+            &mut self.glyphs,
+            elapsed,
+        )? {
+            self.channels.send(&present)?;
+            DISPLAY.notify();
+        }
+        Ok(())
     }
 
     /// Takes every input record waiting, then sends the actions it made.
