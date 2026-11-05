@@ -1,6 +1,7 @@
 // The Screen Compiler gallery, 11 of 11: the style properties a screen may declare: sizes, alignment, and
 // the theme's colours by name - never a colour value, so the
-// large-text, high-contrast theme recolours them - and the theme's shadows, gradients and opacity.
+// large-text, high-contrast theme recolours them - the theme's shadows, gradients and opacity, and
+// text a press selects for Ctrl+C to copy.
 // Each example is captioned with the TSX that made it. Written for the showcase in TSX and
 // converted at build time like every other screen here; the launcher's Screen Compiler
 // tile opens the first, and Back and Next go round them all.
@@ -53,7 +54,7 @@ export function GalleryCssScreen(props: GalleryProps) {
               borderRadius: 24,
             }}
           >
-            <Text style={{ color: "text-muted", textAlign: "center" }}>Centred, muted</Text>
+            <Text style={{ color: "text-muted", textAlign: "center", userSelect: "text" }}>Centred, muted</Text>
             <Text style={{ color: "error", textAlign: "center" }}>In the error colour</Text>
           </Card>
           <Column gap={4}>
@@ -61,7 +62,8 @@ export function GalleryCssScreen(props: GalleryProps) {
             <Text role="caption">{'  alignItems: "center", justifyContent: "center",'}</Text>
             <Text role="caption">{'  backgroundColor: "input", borderColor: "focus",'}</Text>
             <Text role="caption">{'  borderWidth: 3, borderRadius: 24 }}>'}</Text>
-            <Text role="caption">{'<Text style={{ color: "text-muted", textAlign: "center" }}>'}</Text>
+            <Text role="caption">{'<Text style={{ color: "text-muted", textAlign: "center",'}</Text>
+            <Text role="caption">{'  userSelect: "text" }}>: press it, then Ctrl+C copies it'}</Text>
           </Column>
         </Row>
         <Row style={{ minWidth: 320, maxWidth: 560, justifyContent: "space-between" }}>
