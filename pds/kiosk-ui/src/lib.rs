@@ -72,7 +72,7 @@ use nowayos_ipc::{Consumer, Producer};
 use nowayos_region::{RingRx, RingTx, read_only, read_write, ring_consumer, ring_producer};
 use nowayos_render_eg::{DEFAULT_BYTES, DEFAULT_SLOTS, Glyphs};
 use nowayos_timer_api::Client;
-use nowayos_ui::{TextMetrics, Tree, UiError};
+use nowayos_ui::{InputEvent, TextMetrics, Tree, UiError, Zoom};
 use nowayos_ui_loop::{LoopError, UiChannels, UiLoop};
 use sel4_microkit::{Channel, ChannelSet, Handler, Infallible, NullHandler, debug_println};
 use showcase_kiosk_contract::MAX_RECORD_LEN;
@@ -190,6 +190,7 @@ fn start<D: KioskScreens>(
         drawn: None,
         idle: Idle::default(),
         frame_at: None,
+        ctrl: [false; 2],
     })
 }
 
@@ -237,6 +238,10 @@ struct State<'g, D> {
     idle: Idle,
     /// When the frame clock last ticked, in milliseconds (#10086).
     frame_at: Option<u64>,
+    /// Each Ctrl key held, for zoom (#10083): Ctrl and plus, minus or
+    /// zero make the whole interface larger, smaller or as the display
+    /// has it.
+    ctrl: [bool; 2],
 }
 
 /// The idle clock's state.
@@ -328,6 +333,9 @@ impl<D: KioskScreens> State<'_, D> {
             any = true;
             match record {
                 Ok(event) => {
+                    if let Some(zoom) = self.zoom_key(event) {
+                        self.zoom(zoom)?;
+                    }
                     if let Some(label) = self.kiosk.handle(event) {
                         debug_println!("SHOWCASE: ui: action {label}");
                     }
@@ -346,6 +354,48 @@ impl<D: KioskScreens> State<'_, D> {
             self.send_all()?;
         }
         self.present()
+    }
+
+    /// The zoom `event` asks for, with a Ctrl key held (#10083); tracks the
+    /// Ctrl keys.
+    fn zoom_key(&mut self, event: InputEvent) -> Option<Zoom> {
+        let (key, down) = match event {
+            InputEvent::KeyDown(key) => (key, true),
+            InputEvent::KeyUp(key) => (key, false),
+            _ => return None,
+        };
+        // HID's left and right Ctrl.
+        let held = match key.usage() {
+            0xE0 => self.ctrl.get_mut(0),
+            0xE4 => self.ctrl.get_mut(1),
+            _ => None,
+        };
+        if let Some(held) = held {
+            *held = down;
+            return None;
+        }
+        (down && self.ctrl.contains(&true))
+            .then(|| Zoom::of_key(key))
+            .flatten()
+    }
+
+    /// Zooms the whole interface (#10083): the screens laid out again at
+    /// the loop's new scale - keeping focus, and the screen showing its
+    /// scroll views' places - and drawn whole.
+    fn zoom(&mut self, zoom: Zoom) -> Result<(), LoopError> {
+        let Some(scale) = self.ui.zoom(zoom) else {
+            return Ok(());
+        };
+        debug_println!("SHOWCASE: ui: zoomed to scale {scale}");
+        // The screen showing keeps its scroll views' places.
+        self.kiosk.tree_mut().rescale(scale);
+        let viewport = self.ui.viewport().ok_or(LoopError::Ring)?;
+        self.kiosk
+            .resize(viewport, self.ui.metrics())
+            .map_err(|_| LoopError::Ring)?;
+        self.drawn = None;
+        self.dirty = true;
+        Ok(())
     }
 
     /// Keeps the idle clock, for screens that want one: on the
