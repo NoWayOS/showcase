@@ -1,0 +1,5 @@
+# The pictures the showcase's screens may show (screen-compiler --pictures):
+# NoWayOS's samples, which src/lib.rs's `pictures` module re-exports. One
+# name a line.
+landscape
+badge

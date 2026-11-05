@@ -69,6 +69,12 @@
 pub mod brands;
 pub mod generated;
 
+/// The pictures the screens show, which generated code names at the crate's
+/// root: NoWayOS's samples, a landscape and a badge (`pictures.names`).
+pub mod pictures {
+    pub use nowayos_ui::pictures::samples::{BADGE, LANDSCAPE};
+}
+
 use nowayos_display::Rect;
 use nowayos_input::{KeyCode, TouchPhase};
 use nowayos_render_eg::{Rgb888, Theme};
@@ -468,6 +474,15 @@ impl UiBuilder for Shifted<'_> {
     }
     fn icon(&mut self, icon: &'static nowayos_ui::icons::Icon) -> Result<NodeId, UiError> {
         UiBuilder::icon(&mut *self.tree, icon)
+    }
+    fn image(
+        &mut self,
+        picture: &'static nowayos_ui::builder::Picture,
+        fit: nowayos_ui::builder::Fit,
+        alt: &'static str,
+        layout: Layout,
+    ) -> Result<NodeId, UiError> {
+        UiBuilder::image(&mut *self.tree, picture, fit, alt, layout)
     }
     fn progress(&mut self, slot: SlotId) -> Result<NodeId, UiError> {
         let slot = SlotId::new(self.shift(slot.get()));
