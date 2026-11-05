@@ -150,8 +150,10 @@ lint: nowayos-check
 	$(CARGO) fmt -- --check
 	$(CARGO) clippy --workspace --all-targets $(LOCKED) -- -D warnings
 
+# Each test thread 16 MiB: a test builds the whole showcase - every screen's
+# tree - on its stack, as the UI PD does on its 7 MiB one.
 test: nowayos-check
-	$(CARGO) test --workspace $(LOCKED)
+	RUST_MIN_STACK=16777216 $(CARGO) test --workspace $(LOCKED)
 
 doc: nowayos-check
 	RUSTDOCFLAGS="-D warnings" $(CARGO) doc --workspace --no-deps $(LOCKED)
