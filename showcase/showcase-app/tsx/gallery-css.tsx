@@ -88,6 +88,21 @@ export function GalleryCssScreen(props: GalleryProps) {
           </Card>
         </Row>
         <Text role="caption">{'style={{ boxShadow: "medium" }}, { background: "linear-gradient(to right, button, text)" }, { opacity: 0.5 }'}</Text>
+        <Row gap={EDGE}>
+          <Card padding={TIGHT} style={{ animation: "pulse 300ms ease-in-out 2 alternate" }}>
+            <Text>pulse</Text>
+          </Card>
+          <Card padding={TIGHT} style={{ animationName: "shimmer", animationDuration: "0.5s", animationTimingFunction: "linear", animationDelay: "0ms", animationIterationCount: "1", animationDirection: "normal", animationFillMode: "none" }}>
+            <Text>shimmer</Text>
+          </Card>
+          <Card padding={TIGHT} style={{ transition: "opacity 250ms ease-out" }}>
+            <Text>fades in when shown</Text>
+          </Card>
+          <Card padding={TIGHT} style={{ transitionProperty: "transform", transitionDuration: "0.3s", transitionTimingFunction: "cubic-bezier(0.2, 0, 0, 1)", transitionDelay: "50ms" }}>
+            <Text>rises in when shown</Text>
+          </Card>
+        </Row>
+        <Text role="caption">{'style={{ animation: "pulse 300ms ease-in-out 2 alternate" }}, { transition: "opacity 250ms ease-out" }, and their longhands'}</Text>
       </Column>
     </Screen>
   );
