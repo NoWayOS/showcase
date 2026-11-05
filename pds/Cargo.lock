@@ -294,6 +294,9 @@ dependencies = [
 [[package]]
 name = "nowayos-glyphs"
 version = "0.1.0"
+dependencies = [
+ "nowayos-raster",
+]
 
 [[package]]
 name = "nowayos-heartbeat"
@@ -337,6 +340,10 @@ version = "0.1.0"
 
 [[package]]
 name = "nowayos-net"
+version = "0.1.0"
+
+[[package]]
+name = "nowayos-raster"
 version = "0.1.0"
 
 [[package]]
