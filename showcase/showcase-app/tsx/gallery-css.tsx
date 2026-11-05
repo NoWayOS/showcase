@@ -35,7 +35,7 @@ export function GalleryCssScreen(props: GalleryProps) {
           <Button variant="secondary" onPress={props.onBack}>
             Back
           </Button>
-          <Button id="next" onPress={props.onNext}>
+          <Button id="next" onPress={props.onNext} style={{ cursor: "pointer" }}>
             Next
           </Button>
         </HeaderBar>
@@ -54,7 +54,9 @@ export function GalleryCssScreen(props: GalleryProps) {
               borderRadius: 24,
             }}
           >
-            <Text style={{ color: "text-muted", textAlign: "center", userSelect: "text" }}>Centred, muted</Text>
+            <Text style={{ color: "text-muted", textAlign: "center", userSelect: "text", cursor: "text" }}>
+              Centred, muted
+            </Text>
             <Text style={{ color: "error", textAlign: "center" }}>In the error colour</Text>
           </Card>
           <Column gap={4}>
@@ -63,7 +65,7 @@ export function GalleryCssScreen(props: GalleryProps) {
             <Text role="caption">{'  backgroundColor: "input", borderColor: "focus",'}</Text>
             <Text role="caption">{'  borderWidth: 3, borderRadius: 24 }}>'}</Text>
             <Text role="caption">{'<Text style={{ color: "text-muted", textAlign: "center",'}</Text>
-            <Text role="caption">{'  userSelect: "text" }}>: press it, then Ctrl+C copies it'}</Text>
+            <Text role="caption">{'  userSelect: "text", cursor: "text" }}>: press it, Ctrl+C copies it'}</Text>
           </Column>
         </Row>
         <Row style={{ minWidth: 320, maxWidth: 560, justifyContent: "space-between" }}>
@@ -85,11 +87,11 @@ export function GalleryCssScreen(props: GalleryProps) {
           <Column padding={TIGHT} style={{ background: "linear-gradient(to right, button, text)", borderRadius: 8 }}>
             <Text style={{ color: "button-text" }}>A gradient</Text>
           </Column>
-          <Card padding={TIGHT} style={{ opacity: 0.5 }}>
+          <Card padding={TIGHT} style={{ opacity: 0.5, cursor: "not-allowed" }}>
             <Text>Half see-through</Text>
           </Card>
         </Row>
-        <Text role="caption">{'style={{ boxShadow: "medium" }}, { background: "linear-gradient(to right, button, text)" }, { opacity: 0.5 }'}</Text>
+        <Text role="caption">{'style={{ boxShadow: "medium" }}, { background: "linear-gradient(to right, button, text)" }, { opacity: 0.5, cursor: "not-allowed" }'}</Text>
         <Row gap={EDGE}>
           <Card padding={TIGHT} style={{ animation: "pulse 300ms ease-in-out 2 alternate" }}>
             <Text>pulse</Text>

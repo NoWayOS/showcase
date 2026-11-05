@@ -79,7 +79,8 @@ use nowayos_display::Rect;
 use nowayos_input::{KeyCode, TouchPhase};
 use nowayos_render_eg::{Rgb888, Theme};
 use nowayos_ui::builder::{
-    ButtonVariant, Input, Layout, Look, Picker, Space, Surface, Template, TextStyle, UiBuilder,
+    ButtonVariant, Cursor, Input, Layout, Look, Picker, Space, Surface, Template, TextStyle,
+    UiBuilder,
 };
 use nowayos_ui::{
     ActionId, FieldId, GroupId, InputEvent, LayerId, Navigator, NodeId, NodeKind, ScreenId, SlotId,
@@ -701,6 +702,13 @@ impl UiBuilder for Shifted<'_> {
     }
     fn tooltip(&mut self, anchor: NodeId, text: &'static str) -> Result<NodeId, UiError> {
         UiBuilder::tooltip(&mut *self.tree, anchor, text)
+    }
+    fn context_action(&mut self, node: NodeId, action: ActionId) -> Result<(), UiError> {
+        let action = ActionId::new(self.shift(action.get()));
+        UiBuilder::context_action(&mut *self.tree, node, action)
+    }
+    fn cursor(&mut self, node: NodeId, cursor: Cursor) -> Result<(), UiError> {
+        UiBuilder::cursor(&mut *self.tree, node, cursor)
     }
     fn checkbox(&mut self, field: FieldId, label: &'static str) -> Result<NodeId, UiError> {
         let field = FieldId::new(self.shift(field.get()));

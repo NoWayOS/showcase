@@ -1,6 +1,7 @@
 // The Screen Compiler gallery, 4 of 11: the three variants, a button's declared style, and the layers
 // buttons open over the screen - a menu, a dialog and a popover - and a tooltip. Each button emits an
-// action the application handles; here the variants do nothing, and the rest open their layers.
+// action the application handles; here the variants do nothing, and the rest open their layers. A
+// right click on More, or a finger resting on it, opens its menu at the point pressed.
 // Each example is captioned with the TSX that made it. Written for the showcase in TSX and
 // converted at build time like every other screen here; the launcher's Screen Compiler
 // tile opens the first, and Back and Next go round them all.
@@ -74,7 +75,7 @@ export function GalleryButtonsScreen(props: GalleryProps) {
         <Text role="caption">{'<Button onClick={() => props.onSave()}>: React DOM\'s onClick, and a function that only calls a prop'}</Text>
         <Row gap={EDGE}>
           <Column gap={4}>
-            <Button id="more" variant="secondary" onPress={props.onMore}>
+            <Button id="more" variant="secondary" onPress={props.onMore} onContextMenu={props.onMore}>
               More
             </Button>
             <Menu for="more" open={props.menuOpen}>
