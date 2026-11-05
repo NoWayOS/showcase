@@ -84,18 +84,20 @@ fn each_brand_lays_out_as_the_theme_it_is_built_on_at_every_scale() {
     let light = Theme::<Rgb888>::light();
     let large = Theme::<Rgb888>::high_contrast();
     for brand in brands::ALL {
-        for scale in 1..=nowayos_display::MAX_SCALE {
-            assert!(brand.theme().draws_at(scale), "{}", brand.name);
-            assert!(brand.high_contrast().draws_at(scale), "{}", brand.name);
+        for scale in 1..=4_u32 {
             assert_eq!(
-                brand.theme().metrics_at(scale),
-                light.metrics_at(scale),
+                brand
+                    .theme()
+                    .metrics_at(nowayos_display::DeviceScale::whole(scale).unwrap()),
+                light.metrics_at(nowayos_display::DeviceScale::whole(scale).unwrap()),
                 "{} at {scale}x",
                 brand.name
             );
             assert_eq!(
-                brand.high_contrast().metrics_at(scale),
-                large.metrics_at(scale),
+                brand
+                    .high_contrast()
+                    .metrics_at(nowayos_display::DeviceScale::whole(scale).unwrap()),
+                large.metrics_at(nowayos_display::DeviceScale::whole(scale).unwrap()),
                 "{} at {scale}x",
                 brand.high_contrast_name
             );

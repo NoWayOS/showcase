@@ -122,7 +122,8 @@ fn every_screen_builds_and_fits_the_display_in_both_fonts() {
         for shown in [false, true] {
             for (size, viewport, scale) in VIEWPORTS {
                 for (font, theme) in themes() {
-                    let metrics = theme.metrics_at(scale);
+                    let metrics =
+                        theme.metrics_at(nowayos_display::DeviceScale::whole(scale).unwrap());
                     let tree = laid_out(name, *build, shown, viewport, metrics);
                     let state = if shown {
                         "everything shown"

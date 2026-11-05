@@ -159,7 +159,7 @@
              setvar_vaddr="nowayos_ro_region_1_vaddr" setvar_size="nowayos_ro_region_1_size" />
     </protection_domain>
 
-    <protection_domain name="ui" priority="1" stack_size="0x80000">
+    <protection_domain name="ui" priority="1" stack_size="0x700000">
         <program_image path="showcase-ui.elf" />
         <map mr="present_messages" vaddr="0x4000_0000" perms="rw"
              setvar_vaddr="nowayos_rw_region_0_vaddr" setvar_size="nowayos_rw_region_0_size" />

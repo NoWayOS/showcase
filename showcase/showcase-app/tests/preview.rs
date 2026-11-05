@@ -33,7 +33,11 @@ const WINDOW: nowayos_display::Rect = nowayos_display::Rect::new(0, 0, 1920, 108
 fn draw_tree<const N: usize>(tree: &Tree<N>, theme: &Theme<Rgb888>, name: &str) {
     let size = tree.viewport().size;
     let mut fb = Framebuffer::new(size.width, size.height).unwrap();
-    render(tree, &mut fb, theme).unwrap();
+    {
+        nowayos_testkit::glyph_store!(glyphs__);
+        render(tree, &mut fb, theme, &mut glyphs__)
+    }
+    .unwrap();
     if let Ok(dir) = std::env::var("SHOWCASE_PREVIEW_DIR") {
         std::fs::write(format!("{dir}/{name}.png"), fb.to_png().unwrap()).unwrap();
     }
@@ -90,7 +94,9 @@ fn the_launcher_and_each_example_draw() {
         // And in the brand's high-contrast version, laid out in its
         // metrics.
         let large = brand.high_contrast();
-        showcase.resize(WINDOW, large.metrics_at(2)).unwrap();
+        showcase
+            .resize(WINDOW, large.metrics_at(nowayos_display::DeviceScale::TWO))
+            .unwrap();
         draw_tree(showcase.tree(), &large, &format!("{name}-high-contrast"));
     }
 }
@@ -124,7 +130,9 @@ fn every_gallery_screen_draws() {
 fn fresh() -> Showcase {
     let theme = Theme::<Rgb888>::light();
     let mut showcase = Showcase::new(theme.metrics()).unwrap();
-    showcase.resize(WINDOW, theme.metrics_at(2)).unwrap();
+    showcase
+        .resize(WINDOW, theme.metrics_at(nowayos_display::DeviceScale::TWO))
+        .unwrap();
     showcase
 }
 
@@ -189,7 +197,11 @@ fn every_pump_screen_draws() {
                 }
                 _ => {}
             }
-            tree.layout(viewport, &theme.metrics_at(2)).unwrap();
+            tree.layout(
+                viewport,
+                &theme.metrics_at(nowayos_display::DeviceScale::TWO),
+            )
+            .unwrap();
             let file = if stages.len() > 1 {
                 format!("pump-{name}-{at}")
             } else {
