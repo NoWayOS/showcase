@@ -32,7 +32,7 @@ NOSTD_TARGET ?= aarch64-unknown-none
 # Every crate must build without std (`make nostd`) except these, which run on
 # the host only: a new std crate fails until it is fixed or listed here (the
 # NoWayOS baseline). None today.
-HOST_ONLY_CRATES :=
+HOST_ONLY_CRATES := showcase-kiosk-dev showcase-dev
 PYTHON ?= python3
 # make sbom writes a CycloneDX SBOM per workspace here.
 SBOM_DIR := build/sbom
@@ -89,7 +89,8 @@ qemu-test qemu-test-all: export SHOWCASE_TEST_TIMINGS := 1
 
 .DEFAULT_GOAL := help
 .PHONY: help fmt lint test doc nostd deny sbom secrets ci nostd-local deny-local sbom-local secrets-local ci-local \
-	screens screens-bless screens-local screens-bless-local screens-ci preview preview-local nowayos-rev nowayos-check clean
+	screens screens-bless screens-local screens-bless-local screens-ci preview preview-local dev dev-local \
+	nowayos-rev nowayos-check clean
 
 help:
 	@echo "Showcase make targets"
@@ -109,6 +110,10 @@ help:
 	@echo "  make screens the kiosk reference screens through Screen Compiler ($(SCREEN_COMPILER_DIR)): each converts,"
 	@echo "               or is refused, exactly as checked in ($(SCREENS_CRATES): src/generated, gaps.txt)"
 	@echo "  make screens-bless  rewrite them after a deliberate change; review the diff"
+	@echo "  make dev [APP=showcase|kiosk|visitor|pump]   the application running in a browser window on this"
+	@echo "               machine, http://localhost:$(DEV_PORT)/ (DEV_PORT=N): the Rust that goes on the device, built"
+	@echo "               for the host, taking your clicks and keys; save a screen (tsx/) or its logic (src/) and"
+	@echo "               it is converted, rebuilt and shown again where you were. Ctrl-C stops it"
 	@echo "  make preview FILE=showcase/showcase-visitor/tsx/welcome.tsx   one TSX file's screens as PNG files in"
 	@echo "               $(OUT)/ (OUT=dir), drawn by NoWayOS's renderer as the device draws them, by Screen"
 	@echo "               Compiler's make preview: WATCH=1 draws again on every save; ARGS='--show GROUP"
@@ -248,6 +253,30 @@ preview-local: nowayos-check
 		CARGO=$(CARGO) FILE="$(abspath $(FILE))" OUT="$(if $(filter /%,$(OUT)),$(OUT),../$(notdir $(CURDIR))/$(OUT))" \
 		PICTURES="$$pictures" WATCH='$(WATCH)' ARGS='$(ARGS)'
 
+# The application in a browser window on the developer's machine: showcase-dev
+# (the showcase, or one example by itself, its screens joined to its
+# applications as their PDs join them), kept running by NoWayOS's
+# tools/dev-window, which converts a saved screen (tools/screens, as make
+# screens-bless does for its crate), builds again and starts it again where it
+# was. Built with the dev-window profile (Cargo.toml). In the container the
+# window listens on the container's addresses, and make dev publishes that
+# port on the host's loopback address only. A developer's tool: no part of any
+# image. Never point this at untrusted .tsx.
+APP ?= showcase
+DEV_PORT ?= 8017
+DEV_ARGS ?=
+_dev_target = $(if $(CARGO_TARGET_DIR),$(CARGO_TARGET_DIR),target)
+_dev_sc = $(SCREEN_COMPILER_TARGET)/debug/screen-compiler
+dev-local: nowayos-check
+	$(screen_compiler_build)
+	@$(PYTHON) ../nowayos/tools/dev-window \
+		--build "$(CARGO) build --quiet --profile dev-window -p showcase-dev" \
+		--watch kiosk --watch showcase \
+		--check "sh -c 'if [ -f {crate}/pictures.names ]; then exec $(_dev_sc) check --pictures {crate}/pictures.names {file}; else exec $(_dev_sc) check {file}; fi'" \
+		--screens "$(PYTHON) tools/screens --screen-compiler $(_dev_sc) --bless --screens {crate}" \
+		--port $(DEV_PORT) $(if $(NOWAYOS_CONTAINER),--all-addresses) --session build/dev/$(APP).session \
+		-- $(_dev_target)/dev-window/showcase-dev $(APP) $(DEV_ARGS)
+
 # Then the Screen Compiler gallery's coverage (tools/gallery-coverage): its
 # screens show every component, prop, listed value and style property that
 # `screen-compiler subset` prints, so a gallery that falls behind the subset fails.
@@ -314,6 +343,7 @@ secrets: secrets-local
 screens: screens-local
 screens-bless: screens-bless-local
 preview: preview-local
+dev: dev-local
 ci: ci-local
 else ifdef IN_CONTAINER
 # From the host the secrets scan runs with no network at all.
@@ -324,8 +354,12 @@ nostd deny sbom secrets screens screens-bless ci:
 preview:
 	@$(IN_CONTAINER) make --no-print-directory preview-local CARGO=cargo $(_nowayos_experiment_arg) \
 		FILE='$(FILE)' OUT='$(OUT)' WATCH='$(WATCH)' ARGS='$(ARGS)'
+dev: override CONTAINER_RUN_ARGS += -p 127.0.0.1:$(DEV_PORT):$(DEV_PORT)
+dev:
+	@$(IN_CONTAINER) make --no-print-directory dev-local CARGO=cargo $(_nowayos_experiment_arg) \
+		APP='$(APP)' DEV_PORT='$(DEV_PORT)' DEV_ARGS='$(DEV_ARGS)'
 else
-nostd deny sbom secrets screens screens-bless preview ci:
+nostd deny sbom secrets screens screens-bless preview dev ci:
 	@echo "error: make $@ needs ../nowayos/tools/make/container.mk - clone nowayos beside showcase" >&2
 	@exit 1
 endif

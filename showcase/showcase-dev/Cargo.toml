@@ -1,0 +1,20 @@
+[package]
+name = "showcase-dev"
+description = "A developer's tool, host only: the showcase, or one of its examples by itself, running in a browser window on this machine (make dev)"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+rust-version.workspace = true
+publish = false
+
+[dependencies]
+showcase-app.workspace = true
+showcase-kiosk-dev.workspace = true
+showcase-kiosk-screens.workspace = true
+showcase-pump.workspace = true
+showcase-visitor.workspace = true
+nowayos-dev-window.workspace = true
+nowayos-display.workspace = true
+
+[lints]
+workspace = true

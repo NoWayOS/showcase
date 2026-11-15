@@ -20,6 +20,9 @@ never edits `../nowayos`.
 - Never run plain `cargo` on the host, and never in `pds/`.
 - Before proposing a change: `make test`, `make lint`, `make screens`, then
   `make ci`.
+- To try a change as a person would: `make dev` runs the showcase in a browser
+  window on this machine and follows each save; `make preview FILE=…` draws
+  one screen.
 
 ## Rules the code keeps
 
