@@ -102,6 +102,11 @@ make secrets  # the tree and every commit scanned for keys and credentials, offl
 make screens  # every kiosk reference screen through Screen Compiler (../screen-compiler): converts, or is
               # refused, exactly as checked in (src/generated, gaps.txt; dev container only)
 make screens-bless  # rewrite them after a deliberate change, then review the diff
+make preview FILE=showcase/showcase-visitor/tsx/welcome.tsx   # see a screen: PNG files in build/preview/, drawn by
+              # NoWayOS's renderer as the device draws it (Screen Compiler's make preview). WATCH=1 draws
+              # again on every save, in under a second; ARGS='--show GROUP --slot NAME=TEXT --case
+              # SWITCH=CASE --size 1920x1080 --large' shows what is named. A file that is a part of a
+              # screen (a step) is drawn by itself
 make ci       # check ../nowayos is the recorded NoWayOS, then secrets, lint, test, doc,
               # nostd, deny, sbom and screens (when ../screen-compiler is there), with --locked,
               # then fuzz, kani, the PDs' checks and every system booted in QEMU (dev container only)

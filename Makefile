@@ -89,7 +89,7 @@ qemu-test qemu-test-all: export SHOWCASE_TEST_TIMINGS := 1
 
 .DEFAULT_GOAL := help
 .PHONY: help fmt lint test doc nostd deny sbom secrets ci nostd-local deny-local sbom-local secrets-local ci-local \
-	screens screens-bless screens-local screens-bless-local screens-ci nowayos-rev nowayos-check clean
+	screens screens-bless screens-local screens-bless-local screens-ci preview preview-local nowayos-rev nowayos-check clean
 
 help:
 	@echo "Showcase make targets"
@@ -109,6 +109,10 @@ help:
 	@echo "  make screens the kiosk reference screens through Screen Compiler ($(SCREEN_COMPILER_DIR)): each converts,"
 	@echo "               or is refused, exactly as checked in ($(SCREENS_CRATES): src/generated, gaps.txt)"
 	@echo "  make screens-bless  rewrite them after a deliberate change; review the diff"
+	@echo "  make preview FILE=showcase/showcase-visitor/tsx/welcome.tsx   one TSX file's screens as PNG files in"
+	@echo "               $(OUT)/ (OUT=dir), drawn by NoWayOS's renderer as the device draws them, by Screen"
+	@echo "               Compiler's make preview: WATCH=1 draws again on every save; ARGS='--show GROUP"
+	@echo "               --slot NAME=TEXT --case SWITCH=CASE --size 1920x1080 --large' shows what is named"
 	@echo "  make quiet-check    every system prints nothing derived from what is typed (tools/check-quiet,"
 	@echo "                      after its tests)"
 	@echo "  make ci      check ../nowayos is the NoWayOS nowayos.rev records, then secrets, lint,"
@@ -229,6 +233,21 @@ define screen_compiler_build
 	cd $(SCREEN_COMPILER_DIR) && CARGO_TARGET_DIR=$(SCREEN_COMPILER_TARGET) $(CARGO) build --locked --quiet -p screen-compiler-cli
 endef
 
+# One of our TSX files as pictures: Screen Compiler's make preview, from the
+# clone beside showcase, drawing on the NoWayOS nowayos.rev records with the
+# pictures its crate lists (pictures.names, if it has one). Never point this
+# at untrusted .tsx.
+OUT ?= build/preview
+preview-local: nowayos-check
+	@test -n "$(FILE)" || { echo "usage: make preview FILE=showcase/showcase-visitor/tsx/welcome.tsx [OUT=dir] [WATCH=1] [ARGS='--show GROUP --slot NAME=TEXT --case SWITCH=CASE --size 1920x1080 --large']" >&2; exit 1; }
+	@test -f $(SCREEN_COMPILER_DIR)/Makefile || { echo "error: make preview needs a screen-compiler clone beside showcase ($(SCREEN_COMPILER_DIR))" >&2; exit 1; }
+	@mkdir -p build && { test -f build/.gitignore || printf '*\n' > build/.gitignore; }
+	@crate=$$(dirname "$$(dirname "$(abspath $(FILE))")"); pictures=; \
+	if [ -f "$$crate/pictures.names" ]; then pictures="$$crate/pictures.names"; fi; \
+	CARGO_TARGET_DIR=$(SCREEN_COMPILER_TARGET) $(MAKE) --no-print-directory -C $(SCREEN_COMPILER_DIR) preview \
+		CARGO=$(CARGO) FILE="$(abspath $(FILE))" OUT="$(if $(filter /%,$(OUT)),$(OUT),../$(notdir $(CURDIR))/$(OUT))" \
+		PICTURES="$$pictures" WATCH='$(WATCH)' ARGS='$(ARGS)'
+
 # Then the Screen Compiler gallery's coverage (tools/gallery-coverage): its
 # screens show every component, prop, listed value and style property that
 # `screen-compiler subset` prints, so a gallery that falls behind the subset fails.
@@ -294,6 +313,7 @@ sbom: sbom-local
 secrets: secrets-local
 screens: screens-local
 screens-bless: screens-bless-local
+preview: preview-local
 ci: ci-local
 else ifdef IN_CONTAINER
 # From the host the secrets scan runs with no network at all.
@@ -301,8 +321,11 @@ secrets: override CONTAINER_RUN_ARGS += --network=none
 nostd deny sbom secrets screens screens-bless ci:
 	$(IN_CONTAINER) make $@-local CARGO=cargo $(if $(LOCKED),LOCKED=$(LOCKED)) $(_nowayos_experiment_arg) \
 		CI_SCOPE=$(CI_SCOPE) $(if $(CI_BASE),CI_BASE=$(CI_BASE))
+preview:
+	@$(IN_CONTAINER) make --no-print-directory preview-local CARGO=cargo $(_nowayos_experiment_arg) \
+		FILE='$(FILE)' OUT='$(OUT)' WATCH='$(WATCH)' ARGS='$(ARGS)'
 else
-nostd deny sbom secrets screens screens-bless ci:
+nostd deny sbom secrets screens screens-bless preview ci:
 	@echo "error: make $@ needs ../nowayos/tools/make/container.mk - clone nowayos beside showcase" >&2
 	@exit 1
 endif
