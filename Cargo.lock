@@ -137,6 +137,17 @@ name = "nowayos-bounded"
 version = "0.1.0"
 
 [[package]]
+name = "nowayos-dev-window"
+version = "0.1.0"
+dependencies = [
+ "embedded-graphics",
+ "nowayos-input",
+ "nowayos-render-eg",
+ "nowayos-testkit",
+ "nowayos-ui",
+]
+
+[[package]]
 name = "nowayos-display"
 version = "0.1.0"
 dependencies = [
@@ -338,6 +349,19 @@ dependencies = [
 ]
 
 [[package]]
+name = "showcase-dev"
+version = "0.1.0"
+dependencies = [
+ "nowayos-dev-window",
+ "nowayos-display",
+ "showcase-app",
+ "showcase-kiosk-dev",
+ "showcase-kiosk-screens",
+ "showcase-pump",
+ "showcase-visitor",
+]
+
+[[package]]
 name = "showcase-kiosk-contract"
 version = "0.1.0"
 dependencies = [
@@ -345,6 +369,21 @@ dependencies = [
  "nowayos-ipc",
  "proptest",
  "showcase-kiosk-flow",
+]
+
+[[package]]
+name = "showcase-kiosk-dev"
+version = "0.1.0"
+dependencies = [
+ "nowayos-dev-window",
+ "nowayos-display",
+ "nowayos-input",
+ "nowayos-render-eg",
+ "nowayos-testkit",
+ "nowayos-ui",
+ "showcase-kiosk-contract",
+ "showcase-kiosk-flow",
+ "showcase-kiosk-screens",
 ]
 
 [[package]]

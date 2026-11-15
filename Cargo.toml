@@ -33,6 +33,9 @@ nowayos-glyphs = { path = "../nowayos/crates/nowayos-glyphs", version = "=0.1.0"
 # screens to images. Dev-dependencies only.
 nowayos-render-eg = { path = "../nowayos/crates/nowayos-render-eg", version = "=0.1.0" }
 nowayos-testkit = { path = "../nowayos/crates/nowayos-testkit", version = "=0.1.0" }
+# NoWayOS's dev window: an application in a browser window on the developer's
+# machine. Host only, for showcase-kiosk-dev and showcase-dev (make dev).
+nowayos-dev-window = { path = "../nowayos/crates/nowayos-dev-window", version = "=0.1.0" }
 
 # Showcase's own crates, used by other members.
 showcase-kiosk-flow = { path = "kiosk/showcase-kiosk-flow", version = "=0.1.0" }
@@ -40,6 +43,8 @@ showcase-kiosk-contract = { path = "kiosk/showcase-kiosk-contract", version = "=
 showcase-kiosk-screens = { path = "kiosk/showcase-kiosk-screens", version = "=0.1.0" }
 showcase-visitor = { path = "showcase/showcase-visitor", version = "=0.1.0" }
 showcase-pump = { path = "showcase/showcase-pump", version = "=0.1.0" }
+showcase-app = { path = "showcase/showcase-app", version = "=0.1.0" }
+showcase-kiosk-dev = { path = "kiosk/showcase-kiosk-dev", version = "=0.1.0" }
 
 # Third-party crates. Every one is licence-checked before it is added
 # (house list: MIT, Apache-2.0, BSD-2-Clause, BSD-3-Clause, ISC) and again by
@@ -77,6 +82,20 @@ panic = "abort"
 [profile.release]
 overflow-checks = true
 panic = "abort"
+
+# make dev: the application in a window on the developer's machine. Its own
+# crates build as in dev, so a save is rebuilt quickly; everything it depends
+# on - NoWayOS's layout and drawing - is optimised, built once, so a frame
+# is drawn in a few milliseconds. No part of any image.
+[profile.dev-window]
+inherits = "dev"
+
+[profile.dev-window.package."*"]
+opt-level = 3
+
+# The kit's dev crate holds the one call that draws a frame.
+[profile.dev-window.package.showcase-kiosk-dev]
+opt-level = 3
 
 # Kani: showcase-kiosk-contract's proofs model core's UTF-8 check with
 # a stub (its src/proofs.rs says why), which Kani allows only with this switch.
