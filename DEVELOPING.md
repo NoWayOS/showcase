@@ -103,6 +103,9 @@ make secrets  # the tree and every commit scanned for keys and credentials, offl
 make screens  # every kiosk reference screen through Screen Compiler (../screen-compiler): converts, or is
               # refused, exactly as checked in (src/generated, gaps.txt; dev container only)
 make screens-bless  # rewrite them after a deliberate change, then review the diff
+              # In VS Code the kit's components complete and a wrong prop is underlined as you
+              # type: each tsx/ folder has a tsconfig.json naming Screen Compiler's declarations
+              # (../screen-compiler/kit/nowayos-kit.d.ts), read by VS Code's own TypeScript
 make dev      # the showcase running in a browser window on this machine, http://localhost:8017/: the
               # Rust that goes on the device, built for the host, taking your clicks and keys. Save a
               # screen (tsx/) or its logic (src/) and it is converted, rebuilt and showing again, where
