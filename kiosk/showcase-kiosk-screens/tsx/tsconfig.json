@@ -1,0 +1,16 @@
+// SPDX-License-Identifier: MIT OR Apache-2.0
+// For an editor that bundles TypeScript (VS Code, with nothing to install):
+// these screens checked against the kit's declarations as they are typed.
+// The declarations are Screen Compiler's own, in the clone beside showcase.
+{
+  "compilerOptions": {
+    "jsx": "preserve",
+    "strict": true,
+    "noEmit": true,
+    "types": [],
+    "target": "ES2022",
+    "module": "ESNext",
+    "moduleResolution": "bundler"
+  },
+  "include": ["**/*.tsx", "../../../../screen-compiler/kit/nowayos-kit.d.ts"]
+}
