@@ -89,6 +89,13 @@ showcase run in QEMU and on the Raspberry Pi 5's HDMI monitor with a USB
 keyboard and mouse. Still to come: touchscreens, masking a PIN or
 password on screen, storage, and a production kiosk.
 
+## Start your own application
+
+The Showcase is the large example. To build an application of your own, begin
+with the **[starter](https://github.com/NoWayOS/starter)**: two screens, their
+logic, and everything needed to run it in a browser window as you edit and
+then boot it on seL4. Three commands, and its README is the guide.
+
 ## Try it
 
 The Showcase builds against NoWayOS, at the commit `nowayos.rev` records, and
@@ -133,8 +140,9 @@ NoWayOS builds devices from only what their one job needs.
 **[NoWayOS](https://github.com/NoWayOS/nowayos)** is its open
 Single Purpose OS,
 the **[Screen Compiler](https://github.com/NoWayOS/screen-compiler)** its open
-build-time tool for React screens, and the **Showcase** shows what you can
-build with them.
+build-time tool for React screens, the **Showcase** shows what you can
+build with them, and the **[starter](https://github.com/NoWayOS/starter)** is
+where an application of your own begins.
 NoWayOS is sponsored by Adappt.ai.
 
 ## Licence
