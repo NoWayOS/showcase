@@ -105,6 +105,7 @@ cd showcase
 make -C ../nowayos container        # the dev image, once
 make test                           # every crate's tests
 make screens                        # convert every TSX screen with the Screen Compiler and check it
+make preview FILE=showcase/showcase-visitor/tsx/welcome.tsx WATCH=1   # see a screen as you edit it: build/preview/*.png
 make qemu-test SYSTEM=kiosk         # boot the reference kiosk in QEMU and check it
 make ci                             # the everyday gate
 ```
