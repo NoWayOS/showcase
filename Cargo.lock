@@ -142,7 +142,9 @@ version = "0.1.0"
 dependencies = [
  "embedded-graphics",
  "nowayos-input",
+ "nowayos-render-eg",
  "nowayos-testkit",
+ "nowayos-ui",
 ]
 
 [[package]]
