@@ -53,15 +53,11 @@
 //!   order and the arrow keys across the grid, by each tile's place
 //!   ([`TILES`]), so a hidden tile leaves its place empty; the focus starts
 //!   on the Service desk, the first ready one.
-//! * **The look will change.** The screens use today's widgets; the look
-//!   work brings full-screen drawing, text roles, cards and a
-//!   pointer, and every text and size is in the TSX (`tsx/`), so restyling
-//!   them changes no code here.
+//! * **Every text and size is in the TSX** (`tsx/`), so restyling the
+//!   screens changes no code here.
 //!
-//! [`generated`] holds the Rust Screen Compiler writes for `tsx/launcher.tsx` and
-//! the bars above each example's screens (`tsx/service-desk-bar.tsx`,
-//! `tsx/visitor-bar.tsx`, `tsx/pump-bar.tsx`), exactly as written
-//! (`make screens-bless`).
+//! [`generated`] holds the Rust Screen Compiler writes for every screen in
+//! `tsx/`, exactly as written (`make screens-bless`).
 
 #![no_std]
 #![forbid(unsafe_code)]

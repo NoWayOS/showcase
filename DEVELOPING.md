@@ -28,9 +28,10 @@ showcase/
 ├── kiosk/
 │   ├── showcase-kiosk-flow/      multi-step form state machine (no_std)
 │   ├── showcase-kiosk-contract/  the app-UI contract: records between the UI and application PDs (no_std)
-│   └── showcase-kiosk-screens/   the kiosk reference screens: TSX, the Rust Screen Compiler makes of them, gaps.txt,
+│   ├── showcase-kiosk-screens/   the kiosk reference screens: TSX, the Rust Screen Compiler makes of them, gaps.txt,
 │                                the kitchen sink that tours them (src/sink.rs), and the reference kiosk's form,
 │                                UI and service stand-in (src/form.rs, src/kiosk.rs, src/stand_in.rs)
+│   └── showcase-kiosk-dev/       make dev: any kiosk's screens joined to its applications (host only)
 ├── pds/                      the protection domains: a Cargo workspace on NoWayOS's nightly and rust-sel4
 │   ├── kiosk/                showcase-kiosk-stand-in, the reference kiosk's application PD: a library and a program
 │   ├── visitor/              showcase-visitor-stand-in, the visitor sign-in's application PD, on kiosk's library
@@ -38,15 +39,16 @@ showcase/
 │   ├── kiosk-ui/             showcase-kiosk-ui, its UI PD: a library and a program
 │   ├── showcase-ui/          showcase-ui, the showcase's UI PD, on kiosk-ui's library
 │   ├── screens-ui/           showcase-screens-ui, the kitchen sink's UI PD
-│   └── display/, input-broker/, uart-input/, usb-host/, timer/   NoWayOS's PDs, run from programs of Showcase's own
+│   └── display/, display-ramfb/, fan/, input-broker/, uart-input/, usb-host/, timer/, run-watchdog/,
+│       watchdog-stand-in/    NoWayOS's PDs, run from programs of Showcase's own
 ├── showcase/
 │   ├── showcase-app/        the showcase: the launcher and each example's bar in TSX, converted, and the UI
 │   │                            that opens each example and wipes it on Home or at a session's end
 │   ├── showcase-visitor/         the visitor sign-in: its screens in TSX, converted, its form and its example
-│   └── showcase-pump/            the pay at the pump: its screens in TSX, converted, its form and its example
+│   ├── showcase-pump/            the pay at the pump: its screens in TSX, converted, its form and its example
+│   └── showcase-dev/             make dev: the program for the showcase and for each example (host only)
 ├── systems/                  Microkit system descriptions, each with its .grants and .expect
-├── tools/check-nowayos-rev   checks ../nowayos is at the commit nowayos.rev records
-├── tools/screens             the reference screens through Screen Compiler: checks or rewrites what is checked in
+├── tools/                    Showcase's own checks; see tools/README.md
 ├── nowayos.rev the NoWayOS commit Showcase is tested against
 ├── Cargo.toml                workspace: kiosk/*, showcase/*
 ├── Cargo.lock                committed; `make ci` checks with --locked
@@ -58,7 +60,7 @@ showcase/
 
 ## How Showcase uses NoWayOS
 
-Showcase depends on NoWayOS crates **by path, from a sibling clone**. Keep the `nowayos` repo beside this one, so one folder holds `nowayos/`, `screen-compiler/` and `showcase/`. The paths are set once, in `[workspace.dependencies]` in `Cargo.toml`. Today `nowayos-bounded`, `nowayos-display`, `nowayos-input`, `nowayos-ipc` and `nowayos-ui` are used (and `nowayos-glyphs`, the glyph atlases, in tests). The kiosk reference screens also use the `screen-compiler` clone beside this one, as a build-time tool only (`make screens`), at whatever commit is checked out there, which it prints; no Screen Compiler revision is recorded.
+Showcase depends on NoWayOS crates **by path, from a sibling clone**. Keep the `nowayos` repo beside this one, so one folder holds `nowayos/`, `screen-compiler/` and `showcase/`. The paths are set once, in `[workspace.dependencies]` in `Cargo.toml`. At run time `nowayos-bounded`, `nowayos-display`, `nowayos-input`, `nowayos-ipc` and `nowayos-ui` are used; the tests add `nowayos-glyphs`, `nowayos-render-eg` and `nowayos-testkit`; the host-only `make dev` crates add `nowayos-dev-window`. The kiosk reference screens also use the `screen-compiler` clone beside this one, as a build-time tool only (`make screens`), at whatever commit is checked out there, which it prints; no Screen Compiler revision is recorded.
 
 **Showcase builds against the NoWayOS commit recorded in `nowayos.rev`**. A path dependency alone builds against whatever is checked out in `../nowayos`, and `Cargo.lock` cannot record which, so `tools/check-nowayos-rev` checks the clone:
 
@@ -90,7 +92,7 @@ make fmt      # format the code
 make lint     # cargo fmt --check, then clippy on all targets with warnings denied
 make test     # unit, integration, property and doc tests
 make doc      # API docs, warnings as errors
-make nostd    # build every crate for aarch64-unknown-none (dev container only)
+make nostd    # build every crate but the host-only ones for aarch64-unknown-none (dev container only)
 make deny     # cargo-deny, then the local-crate check (dev container only)
 make sbom     # a CycloneDX SBOM per workspace in build/sbom/: showcase, showcase-pds, showcase-fuzz
               # (dev container only)
@@ -133,6 +135,8 @@ make unsafe-audit             # no unsafe code anywhere in Showcase
 make fuzz # the contract's decoders fuzzed, FUZZ_SECONDS (10) s each
 make std-crates-check         # the standard-library crates in the PDs (after qemu-test-all)
 ```
+
+`make` lists every target; [tools/README.md](tools/README.md) says what each does in full.
 
 All of them run in the dev container; add `IN=host` to run `fmt`, `lint`, `test`, `doc` or `clean` on the host instead. In a container shell (`make shell`) they run directly; on a host that has the `aarch64-unknown-none` target, cargo-deny and Python 3.11, `make nostd-local`, `make deny-local` and `make ci-local IN=host` run them there (without `IN=host`, `ci-local`'s lint, test and doc start the container).
 
