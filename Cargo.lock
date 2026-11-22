@@ -413,8 +413,6 @@ name = "showcase-pump"
 version = "0.1.0"
 dependencies = [
  "nowayos-bounded",
- "nowayos-glyphs",
- "nowayos-input",
  "nowayos-ui",
  "showcase-kiosk-contract",
  "showcase-kiosk-flow",
