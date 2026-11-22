@@ -18,8 +18,6 @@ What is in Showcase, how it uses NoWayOS, and how to build and test it. What Sho
 | `pds/showcase-ui` (`showcase-ui`), `pds/visitor` (`showcase-visitor-stand-in`), `pds/pump` (`showcase-pump-stand-in`) | The showcase's UI PD (`systems/showcase.system` and its Pi 5 variant): `pds/kiosk-ui`'s library - now a library and a program - driving `Showcase`; the same rings, drawing and failing closed, with a pair of rings to each example's application PD. The library lays the screens out in the display's layout at its scale and draws only what changed while one tree shows. The visitor sign-in's and the pay at the pump's application PDs: `pds/kiosk`'s library (`showcase_kiosk_stand_in`) on `showcase_visitor::EXAMPLE` and `showcase_pump::EXAMPLE`, each service a stand-in, so development-only by its name. The showcase system is the reference kiosk's with this UI program and the two applications, each with exactly the grants of the Service desk's | First cut |
 | `pds/run-watchdog` (`showcase-run-watchdog`), `pds/watchdog-stand-in` (`showcase-watchdog-stand-in`) | The showcase's tour on the Pi 5 (`systems/rpi5b_2gb/showcase-tour.system`): the showcase as a test system with a run of 300 s - NoWayOS's watchdog PD, watching no PD and keeping the PM watchdog armed, and its stand-in ticking it - so `make pi-run PI_SYSTEMS=showcase-tour` plays and checks the whole showcase script on the board. `showcase/showcase-app/tests/tour.rs` keeps the tour the showcase's own description, grants and script, plus the run. The card's demo image stays `showcase`, which runs until the power goes |
 | `kiosk/showcase-kiosk-dev`, `showcase/showcase-dev` | `make dev`: a kiosk running on the developer's machine in a browser window. `showcase-kiosk-dev` joins any kiosk's screens (`KioskScreens`) to its applications (`KioskApp`) as their PDs join them - every action and report encoded and read again, the applications' deadlines met in order, the screens' idle clock kept - and shows the result in NoWayOS's dev window (`nowayos-dev-window`); `showcase-dev` is the program for the showcase and for each example by itself. Host only: no part of any image, and left out of the bare-metal build | Built: the showcase walked from the launcher through the visitor sign-in; a saved screen or logic is showing again in about a second, on the screen it was on |
-| `shared/` | Code shared by more than one Showcase application | Empty: README only |
-| `customer-profiles/` | Per-customer configuration | Empty: README only. No customer data |
 
 All form content in this repository, fixtures included, is invented and generic.
 
@@ -47,8 +45,6 @@ showcase/
 │   ├── showcase-visitor/         the visitor sign-in: its screens in TSX, converted, its form and its example
 │   └── showcase-pump/            the pay at the pump: its screens in TSX, converted, its form and its example
 ├── systems/                  Microkit system descriptions, each with its .grants and .expect
-├── shared/                   code common to Showcase applications (empty; see its README)
-├── customer-profiles/        per-customer configuration (empty; see its README)
 ├── tools/check-nowayos-rev   checks ../nowayos is at the commit nowayos.rev records
 ├── tools/screens             the reference screens through Screen Compiler: checks or rewrites what is checked in
 ├── nowayos.rev the NoWayOS commit Showcase is tested against

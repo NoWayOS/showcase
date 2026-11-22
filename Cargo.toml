@@ -1,12 +1,11 @@
 # Showcase: secure applications built on NoWayOS, MIT OR Apache-2.0.
 #
-# Business logic and customer configuration live here and never in NoWayOS;
-# anything generic is built in NoWayOS and consumed from there.
+# Application logic lives here and never in NoWayOS; anything generic is
+# built in NoWayOS and consumed from there.
 
 [workspace]
 resolver = "3"
-# Each application's crates live under its own folder. Add "shared/*" when the
-# first crate shared by several applications arrives (shared/README.md).
+# Each application's crates live under its own folder.
 members = ["kiosk/*", "showcase/*"]
 
 [workspace.package]
