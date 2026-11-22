@@ -31,7 +31,7 @@ LOCKED ?=
 NOSTD_TARGET ?= aarch64-unknown-none
 # Every crate must build without std (`make nostd`) except these, which run on
 # the host only: a new std crate fails until it is fixed or listed here (the
-# NoWayOS baseline). None today.
+# NoWayOS baseline). Today the two make dev crates.
 HOST_ONLY_CRATES := showcase-kiosk-dev showcase-dev
 PYTHON ?= python3
 # make sbom writes a CycloneDX SBOM per workspace here.
@@ -126,11 +126,9 @@ help:
 	@echo "Showcase's systems and PDs, with NoWayOS's make fragments (dev container only):"
 	@echo "  make qemu-test [SYSTEM=$(SYSTEM)]   build systems/SYSTEM, check its grants, boot it, check its output"
 	@echo "  make qemu-test-all             every systems/*.system"
-	@echo "  make pi-show PI_DEVICE=... SYSTEM=showcase PI_TYPE=1   on the host: the showcase's launcher on the Pi 5's HDMI;"
-	@echo "                                 SYSTEM=kiosk the reference kiosk alone"
-	@echo "  make pi-show PI_DEVICE=... SYSTEM=kiosk PI_TYPE=1   on the host: the reference kiosk on the Pi 5's HDMI,"
+	@echo "  make pi-show PI_DEVICE=... SYSTEM=showcase PI_TYPE=1   on the host: the showcase's launcher on the Pi 5's HDMI,"
 	@echo "                                 driven by what you type here (NoWayOS's tools/pi-run; Ctrl-] stops typing);"
-	@echo "                                 SYSTEM=kitchen-sink tours the screens"
+	@echo "                                 SYSTEM=kiosk the reference kiosk alone, SYSTEM=kitchen-sink tours the screens"
 	@echo "  make pi-run PI_DEVICE=... PI_SYSTEMS=showcase-tour   on the host: the whole showcase script in one"
 	@echo " 300 s board run, checked line by line"
 	@echo "  make image [SYSTEM=$(SYSTEM)]       only the image: build/BOARD/SYSTEM/loader.img"

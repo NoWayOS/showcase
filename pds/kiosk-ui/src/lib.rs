@@ -126,7 +126,7 @@ fn bind_app(app: usize) -> Result<AppRings, LoopError> {
 /// the reference kiosk's UI (`KioskUi::new`), or the showcase's - and runs
 /// its event loop, never returning. The glyph store's storage lives in this
 /// frame, as a PD has no heap: every system gives the UI PD a stack to hold
-/// it (`stack_size="0x600000"`).
+/// it (`stack_size="0x700000"`).
 pub fn init<D: KioskScreens>(make: fn(TextMetrics) -> Result<D, UiError>) -> NullHandler {
     debug_println!("SHOWCASE: ui: starting");
     let mut pixels = [0_u8; DEFAULT_BYTES];
@@ -236,9 +236,9 @@ struct State<'g, D> {
     drawn: Option<*const Tree<CAPACITY, TEXT>>,
     /// The idle clock.
     idle: Idle,
-    /// When the frame clock last ticked, in milliseconds (#10086).
+    /// When the frame clock last ticked, in milliseconds.
     frame_at: Option<u64>,
-    /// Each Ctrl key held, for zoom (#10083): Ctrl and plus, minus or
+    /// Each Ctrl key held, for zoom: Ctrl and plus, minus or
     /// zero make the whole interface larger, smaller or as the display
     /// has it.
     ctrl: [bool; 2],
@@ -280,8 +280,7 @@ impl<D: KioskScreens> State<'_, D> {
                         .map_err(|_| LoopError::Ring)?;
                     self.note_screen();
                     self.dirty = true;
-                    // Transitions and animations, now the frame clock runs
-                    // (#10086).
+                    // Transitions and animations, now the frame clock runs.
                     self.kiosk
                         .tree_mut()
                         .set_motion(nowayos_ui::motion::MotionSetting::Full);
@@ -299,7 +298,7 @@ impl<D: KioskScreens> State<'_, D> {
         self.present()
     }
 
-    /// The frame clock (#10086): once the display has shown a frame, while
+    /// The frame clock: once the display has shown a frame, while
     /// anything on the screen moves, lets the time since the last pass and
     /// presents what moved - so motion runs at the display's rate. Without
     /// the timer, a frame counts as a sixtieth of a second.
@@ -356,7 +355,7 @@ impl<D: KioskScreens> State<'_, D> {
         self.present()
     }
 
-    /// The zoom `event` asks for, with a Ctrl key held (#10083); tracks the
+    /// The zoom `event` asks for, with a Ctrl key held; tracks the
     /// Ctrl keys.
     fn zoom_key(&mut self, event: InputEvent) -> Option<Zoom> {
         let (key, down) = match event {
@@ -379,7 +378,7 @@ impl<D: KioskScreens> State<'_, D> {
             .flatten()
     }
 
-    /// Zooms the whole interface (#10083): the screens laid out again at
+    /// Zooms the whole interface: the screens laid out again at
     /// the loop's new scale - keeping focus, and the screen showing its
     /// scroll views' places - and drawn whole.
     fn zoom(&mut self, zoom: Zoom) -> Result<(), LoopError> {

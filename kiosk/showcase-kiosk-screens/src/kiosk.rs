@@ -978,7 +978,7 @@ impl<S: Screens> FormUi<S> {
                 self.queue(make);
                 Some(Pressed::Button(label))
             }
-            // Zoom is the kiosk UI PD's, which watches the keys itself (#10083).
+            // Zoom is the kiosk UI PD's, which watches the keys itself.
             UiEvent::FocusChanged(_) | UiEvent::InputFull(_) | UiEvent::Zoom(_) => None,
         }
     }

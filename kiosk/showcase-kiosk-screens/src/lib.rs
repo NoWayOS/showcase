@@ -20,9 +20,8 @@
 //! All ten convert. [`generated`] holds the Rust Screen Compiler writes
 //! for each, exactly as written, so the screens build here against NoWayOS's
 //! UI core at the revision Showcase records. `gaps.txt` records what
-//! Screen Compiler refuses, ranked by how many screens each gap blocks: nothing,
-//! since subset v1's conditional rendering, text from props and form
-//! controls. [`sink`] tours the ten screens with their own
+//! Screen Compiler refuses, ranked by how many screens each gap blocks:
+//! nothing. [`sink`] tours the ten screens with their own
 //! buttons - the kitchen sink a UI protection domain can show. `make screens` runs Screen Compiler (from the screen-compiler clone beside
 //! showcase) on every screen and fails if either differs; `make
 //! screens-bless` rewrites them after a deliberate change.

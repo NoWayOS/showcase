@@ -11,7 +11,7 @@
 | `make test` | container (`IN=host`: host) | unit, integration, property and doc tests |
 | `make doc` | container (`IN=host`: host) | API docs, warnings as errors |
 | `make clean` | container (`IN=host`: host) | remove that environment's build output |
-| `make nostd` | container (starts it) | build every crate except `HOST_ONLY_CRATES` (none today) for `aarch64-unknown-none` |
+| `make nostd` | container (starts it) | build every crate except `HOST_ONLY_CRATES` (the Makefile) for `aarch64-unknown-none` |
 | `make deny` | container (starts it) | the NoWayOS baseline check (lints, profiles, deny settings, local-crate guard) of the root, `pds/` and `fuzz/` workspaces, then cargo-deny (licences, sources, advisories) for the root and `fuzz/` (`pds/`: `make pds-deny`). Only `fuzz/deny.toml` allows libFuzzer's licence; the other two ban `libfuzzer-sys` |
 | `make sbom` | container (starts it) | a CycloneDX 1.5 SBOM per workspace (`showcase`, `showcase-pds`, with the standard-library crates, and `showcase-fuzz`, whose every component is `excluded`: nothing in it ships) in `build/sbom/`, by NoWayOS's `tools/sbom`: what the kiosk is built from is `required`; dev-dependencies, build-time tools and other platforms' dependencies are marked `excluded`, with the reason |
 | `make secrets` | container (starts it, no network) | the tree, and every version of every file and every commit message on every ref, scanned for keys and credentials by NoWayOS's `tools/secrets-scan`: a finding names its file and line, never the text; reviewed false positives in `secrets-allow.toml`, one exact entry each with its reason; a shallow clone fails |

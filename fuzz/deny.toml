@@ -36,9 +36,6 @@ unused-allowed-license = "allow"
 # Per-crate exceptions for any other licence go here: one per crate, with
 # the decision that signs it off.
 exceptions = [
-    # outside house list - signed off: nowayos-glyphs, NoWayOS's glyph
-    # atlases, a Modified Version of the signed-off font, is OFL-1.1.
-    { crate = "nowayos-glyphs", allow = ["OFL-1.1"] },
     # outside house list - signed off 2026-10-04 for development and CI
     # fuzzing only: the libFuzzer sources
     # libfuzzer-sys compiles into each fuzz target. Never in a device image,

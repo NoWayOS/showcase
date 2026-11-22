@@ -15,11 +15,9 @@ What is in Showcase, how it uses NoWayOS, and how to build and test it. What Sho
 | `pds/screens-ui` (`showcase-screens-ui`), `pds/display`, `pds/input-broker`, `pds/uart-input`, `pds/usb-host`, `pds/timer` | The kitchen sink on a screen (`systems/kitchen-sink.system` and its Pi 5 variant, `systems/rpi5b_2gb/`): a UI PD that shows the ten reference screens and tours them with their own buttons (`sink`), on NoWayOS's UI loop; and NoWayOS's display PD, input broker, UART input PD, USB host PD and timer PD, each run from a program of Showcase's own (`showcase-display` and so on). On the Pi 5 the display PD shows each frame on the HDMI monitor, and the keys come from a keyboard and mouse plugged into the Pi (a USB host PD for each of RP1's two controllers, the Pi variant only) and from a terminal on the Mac, through the Debug Probe and the debug UART - a development route only: `showcase-uart-input` is development-only by its name (NoWayOS's grant rules, `*-uart-input.elf`), refused in a product system. A UI app, not the kiosk: its screens follow the sink's fixed tour | First cut |
 | `showcase/showcase-app` | The showcase: the launcher the Pi boots to - one tile per example kiosk, each with its status, fictional brand, title and one line, and a header with the demo line - in TSX (`tsx/launcher.tsx`), and the bar with Home above every Service desk screen (`tsx/service-desk-bar.tsx`), both converted by Screen Compiler (`src/generated`, `gaps.txt`). `Showcase` is the UI that shows the launcher or an example: the Service desk tile opens the reference kiosk (`showcase-kiosk-screens`' `KioskUi`, each screen inside the bar, its numbers moved past the screen's own); Home, or the end of a session however it ends, wipes the example - its copies, its outbox and the application's session - and shows the launcher. The visitor sign-in tile opens `showcase-visitor` under a bar of its own (`tsx/visitor-bar.tsx`), and the pay at the pump tile `showcase-pump` under its own (`tsx/pump-bar.tsx`). Each example talks to its own application PD over its own rings. The third tile is a program's own: `Extra` fills it - its brand, title and line in slots, and a button - and gives its example, a form UI of its screens under its own bar (`frame_with`), driven over the app-UI contract on application 3's rings, which the system description gives it, and wiped as the showcase's own are; the showcase's own program adds none (`NoExtra`), so the tile is hidden and its place on the grid empty. The fifth tile opens the Screen Compiler gallery (`GALLERY`, `tsx/gallery-*.tsx`): every component, prop, listed value and style property Screen Compiler converts, each captioned with the TSX that made it, Back and Next round its eleven screens, shown in the launcher's tree and wiped whenever the launcher shows; `tools/gallery-coverage` (in `make screens`) fails if it falls behind `screen-compiler subset`, and `systems/showcase-gallery` (QEMU only, on QEMU's ramfb through `pds/display-ramfb`) matches each screen with its approved image in `systems/showcase-gallery/`. The sixth opens "Why is this secure?". Laid out at the Pi 5's monitor's own pixels once the display announces them - 960 x 540 at device scale 2 (`resize`). The launcher and each example are drawn in their own fictional brand's theme (`brands`): NoWayOS's light theme in the brand's colour, each with a high-contrast version, all put through NoWayOS's contrast check after `r5g6b5` in the tests; the UI PD switches theme as an example opens and back at the launcher. Each bar and header shows its example's icon, one of Lucide's (ISC) drawn from a build-time mask: an image links only the icons its screens name | First cut |
 | `showcase/showcase-visitor` | The showcase's visitor sign-in: a visitor book that forgets you, at a fictional research centre (Orrinvale). Its eleven screens in TSX, converted by Screen Compiler (`tsx/`, `src/generated`, `gaps.txt`); its form - name, organisation, who you visit, why, the site rules - and timeouts; `Visitor`, the screens as `showcase-kiosk-screens`' form UI (`FormUi`) shows them; and `EXAMPLE`, what its application PD runs, with a stand-in for the building service that issues a pass number - or fails every attempt of a session after *Demo: service down*. The pass shows a number, never a name, every answer wiped first, and clears itself after 10 s, counting down. Not access control: no door, fire roll or badge | First cut |
-| `pds/showcase-ui` (`showcase-ui`), `pds/visitor` (`showcase-visitor-stand-in`), `pds/pump` (`showcase-pump-stand-in`) | The showcase's UI PD (`systems/showcase.system` and its Pi 5 variant): `pds/kiosk-ui`'s library - now a library and a program - driving `Showcase`; the same rings, drawing and failing closed, with a pair of rings to each example's application PD. The library lays the screens out in the display's layout at its scale and draws only what changed while one tree shows. The visitor sign-in's and the pay at the pump's application PDs: `pds/kiosk`'s library (`showcase_kiosk_stand_in`) on `showcase_visitor::EXAMPLE` and `showcase_pump::EXAMPLE`, each service a stand-in, so development-only by its name. The showcase system is the reference kiosk's with this UI program and the two applications, each with exactly the grants of the Service desk's | First cut |
+| `pds/showcase-ui` (`showcase-ui`), `pds/visitor` (`showcase-visitor-stand-in`), `pds/pump` (`showcase-pump-stand-in`) | The showcase's UI PD (`systems/showcase.system` and its Pi 5 variant): `pds/kiosk-ui`'s library driving `Showcase`; the same rings, drawing and failing closed, with a pair of rings to each example's application PD. The library lays the screens out in the display's layout at its scale and draws only what changed while one tree shows. The visitor sign-in's and the pay at the pump's application PDs: `pds/kiosk`'s library (`showcase_kiosk_stand_in`) on `showcase_visitor::EXAMPLE` and `showcase_pump::EXAMPLE`, each service a stand-in, so development-only by its name. The showcase system is the reference kiosk's with this UI program and the two applications, each with exactly the grants of the Service desk's | First cut |
 | `pds/run-watchdog` (`showcase-run-watchdog`), `pds/watchdog-stand-in` (`showcase-watchdog-stand-in`) | The showcase's tour on the Pi 5 (`systems/rpi5b_2gb/showcase-tour.system`): the showcase as a test system with a run of 300 s - NoWayOS's watchdog PD, watching no PD and keeping the PM watchdog armed, and its stand-in ticking it - so `make pi-run PI_SYSTEMS=showcase-tour` plays and checks the whole showcase script on the board. `showcase/showcase-app/tests/tour.rs` keeps the tour the showcase's own description, grants and script, plus the run. The card's demo image stays `showcase`, which runs until the power goes |
 | `kiosk/showcase-kiosk-dev`, `showcase/showcase-dev` | `make dev`: a kiosk running on the developer's machine in a browser window. `showcase-kiosk-dev` joins any kiosk's screens (`KioskScreens`) to its applications (`KioskApp`) as their PDs join them - every action and report encoded and read again, the applications' deadlines met in order, the screens' idle clock kept - and shows the result in NoWayOS's dev window (`nowayos-dev-window`); `showcase-dev` is the program for the showcase and for each example by itself. Host only: no part of any image, and left out of the bare-metal build | Built: the showcase walked from the launcher through the visitor sign-in; a saved screen or logic is showing again in about a second, on the screen it was on |
-| `shared/` | Code shared by more than one Showcase application | Empty: README only |
-| `customer-profiles/` | Per-customer configuration | Empty: README only. No customer data |
 
 All form content in this repository, fixtures included, is invented and generic.
 
@@ -30,9 +28,10 @@ showcase/
 ├── kiosk/
 │   ├── showcase-kiosk-flow/      multi-step form state machine (no_std)
 │   ├── showcase-kiosk-contract/  the app-UI contract: records between the UI and application PDs (no_std)
-│   └── showcase-kiosk-screens/   the kiosk reference screens: TSX, the Rust Screen Compiler makes of them, gaps.txt,
+│   ├── showcase-kiosk-screens/   the kiosk reference screens: TSX, the Rust Screen Compiler makes of them, gaps.txt,
 │                                the kitchen sink that tours them (src/sink.rs), and the reference kiosk's form,
 │                                UI and service stand-in (src/form.rs, src/kiosk.rs, src/stand_in.rs)
+│   └── showcase-kiosk-dev/       make dev: any kiosk's screens joined to its applications (host only)
 ├── pds/                      the protection domains: a Cargo workspace on NoWayOS's nightly and rust-sel4
 │   ├── kiosk/                showcase-kiosk-stand-in, the reference kiosk's application PD: a library and a program
 │   ├── visitor/              showcase-visitor-stand-in, the visitor sign-in's application PD, on kiosk's library
@@ -40,17 +39,16 @@ showcase/
 │   ├── kiosk-ui/             showcase-kiosk-ui, its UI PD: a library and a program
 │   ├── showcase-ui/          showcase-ui, the showcase's UI PD, on kiosk-ui's library
 │   ├── screens-ui/           showcase-screens-ui, the kitchen sink's UI PD
-│   └── display/, input-broker/, uart-input/, usb-host/, timer/   NoWayOS's PDs, run from programs of Showcase's own
+│   └── display/, display-ramfb/, fan/, input-broker/, uart-input/, usb-host/, timer/, run-watchdog/,
+│       watchdog-stand-in/    NoWayOS's PDs, run from programs of Showcase's own
 ├── showcase/
 │   ├── showcase-app/        the showcase: the launcher and each example's bar in TSX, converted, and the UI
 │   │                            that opens each example and wipes it on Home or at a session's end
 │   ├── showcase-visitor/         the visitor sign-in: its screens in TSX, converted, its form and its example
-│   └── showcase-pump/            the pay at the pump: its screens in TSX, converted, its form and its example
+│   ├── showcase-pump/            the pay at the pump: its screens in TSX, converted, its form and its example
+│   └── showcase-dev/             make dev: the program for the showcase and for each example (host only)
 ├── systems/                  Microkit system descriptions, each with its .grants and .expect
-├── shared/                   code common to Showcase applications (empty; see its README)
-├── customer-profiles/        per-customer configuration (empty; see its README)
-├── tools/check-nowayos-rev   checks ../nowayos is at the commit nowayos.rev records
-├── tools/screens             the reference screens through Screen Compiler: checks or rewrites what is checked in
+├── tools/                    Showcase's own checks; see tools/README.md
 ├── nowayos.rev the NoWayOS commit Showcase is tested against
 ├── Cargo.toml                workspace: kiosk/*, showcase/*
 ├── Cargo.lock                committed; `make ci` checks with --locked
@@ -62,7 +60,7 @@ showcase/
 
 ## How Showcase uses NoWayOS
 
-Showcase depends on NoWayOS crates **by path, from a sibling clone**. Keep the `nowayos` repo beside this one, so one folder holds `nowayos/`, `screen-compiler/` and `showcase/`. The paths are set once, in `[workspace.dependencies]` in `Cargo.toml`. Today `nowayos-bounded`, `nowayos-display`, `nowayos-input`, `nowayos-ipc` and `nowayos-ui` are used (and `nowayos-glyphs`, the glyph atlases, in tests). The kiosk reference screens also use the `screen-compiler` clone beside this one, as a build-time tool only (`make screens`), at whatever commit is checked out there, which it prints; no Screen Compiler revision is recorded.
+Showcase depends on NoWayOS crates **by path, from a sibling clone**. Keep the `nowayos` repo beside this one, so one folder holds `nowayos/`, `screen-compiler/` and `showcase/`. The paths are set once, in `[workspace.dependencies]` in `Cargo.toml`. At run time `nowayos-bounded`, `nowayos-display`, `nowayos-input`, `nowayos-ipc` and `nowayos-ui` are used; the tests add `nowayos-glyphs`, `nowayos-render-eg` and `nowayos-testkit`; the host-only `make dev` crates add `nowayos-dev-window`. The kiosk reference screens also use the `screen-compiler` clone beside this one, as a build-time tool only (`make screens`), at whatever commit is checked out there, which it prints; no Screen Compiler revision is recorded.
 
 **Showcase builds against the NoWayOS commit recorded in `nowayos.rev`**. A path dependency alone builds against whatever is checked out in `../nowayos`, and `Cargo.lock` cannot record which, so `tools/check-nowayos-rev` checks the clone:
 
@@ -94,7 +92,7 @@ make fmt      # format the code
 make lint     # cargo fmt --check, then clippy on all targets with warnings denied
 make test     # unit, integration, property and doc tests
 make doc      # API docs, warnings as errors
-make nostd    # build every crate for aarch64-unknown-none (dev container only)
+make nostd    # build every crate but the host-only ones for aarch64-unknown-none (dev container only)
 make deny     # cargo-deny, then the local-crate check (dev container only)
 make sbom     # a CycloneDX SBOM per workspace in build/sbom/: showcase, showcase-pds, showcase-fuzz
               # (dev container only)
@@ -137,6 +135,8 @@ make unsafe-audit             # no unsafe code anywhere in Showcase
 make fuzz # the contract's decoders fuzzed, FUZZ_SECONDS (10) s each
 make std-crates-check         # the standard-library crates in the PDs (after qemu-test-all)
 ```
+
+`make` lists every target; [tools/README.md](tools/README.md) says what each does in full.
 
 All of them run in the dev container; add `IN=host` to run `fmt`, `lint`, `test`, `doc` or `clean` on the host instead. In a container shell (`make shell`) they run directly; on a host that has the `aarch64-unknown-none` target, cargo-deny and Python 3.11, `make nostd-local`, `make deny-local` and `make ci-local IN=host` run them there (without `IN=host`, `ci-local`'s lint, test and doc start the container).
 
