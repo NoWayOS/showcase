@@ -126,7 +126,7 @@ fn bind_app(app: usize) -> Result<AppRings, LoopError> {
 /// the reference kiosk's UI (`KioskUi::new`), or the showcase's - and runs
 /// its event loop, never returning. The glyph store's storage lives in this
 /// frame, as a PD has no heap: every system gives the UI PD a stack to hold
-/// it (`stack_size="0x600000"`).
+/// it (`stack_size="0x700000"`).
 pub fn init<D: KioskScreens>(make: fn(TextMetrics) -> Result<D, UiError>) -> NullHandler {
     debug_println!("SHOWCASE: ui: starting");
     let mut pixels = [0_u8; DEFAULT_BYTES];
