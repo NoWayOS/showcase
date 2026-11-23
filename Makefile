@@ -107,8 +107,8 @@ help:
 	@echo "               showcase-fuzz.cdx.json"
 	@echo "  make secrets scan the tree and every commit for keys and credentials, offline"
 	@echo "               (NoWayOS's tools/secrets-scan; reviewed false positives in secrets-allow.toml)"
-	@echo "  make screens the kiosk reference screens through Screen Compiler ($(SCREEN_COMPILER_DIR)): each converts,"
-	@echo "               or is refused, exactly as checked in ($(SCREENS_CRATES): src/generated, gaps.txt)"
+	@echo "  make screens the kiosk reference screens through Screen Compiler ($(SCREEN_COMPILER_DIR)): each converts"
+	@echo "               exactly as checked in ($(SCREENS_CRATES): src/generated); a refused screen fails"
 	@echo "  make screens-bless  rewrite them after a deliberate change; review the diff"
 	@echo "  make dev [APP=showcase|kiosk|visitor|pump]   the application running in a browser window on this"
 	@echo "               machine, http://localhost:$(DEV_PORT)/ (DEV_PORT=N): the Rust that goes on the device, built"
@@ -221,9 +221,9 @@ secrets-local: nowayos-check
 
 # The kiosk reference screens through Screen Compiler, by Screen Compiler's tools/screens:
 # `screen-compiler check` on every screen in each of $(SCREENS_CRATES), `screen-compiler
-# convert` on each it accepts, and both compared with what is checked in -
-# the generated Rust in src/generated (which make lint, test and nostd build
-# against the recorded NoWayOS) and the ranked gaps in gaps.txt. Screen Compiler is
+# convert` on each, and the Rust compared with what is checked in, in
+# src/generated (which make lint, test and nostd build against the recorded
+# NoWayOS); a screen Screen Compiler refuses fails it. Screen Compiler is
 # built from the clone beside showcase with its own Cargo.lock, and its commit
 # is printed: no Screen Compiler revision is recorded (as
 # screen-compiler records no NoWayOS revision). The screens are our own synthetic files: never point this at
@@ -298,7 +298,7 @@ screens-ci:
 	@if [ -f $(SCREEN_COMPILER_DIR)/Cargo.toml ]; then \
 		$(MAKE) --no-print-directory screens-local CARGO=$(CARGO); \
 	else \
-		echo "notice: no screen-compiler clone at $(SCREEN_COMPILER_DIR) - skipping the check that the kiosk reference screens convert, or are refused, as checked in; their generated Rust still builds"; \
+		echo "notice: no screen-compiler clone at $(SCREEN_COMPILER_DIR) - skipping the check that the kiosk reference screens convert as checked in; their generated Rust still builds"; \
 	fi
 
 # Showcase's images print nothing derived from what people type:
