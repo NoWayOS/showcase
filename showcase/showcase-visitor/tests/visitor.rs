@@ -21,7 +21,7 @@
     reason = "test code: a failed step fails the test"
 )]
 
-use nowayos_glyphs::REGULAR_24;
+use nowayos_glyphs::REGULAR;
 use nowayos_input::{InputEvent, KeyCode};
 use nowayos_ui::{NodeKind, TextMetrics};
 use showcase_kiosk_contract::{Action, EndReason, MAX_RECORD_LEN, Report, decode_action};
@@ -43,7 +43,7 @@ struct Desk {
 impl Desk {
     fn new() -> Self {
         Self {
-            ui: VisitorUi::new(TextMetrics::from_atlas(&REGULAR_24)).unwrap(),
+            ui: VisitorUi::new(TextMetrics::from_face(&REGULAR, 24 * 64)).unwrap(),
             app: KioskApp::with(&EXAMPLE, 5).unwrap(),
             now: 1_000,
             reports: Vec::new(),

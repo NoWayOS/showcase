@@ -21,7 +21,7 @@
 )]
 
 use nowayos_display::Rect;
-use nowayos_glyphs::{REGULAR_24, REGULAR_48};
+use nowayos_glyphs::REGULAR;
 use nowayos_input::{InputEvent, KeyCode, TouchPhase};
 use nowayos_ui::{ActionId, NodeKind, TextMetrics};
 use showcase_app::generated::launcher::launcher_screen as launcher;
@@ -58,7 +58,7 @@ struct Stand {
 impl Stand {
     fn new() -> Self {
         Self {
-            ui: Showcase::new(TextMetrics::from_atlas(&REGULAR_24)).unwrap(),
+            ui: Showcase::new(TextMetrics::from_face(&REGULAR, 24 * 64)).unwrap(),
             app: KioskApp::new(3).unwrap(),
             visitor: KioskApp::with(&showcase_visitor::EXAMPLE, 3).unwrap(),
             pump_app: KioskApp::with(&showcase_pump::EXAMPLE, 3).unwrap(),
@@ -611,7 +611,7 @@ fn each_example_shows_in_its_brand_and_home_restores_the_launchers() {
 fn the_launcher_and_the_service_desk_follow_the_displays_scale() {
     let window = Rect::new(0, 0, 1920, 1080);
     let mut stand = Stand::new();
-    let large = TextMetrics::from_atlas(&REGULAR_48)
+    let large = TextMetrics::from_face(&REGULAR, 48 * 64)
         .with_scale(nowayos_display::DeviceScale::TWO)
         .with_min_target(48);
     stand.ui.resize(window, large).unwrap();

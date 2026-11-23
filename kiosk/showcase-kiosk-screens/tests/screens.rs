@@ -8,7 +8,7 @@
 //! The kiosk's layout size is 800 x 480, where a screen must fit. Each
 //! screen is also laid out at 1920 x 1080, and as the Pi 5's monitor shows
 //! it, drawn at its own pixels: the 1920 x 1080 window at device
-//! scale 2 - a 960 x 540 screen - with each font's atlas twice the size,
+//! scale 2 - a 960 x 540 screen - with each font's text twice the size,
 //! and must fit there too.
 //! Each is checked as it is built - every group hidden and every slot empty -
 //! and as the application may show it: every group visible, every slot
@@ -162,7 +162,7 @@ fn an_error_line_takes_space_only_while_the_application_shows_it() {
     let (shown_nodes, shown_top) =
         last_top(&laid_out("step-text", *build, true, viewport, metrics));
     // Two error lines, each a slot: two more nodes showing, and the Next
-    // button two lines (24 px each, the 18 px atlas's) and two gaps (8 px)
+    // button two lines (24 px each, the 18 px face's) and two gaps (8 px)
     // lower.
     assert_eq!(shown_nodes, hidden_nodes + 2);
     assert_eq!(shown_top - hidden_top, 2 * (24 + 8));
