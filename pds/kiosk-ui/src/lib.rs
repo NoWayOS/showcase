@@ -9,7 +9,7 @@
 //! (`showcase_kiosk_screens::kiosk::KioskUi`); `showcase-ui` runs the
 //! showcase's launcher with the same PD.
 //!
-//! It is shaped as Showcase's kitchen sink UI PD is: `nowayos-ui-loop` does
+//! Its shape: `nowayos-ui-loop` does
 //! the display contract, the framebuffer it shares with the display PD, the
 //! renderer and the input ring from the broker; `showcase_kiosk_screens::
 //! kiosk::KioskUi` decides what to show. This file adds the two rings to

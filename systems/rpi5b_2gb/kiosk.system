@@ -7,7 +7,8 @@
     of the CPU's; and a USB host PD for each of RP1's two xHCI controllers
     (showcase-usb-host, NoWayOS's USB host PD), as NoWayOS's
     rpi5b_2gb/usb-test.system gives them - so a keyboard and mouse plugged
-    into the Pi drive the kiosk too, beside the Mac's terminal. The broker
+    into the Pi can drive the kiosk too, beside the Mac's terminal (not yet
+    tried on the board). The broker
     takes uart_input's ring as source 1, usb0's as 2 and usb1's as 3. The
     same application and UI: the display PD shows each frame at 2x, centred.
     The fan PD runs the Pi's active cooler, the timer's fifth client.

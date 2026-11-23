@@ -1017,17 +1017,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "showcase-screens-ui"
-version = "0.1.0"
-dependencies = [
- "nowayos-display",
- "nowayos-render-eg",
- "nowayos-ui-loop",
- "sel4-microkit",
- "showcase-kiosk-screens",
-]
-
-[[package]]
 name = "showcase-timer"
 version = "0.1.0"
 dependencies = [

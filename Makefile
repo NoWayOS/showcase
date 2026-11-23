@@ -128,7 +128,7 @@ help:
 	@echo "  make qemu-test-all             every systems/*.system"
 	@echo "  make pi-show PI_DEVICE=... SYSTEM=showcase PI_TYPE=1   on the host: the showcase's launcher on the Pi 5's HDMI,"
 	@echo "                                 driven by what you type here (NoWayOS's tools/pi-run; Ctrl-] stops typing);"
-	@echo "                                 SYSTEM=kiosk the reference kiosk alone, SYSTEM=kitchen-sink tours the screens"
+	@echo "                                 SYSTEM=kiosk the reference kiosk alone"
 	@echo "  make pi-run PI_DEVICE=... PI_SYSTEMS=showcase-tour   on the host: the whole showcase script in one"
 	@echo " 300 s board run, checked line by line"
 	@echo "  make image [SYSTEM=$(SYSTEM)]       only the image: build/BOARD/SYSTEM/loader.img"

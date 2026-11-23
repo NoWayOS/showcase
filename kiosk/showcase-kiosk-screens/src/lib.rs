@@ -19,9 +19,9 @@
 //!
 //! All ten convert. [`generated`] holds the Rust Screen Compiler writes
 //! for each, exactly as written, so the screens build here against NoWayOS's
-//! UI core at the revision Showcase records. [`sink`] tours the ten screens with their own
-//! buttons - the kitchen sink a UI protection domain can show. `make screens` runs Screen Compiler (from the screen-compiler clone beside
-//! showcase) on every screen and fails if either differs; `make
+//! UI core at the revision Showcase records. `make screens` runs Screen
+//! Compiler (from the screen-compiler clone beside showcase) on every
+//! screen and fails if one is refused or its Rust differs; `make
 //! screens-bless` rewrites them after a deliberate change.
 //!
 //! The reference kiosk puts the screens behind the kiosk flow:
@@ -46,5 +46,4 @@ pub mod app;
 pub mod form;
 pub mod generated;
 pub mod kiosk;
-pub mod sink;
 pub mod stand_in;

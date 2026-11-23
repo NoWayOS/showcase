@@ -16,7 +16,7 @@
 )]
 
 use nowayos_display::Rect;
-use nowayos_glyphs::REGULAR_24;
+use nowayos_glyphs::{REGULAR_24, REGULAR_48};
 use nowayos_input::{InputEvent, KeyCode};
 use nowayos_ui::{ActionId, NodeKind, SlotId, TextMetrics};
 use showcase_kiosk_contract::{
@@ -341,6 +341,40 @@ fn the_flow_drives_every_screen_and_a_retry_is_accepted() {
     assert_eq!(kiosk.screen(), "step-text");
     assert_eq!(kiosk.ui.tree().value(about_you::fields::NAME), Some(""));
     assert!(kiosk.ui.holds_nothing());
+}
+
+/// Once the display announces its layout, the kiosk is laid out there at
+/// the display's scale - the Pi 5's window at 2x - keeping what the screen
+/// holds, with every target at least 48 high, and every screen after it too.
+#[test]
+fn the_kiosk_follows_the_displays_layout_and_scale() {
+    let mut kiosk = Kiosk::new();
+    assert_eq!(kiosk.key(KeyCode::ENTER), ["Start"]);
+    assert_eq!(kiosk.screen(), "step-text");
+    kiosk.text("zqvj");
+    let window = Rect::new(0, 0, 1920, 1080);
+    let large = TextMetrics::from_atlas(&REGULAR_48)
+        .with_scale(nowayos_display::DeviceScale::TWO)
+        .with_min_target(48);
+    kiosk.ui.resize(window, large).unwrap();
+    let tree = kiosk.ui.tree();
+    assert_eq!(
+        (tree.viewport(), tree.scale()),
+        (window, nowayos_display::DeviceScale::TWO)
+    );
+    assert_eq!(tree.value(about_you::fields::NAME), Some("zqvj"));
+    for (_, node) in tree.paint_order() {
+        assert!(window.contains_rect(&node.rect()), "{:?}", node.rect());
+        if node.is_focusable() {
+            assert!(node.rect().size.height >= 48, "{:?}", node.kind());
+        }
+    }
+    kiosk.tabs(1);
+    kiosk.text(REFERENCE);
+    kiosk.tabs(2);
+    assert_eq!(kiosk.key(KeyCode::ENTER), ["Next"]);
+    assert_eq!(kiosk.screen(), "step-choice");
+    assert_eq!(kiosk.ui.tree().viewport(), window, "the next screen too");
 }
 
 #[test]

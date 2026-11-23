@@ -21,11 +21,8 @@ members = [
     "visitor",
     # and the pay at the pump's
     "pump",
-    # The kitchen sink on a screen: systems/kitchen-sink.system and its
-    # Pi 5 variant - the UI PD touring the ten kiosk reference screens, and
     # NoWayOS's display, input broker, UART input, USB host and timer PDs,
     # each run from a program of Showcase's own
-    "screens-ui",
     "display",
     "display-ramfb",
     "input-broker",
