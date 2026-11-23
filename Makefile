@@ -219,7 +219,7 @@ sbom-local: nowayos-check
 secrets-local: nowayos-check
 	$(PYTHON) ../nowayos/tools/secrets-scan --repo . --allow secrets-allow.toml
 
-# The kiosk reference screens through Screen Compiler, by tools/screens:
+# The kiosk reference screens through Screen Compiler, by Screen Compiler's tools/screens:
 # `screen-compiler check` on every screen in each of $(SCREENS_CRATES), `screen-compiler
 # convert` on each it accepts, and both compared with what is checked in -
 # the generated Rust in src/generated (which make lint, test and nostd build
@@ -254,7 +254,7 @@ preview-local: nowayos-check
 # The application in a browser window on the developer's machine: showcase-dev
 # (the showcase, or one example by itself, its screens joined to its
 # applications as their PDs join them), kept running by NoWayOS's
-# tools/dev-window, which converts a saved screen (tools/screens, as make
+# tools/dev-window, which converts a saved screen (Screen Compiler's tools/screens, as make
 # screens-bless does for its crate), builds again and starts it again where it
 # was. Built with the dev-window profile (Cargo.toml). In the container the
 # window listens on the container's addresses, and make dev publishes that
@@ -271,7 +271,7 @@ dev-local: nowayos-check
 		--build "$(CARGO) build --quiet --profile dev-window -p showcase-dev" \
 		--watch kiosk --watch showcase \
 		--check "sh -c 'if [ -f {crate}/pictures.names ]; then exec $(_dev_sc) check --pictures {crate}/pictures.names {file}; else exec $(_dev_sc) check {file}; fi'" \
-		--screens "$(PYTHON) tools/screens --screen-compiler $(_dev_sc) --bless --screens {crate}" \
+		--screens "$(PYTHON) $(SCREEN_COMPILER_DIR)/tools/screens --screen-compiler $(_dev_sc) --bless --screens {crate}" \
 		--port $(DEV_PORT) $(if $(NOWAYOS_CONTAINER),--all-addresses) --session build/dev/$(APP).session \
 		-- $(_dev_target)/dev-window/showcase-dev $(APP) $(DEV_ARGS)
 
@@ -281,14 +281,15 @@ dev-local: nowayos-check
 screens-local:
 	$(call screen_compiler_build)
 	@for crate in $(SCREENS_CRATES); do \
-		$(PYTHON) tools/screens --screen-compiler $(SCREEN_COMPILER_TARGET)/debug/screen-compiler --screens $$crate || exit 1; \
+		$(PYTHON) $(SCREEN_COMPILER_DIR)/tools/screens --screen-compiler $(SCREEN_COMPILER_TARGET)/debug/screen-compiler --screens $$crate \
+			|| { echo "make screens: if the change is deliberate, run make screens-bless and review the diff" >&2; exit 1; }; \
 	done
 	$(PYTHON) tools/gallery-coverage --screen-compiler $(SCREEN_COMPILER_TARGET)/debug/screen-compiler --tsx showcase/showcase-app/tsx
 
 screens-bless-local:
 	$(call screen_compiler_build)
 	@for crate in $(SCREENS_CRATES); do \
-		$(PYTHON) tools/screens --screen-compiler $(SCREEN_COMPILER_TARGET)/debug/screen-compiler --screens $$crate --bless || exit 1; \
+		$(PYTHON) $(SCREEN_COMPILER_DIR)/tools/screens --screen-compiler $(SCREEN_COMPILER_TARGET)/debug/screen-compiler --screens $$crate --bless || exit 1; \
 	done
 
 # In make ci: the screens check when a screen-compiler clone sits beside showcase;
