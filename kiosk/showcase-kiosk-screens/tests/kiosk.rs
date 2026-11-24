@@ -16,7 +16,7 @@
 )]
 
 use nowayos_display::Rect;
-use nowayos_glyphs::{REGULAR_24, REGULAR_48};
+use nowayos_glyphs::REGULAR;
 use nowayos_input::{InputEvent, KeyCode};
 use nowayos_ui::{ActionId, NodeKind, SlotId, TextMetrics};
 use showcase_kiosk_contract::{
@@ -52,7 +52,7 @@ struct Kiosk {
 impl Kiosk {
     fn new() -> Self {
         Self {
-            ui: KioskUi::new(TextMetrics::from_atlas(&REGULAR_24)).unwrap(),
+            ui: KioskUi::new(TextMetrics::from_face(&REGULAR, 24 * 64)).unwrap(),
             app: KioskApp::new(7).unwrap(),
             now: 1_000,
             reports: Vec::new(),
@@ -353,7 +353,7 @@ fn the_kiosk_follows_the_displays_layout_and_scale() {
     assert_eq!(kiosk.screen(), "step-text");
     kiosk.text("zqvj");
     let window = Rect::new(0, 0, 1920, 1080);
-    let large = TextMetrics::from_atlas(&REGULAR_48)
+    let large = TextMetrics::from_face(&REGULAR, 48 * 64)
         .with_scale(nowayos_display::DeviceScale::TWO)
         .with_min_target(48);
     kiosk.ui.resize(window, large).unwrap();
@@ -556,7 +556,7 @@ fn a_countdown_is_shown_only_where_one_counts_down_and_always_fits() {
     );
     let wide = kiosk.slot_rect(idle::slots::SECONDS_LEFT);
     assert!(
-        wide.size.width >= TextMetrics::from_atlas(&REGULAR_24).text_width("120"),
+        wide.size.width >= TextMetrics::from_face(&REGULAR, 24 * 64).text_width("120"),
         "{one:?} -> {wide:?}"
     );
 }

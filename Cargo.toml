@@ -25,7 +25,7 @@ nowayos-ipc = { path = "../nowayos/crates/nowayos-ipc", version = "=0.1.0" }
 nowayos-ui = { path = "../nowayos/crates/nowayos-ui", version = "=0.1.0" }
 nowayos-display = { path = "../nowayos/crates/nowayos-display", version = "=0.1.0" }
 nowayos-input = { path = "../nowayos/crates/nowayos-input", version = "=0.1.0" }
-# The glyph atlases (OFL-1.1), already in the graph through nowayos-ui:
+# The glyph outlines (OFL-1.1), already in the graph through nowayos-ui:
 # the screens' tests lay them out with both themes' fonts. Dev-dependency only.
 nowayos-glyphs = { path = "../nowayos/crates/nowayos-glyphs", version = "=0.1.0" }
 # The renderer and NoWayOS's test kit: the showcase's preview test draws its

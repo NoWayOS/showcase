@@ -48,7 +48,7 @@ unused-allowed-license = "allow"
 
 exceptions = [
     # outside house list - signed off: nowayos-glyphs, NoWayOS's glyph
-    # atlases, a Modified Version of the signed-off font, is OFL-1.1.
+    # outlines, a Modified Version of the signed-off font, is OFL-1.1.
     { crate = "nowayos-glyphs", allow = ["OFL-1.1"] },
 ]
 

@@ -125,7 +125,7 @@ fn every_gallery_screen_draws() {
 
 /// The showcase at its launcher, as the UI PD lays it out once the display
 /// announces the Pi 5's window: the light theme's metrics at scale 2 - its
-/// type scale from atlases twice the size, its buttons 56 units
+/// type scale at twice the size, its buttons 56 units
 /// high - which every brand's theme shares.
 fn fresh() -> Showcase {
     let theme = Theme::<Rgb888>::light();

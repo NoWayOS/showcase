@@ -11,7 +11,7 @@
     reason = "test code: a failed step fails the test"
 )]
 
-use nowayos_glyphs::REGULAR_24;
+use nowayos_glyphs::REGULAR;
 use nowayos_input::{InputEvent, KeyCode};
 use nowayos_ui::{NodeId, NodeKind, TextMetrics, Tree, UiError};
 use showcase_app::generated::launcher::launcher_screen as launcher;
@@ -55,7 +55,7 @@ struct Stand {
 impl Stand {
     fn new() -> Self {
         Self {
-            ui: Showcase::new(TextMetrics::from_atlas(&REGULAR_24)).unwrap(),
+            ui: Showcase::new(TextMetrics::from_face(&REGULAR, 24 * 64)).unwrap(),
             app: KioskApp::new(3).unwrap(),
             reports: Vec::new(),
         }
