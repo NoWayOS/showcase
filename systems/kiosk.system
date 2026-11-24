@@ -32,10 +32,21 @@
 
     In QEMU the terminal is QEMU's serial port, which kiosk.qmp types into;
     on the Pi 5 it is the Debug Probe's (make pi-show PI_TYPE=1, or make
-    pi-run, which types the same script), and a USB keyboard and mouse work
-    too (rpi5b_2gb/kiosk.system).
+    pi-run, which types the same script), and the Pi 5's variant takes a USB
+    keyboard and mouse too (rpi5b_2gb/kiosk.system; not yet tried on the
+    board).
 
-    Capabilities: as kitchen-sink.system's, and the two rings between the UI
+    Capabilities: the UI's regions, as NoWayOS's ui-demo.system gives its UI
+    PD (its rings with the display and its input ring from the broker; the
+    framebuffer, read-write in the UI and read-only in the display) - no
+    device, interrupt or physical address. The display holds only its side
+    of those rings and the framebuffer, read-only. The broker holds its two
+    rings and the screen's size (1920x1080, read-only configuration: the Pi 5's
+    window, drawn at its own pixels at device scale 2).
+    uart_input holds the debug UART's window, uncached and read-only, and its
+    facts, read-only - it reads the receive side only and writes nothing - its ring
+    to the broker, and a channel to the timer, which it calls. The timer
+    holds its interrupt. Then the two rings between the UI
     and the application - the actions (messages written by the UI only, the
     index by the application only) and the reports (the other way round) -
     with a channel each way. The application holds those rings and a channel
