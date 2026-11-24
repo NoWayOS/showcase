@@ -14,8 +14,12 @@ RUST_TARGET_PATH = { value = "../../nowayos/pds/support/targets", relative = tru
 target = "aarch64-sel4"
 
 # As NoWayOS's: rust-sel4 v5.0.0 builds its custom targets with these.
+# -Zmir-enable-passes=-SimplifyComparisonIntegral turns off the MIR pass that
+# silently miscompiles safe code in this nightly (rust-lang/rust#158206, fixed
+# upstream in June 2026). It goes when the PD nightly moves past the fix. It
+# must stay in this array: a RUSTFLAGS variable would replace it.
 [target.aarch64-sel4]
-rustflags = ["-Zunstable-options"]
+rustflags = ["-Zunstable-options", "-Zmir-enable-passes=-SimplifyComparisonIntegral"]
 
 [unstable]
 unstable-options = true
